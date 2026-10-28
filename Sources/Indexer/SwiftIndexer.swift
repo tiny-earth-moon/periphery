@@ -787,6 +787,9 @@ final class SwiftIndexer: Indexer {
                 }
             }
 
+            let isExplicitRead = occurrence.roles.contains(.read) && !occurrence.roles.contains(.implicit)
+            refs.forEach { $0.isExplicitRead = isExplicitRead }
+
             return refs
         }
 
