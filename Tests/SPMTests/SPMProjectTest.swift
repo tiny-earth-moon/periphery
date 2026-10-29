@@ -25,6 +25,9 @@ final class SPMProjectTest: SPMSourceGraphTestCase {
 
     func testLocalizedStrings() {
         assertReferenced(.localizedString("spm_used_key"))
+        assertReferenced(.localizedString("spm_ternary_first_key"))
+        assertReferenced(.localizedString("spm_ternary_second_key"))
+        assertReferenced(.localizedString("spm_ternary_third_key"))
         assertNotReferenced(.localizedString("spm_unused_key"))
     }
 }

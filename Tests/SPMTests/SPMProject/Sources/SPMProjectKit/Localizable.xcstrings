@@ -1,6 +1,15 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "spm_ternary_first_key" : {
+
+    },
+    "spm_ternary_second_key" : {
+
+    },
+    "spm_ternary_third_key" : {
+
+    },
     "spm_unused_key" : {
       "localizations" : {
         "en" : {

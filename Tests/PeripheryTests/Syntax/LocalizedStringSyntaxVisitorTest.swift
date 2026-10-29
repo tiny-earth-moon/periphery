@@ -252,6 +252,19 @@ final class LocalizedStringSyntaxVisitorTest: XCTestCase {
         ])
     }
 
+    func testDetectsNestedTernaryKeys() throws {
+        let usedKeys = try collectUsedStringKeys(from: """
+        String(localized: a ? "nested_first_key" : b ? "nested_second_key" : "nested_third_key")
+        NSLocalizedString(flag ? "ns_on_key" : (other ? "ns_inner_on_key" : "ns_inner_off_key"), comment: "")
+        String(localized: (a ? "paren_on_key" : "paren_off_key"))
+        """)
+
+        XCTAssertEqual(usedKeys, [
+            "nested_first_key", "nested_second_key", "nested_third_key", "ns_on_key", "ns_inner_on_key",
+            "ns_inner_off_key", "paren_on_key", "paren_off_key",
+        ])
+    }
+
     func testDetectsTypedArrayDictionaryAndTupleElements() throws {
         let usedKeys = try collectUsedStringKeys(from: """
         let array: [LocalizedStringResource] = ["array_key", "array_other_key"]
