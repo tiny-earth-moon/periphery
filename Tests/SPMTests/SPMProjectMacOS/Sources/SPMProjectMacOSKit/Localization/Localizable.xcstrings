@@ -41,6 +41,66 @@
         }
       }
     },
+    "mac_dynamic.alpha": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_dynamic.alpha"
+          }
+        }
+      }
+    },
+    "mac_dynamic.beta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_dynamic.beta"
+          }
+        }
+      }
+    },
+    "mac_interpolated_double_key %lf": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_interpolated_double_key %lf"
+          }
+        }
+      }
+    },
+    "mac_interpolated_int_key %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_interpolated_int_key %lld"
+          }
+        }
+      }
+    },
+    "mac_interpolated_string_key %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_interpolated_string_key %@"
+          }
+        }
+      }
+    },
+    "mac_interpolated_unused_key %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_interpolated_unused_key %@"
+          }
+        }
+      }
+    },
     "mac_label_key": {
       "localizations": {
         "en": {
@@ -121,12 +181,82 @@
         }
       }
     },
+    "mac_struct_image_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_struct_image_key"
+          }
+        }
+      }
+    },
+    "mac_struct_init_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_struct_init_key"
+          }
+        }
+      }
+    },
+    "mac_struct_trailing_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_struct_trailing_key"
+          }
+        }
+      }
+    },
+    "mac_switch_first_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_switch_first_key"
+          }
+        }
+      }
+    },
+    "mac_switch_second_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_switch_second_key"
+          }
+        }
+      }
+    },
     "mac_ternary_false_key": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "mac_ternary_false_key"
+          }
+        }
+      }
+    },
+    "mac_ternary_return_count_key %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_ternary_return_count_key %lld"
+          }
+        }
+      }
+    },
+    "mac_ternary_return_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_ternary_return_key"
           }
         }
       }
@@ -157,6 +287,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "mac_toggle_key"
+          }
+        }
+      }
+    },
+    "mac_typed_array_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_typed_array_key"
+          }
+        }
+      }
+    },
+    "mac_typed_dictionary_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_typed_dictionary_key"
+          }
+        }
+      }
+    },
+    "mac_typed_tuple_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_typed_tuple_key"
+          }
+        }
+      }
+    },
+    "mac_typed_tuple_symbol_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_typed_tuple_symbol_key"
           }
         }
       }

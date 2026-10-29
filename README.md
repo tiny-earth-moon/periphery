@@ -373,9 +373,11 @@ A key is considered used when a static string literal with the same value is:
 
 - Passed to a parameter of type `LocalizedStringKey`, `LocalizedStringResource`, `String.LocalizationValue`, `DisplayRepresentation` or `IntentDescription` (including optionals, arrays and variadics). The parameter type is resolved from the index store, so this covers SwiftUI initializers and modifiers (`Text`, `Button`, `Label`, `Toggle`, `Section`, `navigationTitle`, ...), `String(localized:)`, as well as your own functions and initializers. A literal passed to a plain `String` parameter (e.g. `Label("title", systemImage: "star")`'s `systemImage`) is not considered a key.
 - Passed to `NSLocalizedString`, `Bundle.localizedString(forKey:)`, `LocalizedStringKey(_:)`, `LocalizedStringResource(_:)` or `Text(_:)`, matched by name.
-- Assigned to, returned from, or used as the default value of a declaration annotated with one of the types above (e.g. `static let title: LocalizedStringResource = "key"`).
+- Assigned to, returned from, or used as the default value of a declaration annotated with one of the types above (e.g. `static let title: LocalizedStringResource = "key"`). Returned literals include the branches of `switch` and `if` statements or expressions, ternaries and closures of a function, computed property or closure whose return type is one of the types above. Elements of tuple, array and dictionary literals are matched against the element types of the declaration (e.g. only `"title"` in `let item: (LocalizedStringKey, String) = ("title", "star")`).
 
-When the called function cannot be resolved (e.g. calling a closure, an enum case constructor or an Objective-C method), the literals passed to it are conservatively considered keys. Ternaries and array literals of string literals are looked through.
+An interpolated literal is matched to the format key Foundation derives from it: `Text("Hello \(name)")` uses the key `Hello %@`. Since the type of the interpolated value is not known, each format specifier is treated as a wildcard, so the catalogue keys `Hello %@`, `Hello %lld` and `Hello %1$lf` are all considered used. A literal `%` in an interpolated literal is escaped as `%%`, as Foundation does.
+
+When the called function cannot be resolved (e.g. calling a closure, an enum case constructor or an Objective-C method), the literals passed to it are conservatively considered keys. Ternaries, tuple, array and dictionary literals, `if`/`switch` expressions and closure bodies are looked through.
 
 Catalogues matching the `--localized-string-catalog-exclude` globs (`localized_string_catalog_exclude` in `.periphery.yml`) are not analysed. By default `**/InfoPlist.xcstrings` and `**/AppShortcuts.xcstrings` are excluded, since their keys are consumed by the system rather than referenced from Swift source. Setting the option replaces the default list, so include these patterns if you add your own:
 
@@ -386,8 +388,16 @@ localized_string_catalog_exclude:
   - "**/DefaultCategories.xcstrings"
 ```
 
+Keys built at runtime (e.g. `String(localized: String.LocalizationValue("quickChat.\(id)"))`) can be declared with the `--localized-string-key-patterns` option (`localized_string_key_patterns` in `.periphery.yml`). Each pattern is either a glob, where `*` matches any characters and `?` a single character, or a regular expression between slashes. Patterns must match the whole key, and catalogue keys matching any of them are considered used:
+
+```yaml
+localized_string_key_patterns:
+  - "quickChat.*"
+  - "/^tier\.(gold|silver|bronze)\.label$/"
+```
+
 > [!NOTE]
-> Only static string literals are detected, and keys are matched regardless of the `table:`/`bundle:` arguments. Keys referenced through Xcode 26+ generated symbols (e.g. `Text(.myKey)`) are not yet detected. Interpolated literals (e.g. `Text("Hello \(name)")`, whose key is `Hello %@`) and dynamic keys (e.g., `String(localized: variable)`) cannot be matched to a catalogue key and may result in false positives. Keep such keys in a dedicated catalogue excluded with `localized_string_catalog_exclude`, or, where possible, refactor dynamic keys to use conditional expressions with static literals:
+> Only string literals are detected, and keys are matched regardless of the `table:`/`bundle:` arguments. Keys referenced through Xcode 26+ generated symbols (e.g. `Text(.myKey)`) are not yet detected. Dynamic keys (e.g., `String(localized: variable)`) cannot be matched to a catalogue key and may result in false positives. Declare them with `localized_string_key_patterns`, keep them in a dedicated catalogue excluded with `localized_string_catalog_exclude`, or, where possible, refactor dynamic keys to use conditional expressions with static literals:
 > ```swift
 > var message: String {
 >     if condition {
