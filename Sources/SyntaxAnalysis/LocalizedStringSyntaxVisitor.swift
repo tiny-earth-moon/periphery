@@ -8,6 +8,7 @@ import SwiftSyntax
 /// - `usedStringKeys` holds keys that are known to be used from syntax alone:
 ///   - `NSLocalizedString("key", ...)`, `String(localized: "key", ...)`, `LocalizedStringKey("key")`,
 ///     `LocalizedStringResource("key", ...)`, `Text("key")` and `Bundle.localizedString(forKey: "key", ...)`.
+///   - AppIntents `@Parameter(title:)` / `@Property(title:)` attribute arguments.
 ///   - Literals assigned to, returned from, or used as the default value of a declaration whose type is a
 ///     localized type (e.g. `let title: LocalizedStringResource = "key"`).
 ///   - Literals passed to a call whose callee cannot be located syntactically (conservatively retained).
@@ -21,6 +22,15 @@ public final class LocalizedStringSyntaxVisitor: PeripherySyntaxVisitor {
         "LocalizationValue",
         "DisplayRepresentation",
         "IntentDescription",
+        "IntentDialog",
+        "ParameterSummaryString",
+        "AppShortcutPhrase",
+    ]
+
+    /// AppIntents property wrappers whose arguments take a localization key as a string literal.
+    private static let localizedAttributeNames: Set = ["Parameter", "Property"]
+    private static let localizedAttributeLabels: Set = [
+        "title", "description", "requestValueDialog", "requestConfirmationDialog", "requestDisambiguationDialog",
     ]
 
     public private(set) var usedStringKeys: Set<String> = []
@@ -39,6 +49,20 @@ public final class LocalizedStringSyntaxVisitor: PeripherySyntaxVisitor {
     public func visit(_ node: FunctionCallExprSyntax) {
         collectKnownCallKeys(node)
         collectCallSite(node)
+    }
+
+    /// `@Parameter(title: "key")` is an attribute rather than a call, so it is invisible to call site resolution.
+    public func visit(_ node: AttributeSyntax) {
+        guard let name = node.attributeName.as(IdentifierTypeSyntax.self)?.name.text,
+              Self.localizedAttributeNames.contains(name),
+              case let .argumentList(arguments) = node.arguments
+        else { return }
+
+        for argument in arguments {
+            guard let label = argument.label?.text, Self.localizedAttributeLabels.contains(label) else { continue }
+
+            insertLiteral(argument.expression)
+        }
     }
 
     public func visit(_ node: VariableDeclSyntax) {
