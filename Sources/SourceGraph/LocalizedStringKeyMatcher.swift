@@ -1,11 +1,12 @@
 import Foundation
+import Shared
 
 /// Matches String Catalog keys against the keys used in source.
 ///
 /// A catalogue key is used when it equals a used key, or when both contain format specifiers and are equal once
 /// each specifier is treated as a wildcard. The latter matches interpolated literals, whose specifiers depend on
 /// the types of the interpolated values (e.g. `"Hello \(name)"` is used as `Hello %@` and matches `Hello %@` as
-/// well as `Hello %lld`).
+/// well as `Hello %lld`). A catalogue key matching one of the configured patterns of dynamic keys is also used.
 struct LocalizedStringKeyMatcher {
     private static let specifierPlaceholder: Character = "\u{0}"
     private static let flagCharacters = Set("-+ #0'")
@@ -14,10 +15,19 @@ struct LocalizedStringKeyMatcher {
 
     private let usedKeys: Set<String>
     private let usedFormatSkeletons: Set<String>
+    private let patterns: [NSRegularExpression]
 
-    init(usedKeys: Set<String>) {
+    /// - Parameter patterns: Keys used dynamically, each either a glob (`*` matches any characters, `?` a single
+    ///   character) or a regular expression between slashes (`/^quickChat\.[a-z]+$/`). Both must match the whole
+    ///   key.
+    init(usedKeys: Set<String>, patterns: [String] = []) throws {
         self.usedKeys = usedKeys
         usedFormatSkeletons = Set(usedKeys.compactMap(Self.formatSkeleton(of:)))
+        self.patterns = try patterns.map(Self.regularExpression(forPattern:))
+    }
+
+    var isEmpty: Bool {
+        usedKeys.isEmpty && patterns.isEmpty
     }
 
     func matches(_ key: String) -> Bool {
@@ -25,9 +35,32 @@ struct LocalizedStringKeyMatcher {
             return true
         }
 
-        guard !usedFormatSkeletons.isEmpty, let skeleton = Self.formatSkeleton(of: key) else { return false }
+        if !usedFormatSkeletons.isEmpty, let skeleton = Self.formatSkeleton(of: key), usedFormatSkeletons.contains(skeleton) {
+            return true
+        }
 
-        return usedFormatSkeletons.contains(skeleton)
+        let range = NSRange(key.startIndex..., in: key)
+        return patterns.contains { $0.firstMatch(in: key, range: range) != nil }
+    }
+
+    static func regularExpression(forPattern pattern: String) throws -> NSRegularExpression {
+        let expression: String = if pattern.count > 1, pattern.hasPrefix("/"), pattern.hasSuffix("/") {
+            String(pattern.dropFirst().dropLast())
+        } else {
+            pattern.map { character -> String in
+                switch character {
+                case "*": ".*"
+                case "?": "."
+                default: NSRegularExpression.escapedPattern(for: String(character))
+                }
+            }.joined()
+        }
+
+        do {
+            return try NSRegularExpression(pattern: "^(?:\(expression))$")
+        } catch {
+            throw PeripheryError.usageError("Invalid localized_string_key_patterns entry '\(pattern)': \(error.localizedDescription)")
+        }
     }
 
     /// The key with each format specifier replaced by a placeholder, or nil when the key has no specifier.

@@ -2,15 +2,15 @@
 import XCTest
 
 final class LocalizedStringKeyMatcherTest: XCTestCase {
-    func testMatchesExactKeys() {
-        let matcher = LocalizedStringKeyMatcher(usedKeys: ["title"])
+    func testMatchesExactKeys() throws {
+        let matcher = try LocalizedStringKeyMatcher(usedKeys: ["title"])
 
         XCTAssertTrue(matcher.matches("title"))
         XCTAssertFalse(matcher.matches("subtitle"))
     }
 
-    func testMatchesStringInterpolationWithAnySpecifier() {
-        let matcher = LocalizedStringKeyMatcher(usedKeys: ["Hello %@"])
+    func testMatchesStringInterpolationWithAnySpecifier() throws {
+        let matcher = try LocalizedStringKeyMatcher(usedKeys: ["Hello %@"])
 
         XCTAssertTrue(matcher.matches("Hello %@"))
         XCTAssertTrue(matcher.matches("Hello %lld"))
@@ -18,27 +18,50 @@ final class LocalizedStringKeyMatcherTest: XCTestCase {
         XCTAssertFalse(matcher.matches("Hello %@ %@"))
     }
 
-    func testMatchesIntegerInterpolation() {
-        let matcher = LocalizedStringKeyMatcher(usedKeys: ["hud.ammo.value %@"])
+    func testMatchesIntegerInterpolation() throws {
+        let matcher = try LocalizedStringKeyMatcher(usedKeys: ["hud.ammo.value %@"])
 
         XCTAssertTrue(matcher.matches("hud.ammo.value %lld"))
         XCTAssertTrue(matcher.matches("hud.ammo.value %1$lld"))
         XCTAssertFalse(matcher.matches("hud.ammo.empty"))
     }
 
-    func testMatchesDoubleInterpolation() {
-        let matcher = LocalizedStringKeyMatcher(usedKeys: ["%@ km away"])
+    func testMatchesDoubleInterpolation() throws {
+        let matcher = try LocalizedStringKeyMatcher(usedKeys: ["%@ km away"])
 
         XCTAssertTrue(matcher.matches("%lf km away"))
         XCTAssertTrue(matcher.matches("%.2f km away"))
         XCTAssertFalse(matcher.matches("%lf miles away"))
     }
 
-    func testKeepsEscapedPercentLiteral() {
-        let matcher = LocalizedStringKeyMatcher(usedKeys: ["%@%% done"])
+    func testKeepsEscapedPercentLiteral() throws {
+        let matcher = try LocalizedStringKeyMatcher(usedKeys: ["%@%% done"])
 
         XCTAssertTrue(matcher.matches("%lld%% done"))
         XCTAssertFalse(matcher.matches("%lld%@ done"))
+    }
+
+    func testMatchesGlobPatterns() throws {
+        let matcher = try LocalizedStringKeyMatcher(usedKeys: [], patterns: ["quickChat.*", "pose.?.label"])
+
+        XCTAssertTrue(matcher.matches("quickChat.hello"))
+        XCTAssertTrue(matcher.matches("quickChat."))
+        XCTAssertTrue(matcher.matches("pose.a.label"))
+        XCTAssertFalse(matcher.matches("pose.ab.label"))
+        XCTAssertFalse(matcher.matches("menu.quickChat.hello"))
+        XCTAssertFalse(matcher.matches("quickChatTitle"))
+    }
+
+    func testMatchesRegularExpressionPatterns() throws {
+        let matcher = try LocalizedStringKeyMatcher(usedKeys: [], patterns: ["/tier\\.(gold|silver)\\.label/"])
+
+        XCTAssertTrue(matcher.matches("tier.gold.label"))
+        XCTAssertFalse(matcher.matches("tier.bronze.label"))
+        XCTAssertFalse(matcher.matches("tier.gold.label.hint"))
+    }
+
+    func testRejectsInvalidRegularExpressionPattern() {
+        XCTAssertThrowsError(try LocalizedStringKeyMatcher(usedKeys: [], patterns: ["/tier.(/"]))
     }
 
     func testFormatSkeleton() {

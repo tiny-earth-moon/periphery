@@ -5,17 +5,20 @@ import Shared
 /// Retains localized string declarations from xcstrings files that are used in Swift source code.
 final class LocalizedStringRetainer: SourceGraphMutator {
     private let graph: SourceGraph
+    private let configuration: Configuration
 
-    required init(graph: SourceGraph, configuration _: Configuration, swiftVersion _: SwiftVersion) {
+    required init(graph: SourceGraph, configuration: Configuration, swiftVersion _: SwiftVersion) {
         self.graph = graph
+        self.configuration = configuration
     }
 
-    func mutate() {
-        let usedKeys = graph.usedLocalizedStringKeys
+    func mutate() throws {
+        let matcher = try LocalizedStringKeyMatcher(
+            usedKeys: graph.usedLocalizedStringKeys,
+            patterns: configuration.localizedStringKeyPatterns
+        )
 
-        guard !usedKeys.isEmpty else { return }
-
-        let matcher = LocalizedStringKeyMatcher(usedKeys: usedKeys)
+        guard !matcher.isEmpty else { return }
 
         for declaration in graph.declarations(ofKind: .localizedString) where matcher.matches(declaration.name) {
             graph.markRetained(declaration)

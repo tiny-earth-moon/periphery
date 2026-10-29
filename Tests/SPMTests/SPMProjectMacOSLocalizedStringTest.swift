@@ -62,11 +62,30 @@
             assertNotReferenced(.localizedString("mac_plain_string_param_key"))
             assertNotReferenced(.localizedString("mac_label_system_image_key"))
             assertNotReferenced(.localizedString("mac_unused_key"))
+            assertNotReferenced(.localizedString("mac_dynamic.alpha"))
         }
 
         func testExcludesInfoPlistAndAppShortcutsCatalogsByDefault() {
             assertNotIndexed(.localizedString("NSCameraUsageDescription"))
             assertNotIndexed(.localizedString("mac_shortcut_phrase"))
+        }
+    }
+
+    final class SPMProjectMacOSLocalizedStringKeyPatternsTest: SPMSourceGraphTestCase {
+        override static func setUp() {
+            super.setUp()
+
+            let configuration = Configuration()
+            configuration.localizedStringKeyPatterns = ["mac_dynamic.*"]
+            configuration.buildFilenameMatchers()
+            build(projectPath: SPMProjectMacOSPath)
+            index(configuration: configuration)
+        }
+
+        func testRetainsKeysMatchingDynamicPatterns() {
+            assertReferenced(.localizedString("mac_dynamic.alpha"))
+            assertReferenced(.localizedString("mac_dynamic.beta"))
+            assertNotReferenced(.localizedString("mac_unused_key"))
         }
     }
 

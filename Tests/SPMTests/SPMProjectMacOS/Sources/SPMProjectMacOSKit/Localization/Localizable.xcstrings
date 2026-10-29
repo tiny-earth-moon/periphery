@@ -41,6 +41,26 @@
         }
       }
     },
+    "mac_dynamic.alpha": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_dynamic.alpha"
+          }
+        }
+      }
+    },
+    "mac_dynamic.beta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_dynamic.beta"
+          }
+        }
+      }
+    },
     "mac_interpolated_double_key %lf": {
       "localizations": {
         "en": {

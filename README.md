@@ -388,8 +388,16 @@ localized_string_catalog_exclude:
   - "**/DefaultCategories.xcstrings"
 ```
 
+Keys built at runtime (e.g. `String(localized: String.LocalizationValue("quickChat.\(id)"))`) can be declared with the `--localized-string-key-patterns` option (`localized_string_key_patterns` in `.periphery.yml`). Each pattern is either a glob, where `*` matches any characters and `?` a single character, or a regular expression between slashes. Patterns must match the whole key, and catalogue keys matching any of them are considered used:
+
+```yaml
+localized_string_key_patterns:
+  - "quickChat.*"
+  - "/^tier\.(gold|silver|bronze)\.label$/"
+```
+
 > [!NOTE]
-> Only string literals are detected, and keys are matched regardless of the `table:`/`bundle:` arguments. Keys referenced through Xcode 26+ generated symbols (e.g. `Text(.myKey)`) are not yet detected. Dynamic keys (e.g., `String(localized: variable)`) cannot be matched to a catalogue key and may result in false positives. Keep them in a dedicated catalogue excluded with `localized_string_catalog_exclude`, or, where possible, refactor dynamic keys to use conditional expressions with static literals:
+> Only string literals are detected, and keys are matched regardless of the `table:`/`bundle:` arguments. Keys referenced through Xcode 26+ generated symbols (e.g. `Text(.myKey)`) are not yet detected. Dynamic keys (e.g., `String(localized: variable)`) cannot be matched to a catalogue key and may result in false positives. Declare them with `localized_string_key_patterns`, keep them in a dedicated catalogue excluded with `localized_string_catalog_exclude`, or, where possible, refactor dynamic keys to use conditional expressions with static literals:
 > ```swift
 > var message: String {
 >     if condition {
