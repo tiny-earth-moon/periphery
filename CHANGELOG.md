@@ -12,6 +12,22 @@
 
 - None.
 
+## 3.11.0 (2026-10-29)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- Interpolated string literals in localized positions (`"Hello \(name)"`) are now matched to their String Catalog format keys (`%@`, `%lld`, `%lf`), the catalogue key being the reference. Closes #61.
+- Literals returned from `switch`/`if` expressions, functions, computed properties and closures typed `LocalizedStringKey`/`LocalizedStringResource`/`String.LocalizationValue`, as well as ternaries, labeled struct initializer arguments and typed array/tuple elements, are now retained as key usages. Closes #61.
+- New `localized_string_key_patterns` option (globs or `/regex/`) to declare keys built at runtime (e.g. `quickChat.*`) as used; documented in the README. Closes #61.
+
+##### Bug Fixes
+
+- None.
+
 ## 3.10.0 (2026-10-29)
 
 ##### Breaking
