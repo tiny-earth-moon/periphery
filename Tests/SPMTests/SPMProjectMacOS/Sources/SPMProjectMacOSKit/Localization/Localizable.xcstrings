@@ -41,6 +41,46 @@
         }
       }
     },
+    "mac_interpolated_double_key %lf": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_interpolated_double_key %lf"
+          }
+        }
+      }
+    },
+    "mac_interpolated_int_key %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_interpolated_int_key %lld"
+          }
+        }
+      }
+    },
+    "mac_interpolated_string_key %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_interpolated_string_key %@"
+          }
+        }
+      }
+    },
+    "mac_interpolated_unused_key %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_interpolated_unused_key %@"
+          }
+        }
+      }
+    },
     "mac_label_key": {
       "localizations": {
         "en": {

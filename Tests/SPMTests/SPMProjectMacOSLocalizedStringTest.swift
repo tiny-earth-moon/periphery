@@ -34,6 +34,13 @@
             assertReferenced(.localizedString("mac_default_value_key"))
         }
 
+        func testRetainsInterpolatedKeys() {
+            assertReferenced(.localizedString("mac_interpolated_string_key %@"))
+            assertReferenced(.localizedString("mac_interpolated_int_key %lld"))
+            assertReferenced(.localizedString("mac_interpolated_double_key %lf"))
+            assertNotReferenced(.localizedString("mac_interpolated_unused_key %@"))
+        }
+
         func testDoesNotRetainKeysPassedToStringParameters() {
             assertNotReferenced(.localizedString("mac_plain_string_param_key"))
             assertNotReferenced(.localizedString("mac_label_system_image_key"))

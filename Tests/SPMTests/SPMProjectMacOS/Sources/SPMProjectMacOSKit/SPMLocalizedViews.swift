@@ -5,6 +5,9 @@ import SwiftUI
 public struct SPMLocalizedView: View {
     @State private var isOn = false
     private let isPrimary = true
+    private let name = "name"
+    private let count = 3
+    private let ratio = 0.5
 
     public init() {}
 
@@ -19,6 +22,9 @@ public struct SPMLocalizedView: View {
                     Text(isPrimary ? "mac_ternary_true_key" : "mac_ternary_false_key")
                     SPMCustomRow(title: "mac_custom_init_key")
                     SPMCustomRow()
+                    Text("mac_interpolated_string_key \(name)")
+                    Button("mac_interpolated_int_key \(count)") {}
+                    Text("mac_interpolated_double_key \(ratio)")
                 }
             }
             .navigationTitle("mac_navigation_title_key")

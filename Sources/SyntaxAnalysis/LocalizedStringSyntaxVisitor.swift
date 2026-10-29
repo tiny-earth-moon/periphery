@@ -154,17 +154,70 @@ public final class LocalizedStringSyntaxVisitor: PeripherySyntaxVisitor {
 
     private func insertLiteral(_ expression: ExprSyntax) {
         if let stringLiteral = expression.as(StringLiteralExprSyntax.self),
-           let key = stringLiteral.representedLiteralValue
+           let key = Self.localizationKey(of: stringLiteral)
         {
             usedStringKeys.insert(key)
         }
     }
 
-    /// Static string literals that an expression may evaluate to, looking through parentheses, ternaries and
-    /// array literals. String interpolations are ignored since they can't be matched to static keys.
+    /// The catalogue key of a string literal. An interpolated literal maps to the format key Foundation derives
+    /// from it: each interpolation becomes a format specifier (`%lld` for an integer literal, `%lf` for a
+    /// floating-point literal, the `specifier:` argument when given, `%@` otherwise) and a literal `%` is escaped
+    /// as `%%`. Since the type of an interpolated value is unknown, catalogue keys are matched against interpolated
+    /// keys with each specifier treated as a wildcard.
+    static func localizationKey(of literal: StringLiteralExprSyntax) -> String? {
+        if let value = literal.representedLiteralValue {
+            return value
+        }
+
+        var key = ""
+
+        for segment in literal.segments {
+            switch segment {
+            case let .stringSegment(stringSegment):
+                let segmentLiteral = literal.with(\.segments, [.stringSegment(stringSegment)])
+                guard let value = segmentLiteral.representedLiteralValue else { return nil }
+
+                key += value.replacingOccurrences(of: "%", with: "%%")
+            case let .expressionSegment(expressionSegment):
+                key += formatSpecifier(for: expressionSegment)
+            }
+        }
+
+        return key
+    }
+
+    private static func formatSpecifier(for segment: ExpressionSegmentSyntax) -> String {
+        if let specifier = segment.expressions.first(where: { $0.label?.text == "specifier" }),
+           let literal = specifier.expression.as(StringLiteralExprSyntax.self),
+           let value = literal.representedLiteralValue
+        {
+            return value
+        }
+
+        guard segment.expressions.count == 1, let expression = segment.expressions.first?.expression else { return "%@" }
+
+        var value = expression
+        if let prefix = value.as(PrefixOperatorExprSyntax.self) {
+            value = prefix.expression
+        }
+
+        if value.is(IntegerLiteralExprSyntax.self) {
+            return "%lld"
+        }
+
+        if value.is(FloatLiteralExprSyntax.self) {
+            return "%lf"
+        }
+
+        return "%@"
+    }
+
+    /// String literals that an expression may evaluate to, looking through parentheses, ternaries and array
+    /// literals. Interpolated literals are normalized to their format key.
     private func literalKeys(in expression: ExprSyntax) -> [String] {
         if let stringLiteral = expression.as(StringLiteralExprSyntax.self) {
-            return stringLiteral.representedLiteralValue.map { [$0] } ?? []
+            return Self.localizationKey(of: stringLiteral).map { [$0] } ?? []
         }
 
         if let tuple = expression.as(TupleExprSyntax.self), tuple.elements.count == 1, let element = tuple.elements.first {
@@ -207,7 +260,7 @@ private final class ReturnedLiteralCollector: SyntaxVisitor {
     }
 
     override func visit(_ node: StringLiteralExprSyntax) -> SyntaxVisitorContinueKind {
-        if let key = node.representedLiteralValue {
+        if let key = LocalizedStringSyntaxVisitor.localizationKey(of: node) {
             keys.insert(key)
         }
         return .skipChildren

@@ -59,6 +59,7 @@ swift_library(
         "SourceGraph/Elements/ProjectFileKind.swift",
         "SourceGraph/Elements/Reference.swift",
         "SourceGraph/Elements/SourceFile.swift",
+        "SourceGraph/LocalizedStringKeyMatcher.swift",
         "SourceGraph/Mutators/AccessibilityCascader.swift",
         "SourceGraph/Mutators/AncestralReferenceEliminator.swift",
         "SourceGraph/Mutators/AppIntentsRetainer.swift",

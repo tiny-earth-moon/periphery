@@ -58,13 +58,18 @@ final class LocalizedStringSyntaxVisitorTest: XCTestCase {
         XCTAssertEqual(usedKeys, ["bundle_key"])
     }
 
-    func testIgnoresStringInterpolations() throws {
-        let usedKeys = try collectUsedStringKeys(from: """
-        let name = "World"
-        let greeting = NSLocalizedString("hello \\(name)", comment: "")
-        """)
+    func testNormalizesStringInterpolationsToFormatKeys() throws {
+        let usedKeys = try collectUsedStringKeys(from: ##"""
+        let greeting = NSLocalizedString("hello \(name)", comment: "")
+        Text("count \(42) items")
+        Text("ratio \(0.5) and \(-3)")
+        Text("progress \(value, specifier: "%.1f") at 100%")
+        Text(#"raw \#(name) \n"#)
+        """##)
 
-        XCTAssertEqual(usedKeys, [])
+        XCTAssertEqual(usedKeys, [
+            "hello %@", "count %lld items", "ratio %lf and %lld", "progress %.1f at 100%%", #"raw %@ \n"#,
+        ])
     }
 
     func testMultipleKeys() throws {

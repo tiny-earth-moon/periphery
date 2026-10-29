@@ -15,7 +15,9 @@ final class LocalizedStringRetainer: SourceGraphMutator {
 
         guard !usedKeys.isEmpty else { return }
 
-        for declaration in graph.declarations(ofKind: .localizedString) where usedKeys.contains(declaration.name) {
+        let matcher = LocalizedStringKeyMatcher(usedKeys: usedKeys)
+
+        for declaration in graph.declarations(ofKind: .localizedString) where matcher.matches(declaration.name) {
             graph.markRetained(declaration)
         }
     }
