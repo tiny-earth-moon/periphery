@@ -46,7 +46,7 @@ public final class LocalizedStringSyntaxVisitor: PeripherySyntaxVisitor {
             guard let type = binding.typeAnnotation?.type, Self.isLocalizedType(type.trimmedDescription) else { continue }
 
             if let value = binding.initializer?.value {
-                usedStringKeys.formUnion(literalKeys(in: value))
+                usedStringKeys.formUnion(literalKeys(in: value, ofType: type))
             }
 
             if let accessorBlock = binding.accessorBlock {
@@ -86,8 +86,49 @@ public final class LocalizedStringSyntaxVisitor: PeripherySyntaxVisitor {
                   let value = parameter.defaultValue?.value
             else { continue }
 
-            usedStringKeys.formUnion(literalKeys(in: value))
+            usedStringKeys.formUnion(literalKeys(in: value, ofType: parameter.type))
         }
+    }
+
+    /// String literals of an expression that initialize a value of a localized type, matching tuple, array and
+    /// dictionary literals against the corresponding element types of `type` (e.g. only the first element of
+    /// `("key", "symbol")` for `(LocalizedStringKey, String)`).
+    private func literalKeys(in expression: ExprSyntax, ofType type: TypeSyntax) -> [String] {
+        if let optional = type.as(OptionalTypeSyntax.self) {
+            return literalKeys(in: expression, ofType: optional.wrappedType)
+        }
+
+        if let optional = type.as(ImplicitlyUnwrappedOptionalTypeSyntax.self) {
+            return literalKeys(in: expression, ofType: optional.wrappedType)
+        }
+
+        if let tupleType = type.as(TupleTypeSyntax.self) {
+            if tupleType.elements.count == 1, let element = tupleType.elements.first {
+                return literalKeys(in: expression, ofType: element.type)
+            }
+
+            if let tuple = expression.as(TupleExprSyntax.self), tuple.elements.count == tupleType.elements.count {
+                return zip(tuple.elements, tupleType.elements).flatMap { literalKeys(in: $0.expression, ofType: $1.type) }
+            }
+        }
+
+        if let arrayType = type.as(ArrayTypeSyntax.self), let array = expression.as(ArrayExprSyntax.self) {
+            return array.elements.flatMap { literalKeys(in: $0.expression, ofType: arrayType.element) }
+        }
+
+        if let dictionaryType = type.as(DictionaryTypeSyntax.self),
+           let dictionary = expression.as(DictionaryExprSyntax.self)
+        {
+            guard case let .elements(elements) = dictionary.content else { return [] }
+
+            return elements.flatMap {
+                literalKeys(in: $0.key, ofType: dictionaryType.key) + literalKeys(in: $0.value, ofType: dictionaryType.value)
+            }
+        }
+
+        guard Self.isLocalizedType(type.trimmedDescription) else { return [] }
+
+        return literalKeys(in: expression)
     }
 
     private func collectCallSite(_ node: FunctionCallExprSyntax) {
@@ -153,11 +194,7 @@ public final class LocalizedStringSyntaxVisitor: PeripherySyntaxVisitor {
     }
 
     private func insertLiteral(_ expression: ExprSyntax) {
-        if let stringLiteral = expression.as(StringLiteralExprSyntax.self),
-           let key = Self.localizationKey(of: stringLiteral)
-        {
-            usedStringKeys.insert(key)
-        }
+        usedStringKeys.formUnion(literalKeys(in: expression))
     }
 
     /// The catalogue key of a string literal. An interpolated literal maps to the format key Foundation derives
@@ -213,15 +250,17 @@ public final class LocalizedStringSyntaxVisitor: PeripherySyntaxVisitor {
         return "%@"
     }
 
-    /// String literals that an expression may evaluate to, looking through parentheses, ternaries and array
-    /// literals. Interpolated literals are normalized to their format key.
+    /// String literals that an expression may evaluate to, looking through parentheses, ternaries, tuple, array and
+    /// dictionary literals, `if`/`switch` expressions and closure bodies. Interpolated literals are normalized to
+    /// their format key.
     private func literalKeys(in expression: ExprSyntax) -> [String] {
         if let stringLiteral = expression.as(StringLiteralExprSyntax.self) {
             return Self.localizationKey(of: stringLiteral).map { [$0] } ?? []
         }
 
-        if let tuple = expression.as(TupleExprSyntax.self), tuple.elements.count == 1, let element = tuple.elements.first {
-            return literalKeys(in: element.expression)
+        if let tuple = expression.as(TupleExprSyntax.self) {
+            // A parenthesized expression, or a tuple whose element types are given by the receiving declaration.
+            return tuple.elements.flatMap { literalKeys(in: $0.expression) }
         }
 
         if let ternary = expression.as(TernaryExprSyntax.self) {
@@ -242,6 +281,28 @@ public final class LocalizedStringSyntaxVisitor: PeripherySyntaxVisitor {
 
         if let array = expression.as(ArrayExprSyntax.self) {
             return array.elements.flatMap { literalKeys(in: $0.expression) }
+        }
+
+        if let dictionary = expression.as(DictionaryExprSyntax.self),
+           case let .elements(elements) = dictionary.content
+        {
+            return elements.flatMap { literalKeys(in: $0.key) + literalKeys(in: $0.value) }
+        }
+
+        // Expressions whose value is the literal returned from a body: `if`/`switch` expressions, closures and
+        // immediately applied closures.
+        if expression.is(IfExprSyntax.self) || expression.is(SwitchExprSyntax.self) {
+            return ReturnedLiteralCollector.collect(in: expression).sorted()
+        }
+
+        if let closure = expression.as(ClosureExprSyntax.self) {
+            return ReturnedLiteralCollector.collect(in: closure.statements).sorted()
+        }
+
+        if let call = expression.as(FunctionCallExprSyntax.self), call.arguments.isEmpty,
+           let closure = call.calledExpression.as(ClosureExprSyntax.self)
+        {
+            return ReturnedLiteralCollector.collect(in: closure.statements).sorted()
         }
 
         return []

@@ -8,6 +8,7 @@ public struct SPMLocalizedView: View {
     private let name = "name"
     private let count = 3
     private let ratio = 0.5
+    @ObservedObject private var model = SPMLocalizedModel()
 
     public init() {}
 
@@ -25,9 +26,34 @@ public struct SPMLocalizedView: View {
                     Text("mac_interpolated_string_key \(name)")
                     Button("mac_interpolated_int_key \(count)") {}
                     Text("mac_interpolated_double_key \(ratio)")
+                    SPMLockNote(model: model, messageKey: "mac_struct_init_key")
+                    SPMPanelButton(title: "mac_struct_trailing_key", systemImage: "mac_struct_image_key") {}
                 }
             }
             .navigationTitle("mac_navigation_title_key")
+        }
+    }
+}
+
+final class SPMLocalizedModel: ObservableObject {}
+
+struct SPMLockNote: View {
+    @ObservedObject var model: SPMLocalizedModel
+    let messageKey: LocalizedStringKey
+
+    var body: some View {
+        Text(messageKey)
+    }
+}
+
+struct SPMPanelButton: View {
+    let title: LocalizedStringKey
+    let systemImage: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Label(title, systemImage: systemImage)
         }
     }
 }
@@ -49,6 +75,21 @@ public enum SPMLocalizedStrings {
 
     public static var returnedResource: LocalizedStringResource {
         "mac_returned_resource_key"
+    }
+
+    public static let typedArray: [LocalizedStringResource] = ["mac_typed_array_key"]
+    public static let typedDictionary: [Int: LocalizedStringResource] = [1: "mac_typed_dictionary_key"]
+    public static let typedTuple: (LocalizedStringResource, String) = ("mac_typed_tuple_key", "mac_typed_tuple_symbol_key")
+
+    public static func switchKey(_ isFirst: Bool) -> LocalizedStringKey {
+        switch isFirst {
+        case true: "mac_switch_first_key"
+        case false: "mac_switch_second_key"
+        }
+    }
+
+    public static func ternaryKey(_ count: Int) -> LocalizedStringKey {
+        count == 0 ? "mac_ternary_return_key" : "mac_ternary_return_count_key \(count)"
     }
 
     public static func resource(_ resource: LocalizedStringResource) -> String {

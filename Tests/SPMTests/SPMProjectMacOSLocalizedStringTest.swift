@@ -41,6 +41,23 @@
             assertNotReferenced(.localizedString("mac_interpolated_unused_key %@"))
         }
 
+        func testRetainsReturnedKeys() {
+            assertReferenced(.localizedString("mac_switch_first_key"))
+            assertReferenced(.localizedString("mac_switch_second_key"))
+            assertReferenced(.localizedString("mac_ternary_return_key"))
+            assertReferenced(.localizedString("mac_ternary_return_count_key %lld"))
+        }
+
+        func testRetainsTypedCollectionAndStructInitKeys() {
+            assertReferenced(.localizedString("mac_typed_array_key"))
+            assertReferenced(.localizedString("mac_typed_dictionary_key"))
+            assertReferenced(.localizedString("mac_typed_tuple_key"))
+            assertReferenced(.localizedString("mac_struct_init_key"))
+            assertReferenced(.localizedString("mac_struct_trailing_key"))
+            assertNotReferenced(.localizedString("mac_typed_tuple_symbol_key"))
+            assertNotReferenced(.localizedString("mac_struct_image_key"))
+        }
+
         func testDoesNotRetainKeysPassedToStringParameters() {
             assertNotReferenced(.localizedString("mac_plain_string_param_key"))
             assertNotReferenced(.localizedString("mac_label_system_image_key"))
