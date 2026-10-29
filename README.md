@@ -396,6 +396,11 @@ localized_string_key_patterns:
   - "/^tier\.(gold|silver|bronze)\.label$/"
 ```
 
+Codebases that pass keys around as plain `String` values (e.g. `titleKey: String`, a `switch` returning a `String` key, tuples) can enable the `--localized-string-key-literal-match` option (`localized_string_key_literal_match: true` in `.periphery.yml`, disabled by default). Any string literal in the source whose value, after decoding escapes, equals a catalogue key then marks that key as used, whatever its type or position. Literals with interpolation are not considered, and test targets are skipped when `--exclude-tests` is set.
+
+> [!WARNING]
+> Matching is by value only, so an incidental literal (e.g. `"title"`, `"OK"`) that happens to equal a dead key hides it. Prefer typing keys as `LocalizedStringResource` (or `LocalizedStringKey`), which Periphery detects precisely, and reserve this option for code that cannot be migrated.
+
 > [!NOTE]
 > Only string literals are detected, and keys are matched regardless of the `table:`/`bundle:` arguments. Keys referenced through Xcode 26+ generated symbols (e.g. `Text(.myKey)`) are not yet detected. Dynamic keys (e.g., `String(localized: variable)`) cannot be matched to a catalogue key and may result in false positives. Declare them with `localized_string_key_patterns`, keep them in a dedicated catalogue excluded with `localized_string_catalog_exclude`, or, where possible, refactor dynamic keys to use conditional expressions with static literals:
 > ```swift

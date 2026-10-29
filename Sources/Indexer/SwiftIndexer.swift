@@ -306,6 +306,14 @@ final class SwiftIndexer: Indexer {
 
             if let localizedStringSyntaxVisitor {
                 collectUsedLocalizedStringKeys(using: localizedStringSyntaxVisitor)
+
+                if configuration.localizedStringKeyLiteralMatch {
+                    let literals = StringLiteralCollector.collect(from: multiplexingSyntaxVisitor.syntax)
+
+                    if !literals.isEmpty {
+                        graph.withLock { $0.addUsedLocalizedStringKeys(literals) }
+                    }
+                }
             }
 
             associateLatentReferences()

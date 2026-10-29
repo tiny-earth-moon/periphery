@@ -32,6 +32,7 @@ swift_library(
         "SyntaxAnalysis/PlatformConditionalNameCollector.swift",
         "SyntaxAnalysis/SourceLOCCounter.swift",
         "SyntaxAnalysis/SourceLocationBuilder.swift",
+        "SyntaxAnalysis/StringLiteralCollector.swift",
         "SyntaxAnalysis/TypeSyntaxInspector.swift",
         "SyntaxAnalysis/UnusedParameterAnalyzer.swift",
         "SyntaxAnalysis/UnusedParameterParser.swift",

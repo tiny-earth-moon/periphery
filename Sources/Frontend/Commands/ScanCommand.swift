@@ -80,6 +80,9 @@ struct ScanCommand: ParsableCommand {
     @Option(parsing: .upToNextOption, help: "Localized string key patterns (globs, or regular expressions between slashes) of keys used dynamically, retained from String Catalogs (xcstrings)")
     var localizedStringKeyPatterns: [String] = defaultConfiguration.$localizedStringKeyPatterns.defaultValue
 
+    @Flag(help: "Retain localized string keys equal to any string literal of the source, whatever its type or position")
+    var localizedStringKeyLiteralMatch: Bool = defaultConfiguration.$localizedStringKeyLiteralMatch.defaultValue
+
     @Option(parsing: .upToNextOption, help: "Names of unused imported modules to retain")
     var retainUnusedImportedModules: [String] = defaultConfiguration.$retainUnusedImportedModules.defaultValue
 
@@ -219,6 +222,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$disableUnusedLocalizedStringAnalysis, disableUnusedLocalizedStringAnalysis)
         configuration.apply(\.$localizedStringCatalogExclude, localizedStringCatalogExclude)
         configuration.apply(\.$localizedStringKeyPatterns, localizedStringKeyPatterns)
+        configuration.apply(\.$localizedStringKeyLiteralMatch, localizedStringKeyLiteralMatch)
         configuration.apply(\.$retainUnusedImportedModules, retainUnusedImportedModules)
         configuration.apply(\.$externalEncodableProtocols, externalEncodableProtocols)
         configuration.apply(\.$externalCodableProtocols, externalCodableProtocols)
