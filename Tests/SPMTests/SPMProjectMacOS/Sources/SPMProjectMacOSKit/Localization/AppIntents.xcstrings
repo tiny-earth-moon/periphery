@@ -1,0 +1,126 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "mac_ai_case_subtitle_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_ai_case_subtitle_key"
+          }
+        }
+      }
+    },
+    "mac_ai_case_title_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_ai_case_title_key"
+          }
+        }
+      }
+    },
+    "mac_ai_dialog_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_ai_dialog_key"
+          }
+        }
+      }
+    },
+    "mac_ai_intent_description_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_ai_intent_description_key"
+          }
+        }
+      }
+    },
+    "mac_ai_intent_title_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_ai_intent_title_key"
+          }
+        }
+      }
+    },
+    "mac_ai_param_flag_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_ai_param_flag_key"
+          }
+        }
+      }
+    },
+    "mac_ai_param_name_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_ai_param_name_key"
+          }
+        }
+      }
+    },
+    "mac_ai_shortcut_title_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_ai_shortcut_title_key"
+          }
+        }
+      }
+    },
+    "mac_ai_summary_otherwise_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_ai_summary_otherwise_key"
+          }
+        }
+      }
+    },
+    "mac_ai_summary_when_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_ai_summary_when_key"
+          }
+        }
+      }
+    },
+    "mac_ai_type_name_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_ai_type_name_key"
+          }
+        }
+      }
+    },
+    "mac_ai_unused_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mac_ai_unused_key"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
