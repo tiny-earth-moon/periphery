@@ -12,6 +12,22 @@
 
 - None.
 
+## 3.12.0 (2026-10-29)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- New opt-in `localized_string_key_literal_match` option (`--localized-string-key-literal-match`): any non-interpolated string literal equal to a String Catalog key marks that key as used, whatever its type or position, for code bases that carry keys as `String`. The README documents the collision risk and recommends `LocalizedStringResource`. Closes #66.
+- AppIntents localized literals are now detected: `ParameterSummaryString` (`Summary`, `When`/`otherwise`), `IntentDialog`, `AppShortcutPhrase`, and the `@Parameter`/`@Property` attribute arguments (`title`, `description`, request dialogs). Closes #68.
+- Regression tests pin that escaped characters (`\"`, `\t`, `\\`, `\u{…}`, multi-line and raw literals) in catalogue keys are matched by their decoded value. Closes #64.
+
+##### Bug Fixes
+
+- None.
+
 ## 3.11.0 (2026-10-29)
 
 ##### Breaking
