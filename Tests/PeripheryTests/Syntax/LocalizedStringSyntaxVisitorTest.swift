@@ -93,6 +93,66 @@ final class LocalizedStringSyntaxVisitorTest: XCTestCase {
         XCTAssertEqual(usedKeys, ["line_one\nline_two", "quoted \"key\"", #"raw\key"#])
     }
 
+    func testResolvesEscapedQuotesInKeysWithFormatSpecifiers() throws {
+        let usedKeys = try collectUsedStringKeys(from: #"""
+        String(format: String(localized: "You categorized %@ as \"%@\" %d times. Create an automatic rule?"), locale: .current, a, b, c)
+        """#)
+
+        XCTAssertEqual(usedKeys, [#"You categorized %@ as "%@" %d times. Create an automatic rule?"#])
+    }
+
+    func testResolvesEscapedQuotesInInterpolatedKeys() throws {
+        let usedKeys = try collectUsedStringKeys(from: #"""
+        String(localized: "Rule \"\(name)\" applied \(count) times")
+        """#)
+
+        XCTAssertEqual(usedKeys, [#"Rule "%@" applied %@ times"#])
+    }
+
+    func testResolvesTabAndBackslashEscapes() throws {
+        let usedKeys = try collectUsedStringKeys(from: #"""
+        Text("col\tone")
+        Text("path\\to")
+        Text("path\\\(name)\\end")
+        Text("tab\t\(name)")
+        """#)
+
+        XCTAssertEqual(usedKeys, ["col\tone", #"path\to"#, #"path\%@\end"#, "tab\t%@"])
+    }
+
+    func testResolvesUnicodeEscapes() throws {
+        let usedKeys = try collectUsedStringKeys(from: #"""
+        Text("caf\u{E9} \u{1F600}")
+        Text("caf\u{E9} \(name)")
+        """#)
+
+        XCTAssertEqual(usedKeys, ["caf\u{E9} \u{1F600}", "caf\u{E9} %@"])
+    }
+
+    func testResolvesMultilineStrings() throws {
+        let usedKeys = try collectUsedStringKeys(from: #"""
+        Text("""
+            first \"line\"
+              second\tline
+            """)
+        Text("""
+            first \(name)
+            second "line"
+            """)
+        """#)
+
+        XCTAssertEqual(usedKeys, ["first \"line\"\n  second\tline", "first %@\nsecond \"line\""])
+    }
+
+    func testResolvesRawStringEscapes() throws {
+        let usedKeys = try collectUsedStringKeys(from: ##"""
+        Text(#"raw "quoted" \n \#(name)"#)
+        Text(#"raw \#n \#"x\#" \#(name)"#)
+        """##)
+
+        XCTAssertEqual(usedKeys, [#"raw "quoted" \n %@"#, "raw \n \"x\" %@"])
+    }
+
     func testIgnoresTextVerbatim() throws {
         let usedKeys = try collectUsedStringKeys(from: """
         Text(verbatim: "not_a_key")
