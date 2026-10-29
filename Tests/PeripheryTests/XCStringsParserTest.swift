@@ -29,6 +29,30 @@ final class XCStringsParserTest: XCTestCase {
         XCTAssertEqual(keys, ["hello_world", "goodbye", "welcome_message"])
     }
 
+    func testDecodesEscapedCharactersInKeys() throws {
+        let xcstringsContent = #"""
+        {
+          "sourceLanguage": "en",
+          "strings": {
+            "You categorized %@ as \"%@\" %d times. Create an automatic rule?": {},
+            "tab\there\nnext": {},
+            "back\\slash": {},
+            "caf\u00e9": {},
+            "You categorized %@ as \\": {}
+          }
+        }
+        """#
+
+        let keys = try parseXCStrings(xcstringsContent)
+        XCTAssertEqual(keys, [
+            #"You categorized %@ as "%@" %d times. Create an automatic rule?"#,
+            "tab\there\nnext",
+            #"back\slash"#,
+            "caf\u{E9}",
+            #"You categorized %@ as \"#,
+        ])
+    }
+
     func testParsesEmptyStrings() throws {
         let xcstringsContent = """
         {

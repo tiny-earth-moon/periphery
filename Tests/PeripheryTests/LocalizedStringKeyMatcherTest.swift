@@ -2,6 +2,14 @@
 import XCTest
 
 final class LocalizedStringKeyMatcherTest: XCTestCase {
+    func testMatchesKeysWithQuotesAndFormatSpecifiers() throws {
+        let key = #"You categorized %@ as "%@" %d times. Create an automatic rule?"#
+        let matcher = try LocalizedStringKeyMatcher(usedKeys: [key])
+
+        XCTAssertTrue(matcher.matches(key))
+        XCTAssertFalse(matcher.matches(#"You categorized %@ as \"#))
+    }
+
     func testMatchesExactKeys() throws {
         let matcher = try LocalizedStringKeyMatcher(usedKeys: ["title"])
 
