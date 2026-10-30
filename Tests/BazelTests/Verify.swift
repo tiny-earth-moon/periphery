@@ -107,7 +107,7 @@ func verify(_ fixtureSpec: Fixture, repository: URL) throws {
     do {
         let unusedResults = temporary.appendingPathComponent("unused.json")
         report("Scanning \(fixtureSpec.name) with its unused declaration.")
-        let unusedStatus = try scan(in: fixture, results: unusedResults, log: unusedLog)
+        let unusedStatus = try scan(in: fixture, results: unusedResults, log: unusedLog, bazelQuery: fixtureSpec.bazelQuery)
         let unusedNames = try names(in: unusedResults)
         guard unusedStatus == 1, unusedNames == fixtureSpec.expectedNames else {
             throw VerificationError.failed("Expected exit 1 and \(fixtureSpec.expectedNames); received exit \(unusedStatus), \(unusedNames). Log: \(unusedLog.path)")
@@ -131,7 +131,7 @@ func verify(_ fixtureSpec: Fixture, repository: URL) throws {
         }
         let cleanResults = temporary.appendingPathComponent("clean.json")
         report("Scanning the fixture after removing its unused declaration.")
-        let cleanStatus = try scan(in: fixture, results: cleanResults, log: cleanLog)
+        let cleanStatus = try scan(in: fixture, results: cleanResults, log: cleanLog, bazelQuery: fixtureSpec.bazelQuery)
         let cleanNames = try names(in: cleanResults)
         guard cleanStatus == 0, cleanNames.isEmpty else {
             throw VerificationError.failed("Expected exit 0 without findings; received exit \(cleanStatus), \(cleanNames). Log: \(cleanLog.path)")
@@ -154,7 +154,7 @@ func verify(_ fixtureSpec: Fixture, repository: URL) throws {
             let catalogPath = fixture.appendingPathComponent(catalog)
             try "{".write(to: catalogPath, atomically: true, encoding: .utf8)
             let catalogResults = temporary.appendingPathComponent("catalog.json")
-            let catalogStatus = try scan(in: fixture, results: catalogResults, log: catalogLog)
+            let catalogStatus = try scan(in: fixture, results: catalogResults, log: catalogLog, bazelQuery: fixtureSpec.bazelQuery)
             let catalogOutput = try String(contentsOf: catalogLog, encoding: .utf8)
             guard catalogStatus != 0, catalogOutput.contains("Failed to read String Catalog") else {
                 throw VerificationError.failed("The scan must report the invalid String Catalog. Log: \(catalogLog.path)")
@@ -196,7 +196,7 @@ do {
         Fixture(
             name: "the Apple applications",
             source: repository.appendingPathComponent("Tests/BazelAppleTests/Fixture"),
-            files: ["MODULE.bazel", "BUILD.bazel", "Sources", "Private", "IOS", "TVOS", "WatchOS", "VisionOS", "EmbeddedFramework", "EmbeddedService", "Info.plist", "Info-iOS.plist", "Localizable.xcstrings"],
+            files: ["MODULE.bazel", "BUILD.bazel", "Sources", "Private", "IOS", "TVOS", "WatchOS", "VisionOS", "EmbeddedFramework", "EmbeddedService", "Info.plist", "Info-iOS.plist", "Localizable.xcstrings", "First.xib", "Second.xib"],
             unusedFiles: ["Sources/Unused.swift", "Private/Unused.swift", "IOS/Unused.swift", "TVOS/Unused.swift", "WatchOS/Unused.swift", "VisionOS/Unused.swift", "EmbeddedFramework/Unused.swift", "EmbeddedService/Unused.swift"],
             expectedNames: ["unusedEmbeddedFrameworkControl()", "unusedEmbeddedServiceControl()", "unusedGreeting()", "unusedIOSGreeting()", "unusedPrivateGreeting()", "unusedTVOSControl()", "unusedVisionOSControl()", "unusedWatchOSControl()"],
             catalog: "Localizable.xcstrings",
