@@ -140,7 +140,7 @@ func verifyModelFiles(fixture: URL, temporary: URL) throws {
     report("The scan retained references from uppercase model directories and files.")
 }
 
-func verify(_ fixtureSpec: Fixture, repository: URL) throws {
+func verify(_ fixtureSpec: Fixture, repository: URL, cache: URL) throws {
     let manager = FileManager.default
     let temporary = manager.temporaryDirectory.appendingPathComponent("periphery-bazel-\(UUID().uuidString)")
     let fixture = temporary.appendingPathComponent("Fixture")
@@ -156,6 +156,10 @@ func verify(_ fixtureSpec: Fixture, repository: URL) throws {
         at: repository.appendingPathComponent(".bazelversion"),
         to: fixture.appendingPathComponent(".bazelversion")
     )
+    let cachePath = cache.path.replacingOccurrences(of: "\\", with: "\\\\")
+        .replacingOccurrences(of: "\"", with: "\\\"")
+    try "build --disk_cache=\"\(cachePath)\"\n"
+        .write(to: fixture.appendingPathComponent(".bazelrc"), atomically: true, encoding: .utf8)
 
     let module = fixture.appendingPathComponent("MODULE.bazel")
     let source = try String(contentsOf: module, encoding: .utf8)
@@ -297,9 +301,24 @@ do {
             testMissingModelFiles: true
         ),
     ]
-    for fixture in fixtures {
-        try verify(fixture, repository: repository)
+    let manager = FileManager.default
+    let cache = manager.temporaryDirectory.appendingPathComponent("periphery-bazel-cache-\(UUID().uuidString)")
+    try manager.createDirectory(at: cache, withIntermediateDirectories: false)
+    do {
+        for fixture in fixtures {
+            let start = Date()
+            try verify(fixture, repository: repository, cache: cache)
+            report("\(fixture.name) completed in \(Int(Date().timeIntervalSince(start))) seconds.")
+        }
+    } catch let verificationError {
+        do {
+            try manager.removeItem(at: cache)
+        } catch let cleanupError {
+            throw VerificationError.failed("\(verificationError)\nCould not remove Bazel cache \(cache.path): \(cleanupError)")
+        }
+        throw verificationError
     }
+    try manager.removeItem(at: cache)
 } catch {
     FileHandle.standardError.write(Data("\(error)\n".utf8))
     exit(1)
