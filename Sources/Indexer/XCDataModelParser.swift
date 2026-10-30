@@ -4,22 +4,23 @@ import SourceGraph
 import SystemPackage
 
 final class XCDataModelParser {
-    private let path: FilePath
+    private let input: ModelInput
 
-    required init(path: FilePath) {
-        self.path = path
+    required init(input: ModelInput) {
+        self.input = input
     }
 
     func parse() throws -> [AssetReference] {
-        if path.lastComponent?.string == "contents" {
-            return try parseContents(at: path)
-        }
+        switch input {
+        case let .file(path):
+            try parseContents(at: path)
+        case let .directory(path):
+            try FileManager.default.contentsOfDirectory(atPath: path.string).flatMap { subPath -> [AssetReference] in
+                let modelPath = path.appending(subPath)
+                guard modelPath.extension == "xcdatamodel" else { return [] }
 
-        return try FileManager.default.contentsOfDirectory(atPath: path.string).flatMap { subPath -> [AssetReference] in
-            let modelPath = path.appending(subPath)
-            guard modelPath.extension == "xcdatamodel" else { return [] }
-
-            return try parseContents(at: modelPath.appending("contents"))
+                return try parseContents(at: modelPath.appending("contents"))
+            }
         }
     }
 

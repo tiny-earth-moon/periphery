@@ -15,6 +15,7 @@ struct Fixture {
     let catalog: String?
     let targetedQuery: String?
     let targetedNames: [String]
+    let testMissingModelFiles: Bool
 }
 
 enum VerificationError: Error, CustomStringConvertible {
@@ -107,7 +108,7 @@ func verify(_ fixtureSpec: Fixture, repository: URL) throws {
     do {
         let unusedResults = temporary.appendingPathComponent("unused.json")
         report("Scanning \(fixtureSpec.name) with its unused declaration.")
-        let unusedStatus = try scan(in: fixture, results: unusedResults, log: unusedLog, bazelQuery: fixtureSpec.bazelQuery)
+        let unusedStatus = try scan(in: fixture, results: unusedResults, log: unusedLog)
         let unusedNames = try names(in: unusedResults)
         guard unusedStatus == 1, unusedNames == fixtureSpec.expectedNames else {
             throw VerificationError.failed("Expected exit 1 and \(fixtureSpec.expectedNames); received exit \(unusedStatus), \(unusedNames). Log: \(unusedLog.path)")
@@ -131,7 +132,7 @@ func verify(_ fixtureSpec: Fixture, repository: URL) throws {
         }
         let cleanResults = temporary.appendingPathComponent("clean.json")
         report("Scanning the fixture after removing its unused declaration.")
-        let cleanStatus = try scan(in: fixture, results: cleanResults, log: cleanLog, bazelQuery: fixtureSpec.bazelQuery)
+        let cleanStatus = try scan(in: fixture, results: cleanResults, log: cleanLog)
         let cleanNames = try names(in: cleanResults)
         guard cleanStatus == 0, cleanNames.isEmpty else {
             throw VerificationError.failed("Expected exit 0 without findings; received exit \(cleanStatus), \(cleanNames). Log: \(cleanLog.path)")
@@ -150,11 +151,43 @@ func verify(_ fixtureSpec: Fixture, repository: URL) throws {
             report("The app-only clean scan returned 0 without findings.")
         }
 
+        if fixtureSpec.testMissingModelFiles {
+            for (kind, path) in [
+                ("xcdatamodels", "Missing.xcdatamodeld/Missing.xcdatamodel/contents"),
+                ("xcmappingmodels", "Missing.xcmappingmodel/xcmapping.xml"),
+            ] {
+                let missingPath = temporary.appendingPathComponent(path).path
+                let config: [String: [String]] = [
+                    "indexstores": [], "plists": [], "xibs": [],
+                    "xcdatamodels": kind == "xcdatamodels" ? [missingPath] : [],
+                    "xcmappingmodels": kind == "xcmappingmodels" ? [missingPath] : [],
+                    "test_targets": [],
+                ]
+                let configPath = temporary.appendingPathComponent("\(kind).json")
+                try JSONSerialization.data(withJSONObject: config).write(to: configPath)
+                let log = temporary.appendingPathComponent("\(kind).log")
+                guard manager.createFile(atPath: log.path, contents: nil) else {
+                    throw VerificationError.failed("Could not create \(log.path)")
+                }
+
+                let status = try run(
+                    ["run", "@periphery", "--", "scan", "--generic-project-config", configPath.path, "--disable-update-check"],
+                    in: fixture,
+                    log: log
+                )
+                let output = try String(contentsOf: log, encoding: .utf8)
+                guard status == 1, output.contains("failedToParse"), output.contains(missingPath) else {
+                    throw VerificationError.failed("The scan must report the missing model file \(missingPath). Log: \(log.path)")
+                }
+            }
+            report("The scan reported both missing model files.")
+        }
+
         if let catalog = fixtureSpec.catalog {
             let catalogPath = fixture.appendingPathComponent(catalog)
             try "{".write(to: catalogPath, atomically: true, encoding: .utf8)
             let catalogResults = temporary.appendingPathComponent("catalog.json")
-            let catalogStatus = try scan(in: fixture, results: catalogResults, log: catalogLog, bazelQuery: fixtureSpec.bazelQuery)
+            let catalogStatus = try scan(in: fixture, results: catalogResults, log: catalogLog)
             let catalogOutput = try String(contentsOf: catalogLog, encoding: .utf8)
             guard catalogStatus != 0, catalogOutput.contains("Failed to read String Catalog") else {
                 throw VerificationError.failed("The scan must report the invalid String Catalog. Log: \(catalogLog.path)")
@@ -191,7 +224,8 @@ do {
             expectedNames: ["unusedGreeting()"],
             catalog: nil,
             targetedQuery: nil,
-            targetedNames: []
+            targetedNames: [],
+            testMissingModelFiles: false
         ),
         Fixture(
             name: "the Apple applications",
@@ -201,7 +235,8 @@ do {
             expectedNames: ["unusedEmbeddedFrameworkControl()", "unusedEmbeddedServiceControl()", "unusedGreeting()", "unusedIOSGreeting()", "unusedPrivateGreeting()", "unusedTVOSControl()", "unusedVisionOSControl()", "unusedWatchOSControl()"],
             catalog: "Localizable.xcstrings",
             targetedQuery: "//:app",
-            targetedNames: ["unusedEmbeddedFrameworkControl()", "unusedEmbeddedServiceControl()", "unusedGreeting()", "unusedPrivateGreeting()"]
+            targetedNames: ["unusedEmbeddedFrameworkControl()", "unusedEmbeddedServiceControl()", "unusedGreeting()", "unusedPrivateGreeting()"],
+            testMissingModelFiles: false
         ),
         Fixture(
             name: "the macOS application with Core Data models",
@@ -209,7 +244,10 @@ do {
             files: ["MODULE.bazel", "BUILD.bazel", "Sources", "Info.plist", "First.xcdatamodeld", "Second.xcdatamodeld", "ModelMapping.xcmappingmodel"],
             unusedFiles: ["Sources/Unused.swift"],
             expectedNames: ["unusedGreeting()"],
-            catalog: nil
+            catalog: nil,
+            targetedQuery: nil,
+            targetedNames: [],
+            testMissingModelFiles: true
         ),
     ]
     for fixture in fixtures {

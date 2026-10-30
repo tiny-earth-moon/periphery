@@ -6,11 +6,10 @@ import SystemPackage
 final class XCMappingModelParser {
     private let path: FilePath
 
-    required init(path: FilePath) {
-        if path.lastComponent?.string == "xcmapping.xml" {
-            self.path = path
-        } else {
-            self.path = path.appending("xcmapping.xml")
+    required init(input: ModelInput) {
+        switch input {
+        case let .file(path): self.path = path
+        case let .directory(path): self.path = path.appending("xcmapping.xml")
         }
     }
 
