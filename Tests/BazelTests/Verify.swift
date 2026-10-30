@@ -203,6 +203,14 @@ do {
             targetedQuery: "//:app",
             targetedNames: ["unusedEmbeddedFrameworkControl()", "unusedEmbeddedServiceControl()", "unusedGreeting()", "unusedPrivateGreeting()"]
         ),
+        Fixture(
+            name: "the macOS application with Core Data models",
+            source: repository.appendingPathComponent("Tests/BazelCoreDataTests/Fixture"),
+            files: ["MODULE.bazel", "BUILD.bazel", "Sources", "Info.plist", "First.xcdatamodeld", "Second.xcdatamodeld", "ModelMapping.xcmappingmodel"],
+            unusedFiles: ["Sources/Unused.swift"],
+            expectedNames: ["unusedGreeting()"],
+            catalog: nil
+        ),
     ]
     for fixture in fixtures {
         try verify(fixture, repository: repository)

@@ -11,20 +11,28 @@ final class XCDataModelParser {
     }
 
     func parse() throws -> [AssetReference] {
-        try FileManager.default.contentsOfDirectory(atPath: path.string).flatMap { subPath -> [AssetReference] in
+        if path.lastComponent?.string == "contents" {
+            return try parseContents(at: path)
+        }
+
+        return try FileManager.default.contentsOfDirectory(atPath: path.string).flatMap { subPath -> [AssetReference] in
             let modelPath = path.appending(subPath)
             guard modelPath.extension == "xcdatamodel" else { return [] }
 
-            let contentsPath = modelPath.appending("contents")
-            let data = try Data(contentsOf: URL(fileURLWithPath: contentsPath.string))
-            let structure = try AEXMLDocument(xml: data)
-            return references(from: structure.root).map {
-                AssetReference(absoluteName: $0, source: .xcDataModel)
-            }
+            return try parseContents(at: modelPath.appending("contents"))
         }
     }
 
     // MARK: - Private
+
+    private func parseContents(at contentsPath: FilePath) throws -> [AssetReference] {
+        let data = try Data(contentsOf: URL(fileURLWithPath: contentsPath.string))
+
+        let structure = try AEXMLDocument(xml: data)
+        return references(from: structure.root).map {
+            AssetReference(absoluteName: $0, source: .xcDataModel)
+        }
+    }
 
     private func references(from element: AEXMLElement) -> [String] {
         var names: [String] = []
