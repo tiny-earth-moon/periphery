@@ -42,3 +42,17 @@ enum DeadPreviewSampleData {
 #Preview("Dead") {
     DeadPreviewedView(title: DeadPreviewSampleData.title + String(describing: AppDelegate.self))
 }
+
+struct LivePreviewLocalModel {
+    let title = "Local"
+}
+
+#Preview("Local") {
+    let model = LivePreviewLocalModel()
+    let unusedLocal = 1
+    func makeTitle() -> String { model.title }
+    return VStack {
+        ContentView()
+        Text(makeTitle())
+    }
+}

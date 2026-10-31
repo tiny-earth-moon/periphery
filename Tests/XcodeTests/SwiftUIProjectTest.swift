@@ -27,6 +27,12 @@ final class SwiftUIProjectTest: XcodeSourceGraphTestCase {
         }
     }
 
+    func testRetainsTypeUsedByLocalInsideLivePreview() {
+        assertReferenced(.struct("LivePreviewLocalModel")) {
+            self.assertReferenced(.varInstance("title"))
+        }
+    }
+
     func testDoesNotRetainCodeReferencedOnlyFromDeadPreview() {
         assertNotReferenced(.struct("DeadPreviewedView"))
         assertNotReferenced(.enum("DeadPreviewSampleData"))
