@@ -473,6 +473,21 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    func testRetainsSoleClassInitializer() {
+        analyze(retainPublic: true) {
+            assertReferenced(.class("FixtureClassSoleInitializer")) {
+                self.assertReferenced(.functionConstructor("init(value:)"))
+            }
+            assertReferenced(.class("FixtureClassSecondInitializer")) {
+                self.assertNotReferenced(.functionConstructor("init(value:)"))
+                self.assertNotReferenced(.functionConstructor("init(other:)"))
+            }
+            assertReferenced(.struct("FixtureStructSoleInitializer")) {
+                self.assertNotReferenced(.functionConstructor("init(value:)"))
+            }
+        }
+    }
+
     func testRetainPublicMacroAndMiscKinds() {
         analyze(retainPublic: true) {
             assertReferenced(.macro("FixtureRetainPublicMacro()"))

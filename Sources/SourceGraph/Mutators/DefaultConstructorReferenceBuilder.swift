@@ -11,6 +11,7 @@ final class DefaultConstructorReferenceBuilder: SourceGraphMutator {
 
     func mutate() {
         referenceDefaultConstructors()
+        referenceSoleClassConstructors()
         referenceDestructors()
     }
 
@@ -36,6 +37,27 @@ final class DefaultConstructorReferenceBuilder: SourceGraphMutator {
                     reference.parent = parent
                     graph.add(reference, from: parent)
                 }
+            }
+        }
+    }
+
+    /// Removing the only initializer of a class would leave it without any initializer, which
+    /// fails to compile if it has stored properties without default values.
+    private func referenceSoleClassConstructors() {
+        for classDecl in graph.declarations(ofKind: .class) {
+            let constructors = classDecl.declarations.filter { $0.kind == .functionConstructor }
+            guard constructors.count == 1, let constructor = constructors.first, !constructor.isImplicit else { continue }
+
+            for usr in constructor.usrs {
+                let reference = Reference(
+                    name: constructor.name,
+                    kind: .normal,
+                    declarationKind: .functionConstructor,
+                    usr: usr,
+                    location: classDecl.location
+                )
+                reference.parent = classDecl
+                graph.add(reference, from: classDecl)
             }
         }
     }
