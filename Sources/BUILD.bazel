@@ -9,6 +9,7 @@ swift_library(
         "XcodeSupport/XcodeProjectlike.swift",
         "XcodeSupport/XcodeTarget.swift",
         "XcodeSupport/XcodeWorkspace.swift",
+        "XcodeSupport/Xcodebuild+Cache.swift",
         "XcodeSupport/Xcodebuild.swift",
     ],
     module_name = "XcodeSupport",
@@ -118,6 +119,7 @@ swift_library(
     name = "Shared",
     srcs = [
         "Shared/Benchmark.swift",
+        "Shared/CacheManager.swift",
         "Shared/Constants.swift",
         "Shared/JobPool.swift",
         "Shared/PeripheryError.swift",
