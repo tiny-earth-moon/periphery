@@ -125,6 +125,18 @@
                 try [xcodebuild.indexStorePath(project: project, schemes: Array(schemes))]
             }
 
+            if configuration.indexStorePath.isEmpty {
+                let evicted = try xcodebuild.refreshCache(
+                    project: project,
+                    schemes: Array(schemes),
+                    maxAgeDays: configuration.cacheMaxAgeDays
+                )
+                for entry in evicted {
+                    let size = ByteCountFormatter.string(fromByteCount: entry.size, countStyle: .file)
+                    self.logger.info("Evicted unused build cache \(entry.name) (\(size))")
+                }
+            }
+
             let targets = project.targets
             try targets.forEach { try $0.identifyFiles() }
             let excludedTestTargets = configuration.excludeTests ? project.targets.filter(\.isTestTarget).mapSet(\.name) : []
