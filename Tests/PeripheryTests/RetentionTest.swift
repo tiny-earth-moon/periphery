@@ -241,6 +241,126 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    func testProtocolRequirementImplementedInConformanceExtension() {
+        analyze(retainPublic: true) {
+            assertReferenced(.protocol("FixtureProtocol1100")) {
+                self.assertReferenced(.functionMethodInstance("calledRequirement()"))
+                self.assertNotReferenced(.functionMethodInstance("uncalledRequirement()"))
+            }
+            assertReferenced(.class("FixtureClass1100"))
+            assertReferenced(.class("FixtureClass1100")) {
+                self.assertReferenced(.functionMethodInstance("calledRequirement()"))
+                self.assertNotReferenced(.functionMethodInstance("uncalledRequirement()"))
+            }
+        }
+    }
+
+    func testProtocolRequirementImplementedInSeparateExtension() {
+        analyze(retainPublic: true) {
+            assertReferenced(.protocol("FixtureProtocol1101")) {
+                self.assertReferenced(.functionMethodInstance("calledRequirement()"))
+                self.assertNotReferenced(.functionMethodInstance("uncalledRequirement()"))
+            }
+            assertReferenced(.struct("FixtureStruct1101")) {
+                self.assertReferenced(.functionMethodInstance("calledRequirement()"))
+                self.assertNotReferenced(.functionMethodInstance("uncalledRequirement()"))
+            }
+        }
+    }
+
+    func testProtocolRequirementImplementedInExtensionOfUsedProtocolNeverCalled() {
+        analyze(retainPublic: true) {
+            assertReferenced(.protocol("FixtureProtocol1102")) {
+                self.assertNotReferenced(.varInstance("requiredValue"))
+                self.assertNotReferenced(.functionMethodInstance("requiredMethod()"))
+            }
+            assertReferenced(.struct("FixtureStruct1102")) {
+                self.assertNotReferenced(.varInstance("requiredValue"))
+                self.assertNotReferenced(.functionMethodInstance("requiredMethod()"))
+            }
+        }
+    }
+
+    func testProtocolWithDefaultImplementationAndExtensionMember() {
+        analyze(retainPublic: true) {
+            assertReferenced(.protocol("FixtureProtocol1103")) {
+                self.assertNotReferenced(.functionMethodInstance("withDefault()"))
+                self.assertNotReferenced(.functionMethodInstance("withoutDefault()"))
+            }
+            assertReferenced(.struct("FixtureStruct1103")) {
+                self.assertNotReferenced(.functionMethodInstance("withDefault()"))
+                self.assertNotReferenced(.functionMethodInstance("withoutDefault()"))
+            }
+        }
+    }
+
+    func testProtocolRequirementImplementedBySuperclassExtension() {
+        analyze(retainPublic: true) {
+            assertReferenced(.protocol("FixtureProtocol1104")) {
+                self.assertNotReferenced(.functionMethodInstance("requiredMethod()"))
+            }
+            assertReferenced(.class("FixtureClass1104Base")) {
+                self.assertNotReferenced(.functionMethodInstance("requiredMethod()"))
+            }
+        }
+    }
+
+    func testExternalProtocolMembersImplementedInExtensions() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureStruct1110")) {
+                self.assertReferenced(.varInstance("description"))
+                self.assertReferenced(.functionOperatorInfix("<(_:_:)"))
+                self.assertReferenced(.functionMethodInstance("hash(into:)"))
+            }
+            assertReferenced(.class("FixtureClass1110")) {
+                self.assertReferenced(.functionMethodInstance("copy(with:)"))
+                self.assertReferenced(.varStatic("supportsSecureCoding"))
+                self.assertReferenced(.functionMethodInstance("encode(with:)"))
+                self.assertReferenced(.functionConstructor("init(coder:)"))
+            }
+        }
+    }
+
+    func testLocalProtocolInitSubscriptStaticAssociatedTypeInExtension() {
+        analyze(retainPublic: true) {
+            assertReferenced(.protocol("FixtureProtocol1111")) {
+                self.assertReferenced(.functionConstructor("init(value:)"))
+                self.assertReferenced(.functionMethodStatic("make()"))
+                self.assertReferenced(.varStatic("defaultValue"))
+                self.assertNotReferenced(.functionSubscript("subscript(_:)"))
+                self.assertNotReferenced(.functionMethodInstance("produce()"))
+                self.assertNotReferenced(.associatedtype("Output"))
+            }
+            assertReferenced(.struct("FixtureStruct1111")) {
+                self.assertReferenced(.functionMethodStatic("make()"))
+                self.assertReferenced(.varStatic("defaultValue"))
+                self.assertNotReferenced(.functionSubscript("subscript(_:)"))
+                self.assertNotReferenced(.functionMethodInstance("produce()"))
+            }
+        }
+    }
+
+    func testConditionalConformanceMembersInExtension() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureStruct1112")) {
+                self.assertReferenced(.functionMethodInstance("conditionalRequirement()"))
+            }
+            assertReferenced(.struct("FixtureStruct1113")) {
+                self.assertReferenced(.functionMethodInstance("baseRequirement()"))
+                self.assertReferenced(.functionMethodInstance("derivedRequirement()"))
+            }
+        }
+    }
+
+    func testObjcOptionalProtocolMembersInExtension() {
+        analyze(retainPublic: true) {
+            assertReferenced(.class("FixtureClass1114")) {
+                self.assertReferenced(.functionMethodInstance("optionalRequirement()"))
+                self.assertReferenced(.functionMethodInstance("requiredRequirement()"))
+            }
+        }
+    }
+
     func testRetainsProtocolMethodImplementedInExtension() {
         analyze(retainPublic: true) {
             assertReferenced(.class("FixtureClass80")) {
