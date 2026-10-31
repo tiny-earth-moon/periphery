@@ -12,6 +12,21 @@
 
 - None.
 
+## 3.12.1 (2026-10-31)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- Regression tests pin that declarations local to a live `#Preview` (locals, nested functions and the types they reference) are retained while a preview that only references dead code stays reported. Closes #92.
+- Regression tests pin protocol requirements implemented in extensions (conformance extension, separate extension, superclass extension, external protocols, init/subscript/static/associatedtype, conditional conformance, `@objc` optional requirements, AppIntents types, cross-module protocols); a member made redundant by a protocol default implementation stays reported. Closes #89.
+
+##### Bug Fixes
+
+- The sole explicit initializer of a class is no longer reported as unused: removing it would leave the class without any initializer and break the build when a stored property has no default value. Classes with several uncalled initializers and structs keep reporting them. Closes #88.
+
 ## 3.12.0 (2026-10-29)
 
 ##### Breaking
