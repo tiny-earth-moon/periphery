@@ -19,4 +19,12 @@ final class CrossModuleRetentionTest: SPMSourceGraphTestCase {
             self.assertReferenced(.class("FixtureClass129"))
         }
     }
+
+    func testCrossModuleProtocolRequirementImplementedInExtension() {
+        module("CrossModuleRetentionFixtures") {
+            self.assertReferenced(.struct("FixtureStruct1120")) {
+                self.assertReferenced(.functionMethodInstance("calledRequirement()"))
+            }
+        }
+    }
 }

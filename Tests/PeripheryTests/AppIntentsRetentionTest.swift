@@ -9,6 +9,24 @@
             }
         }
 
+        func testRetainsAppIntentMembersImplementedInExtensions() {
+            analyze {
+                assertReferenced(.struct("ExtensionIntent")) {
+                    self.assertReferenced(.varStatic("title"))
+                    self.assertReferenced(.functionMethodInstance("perform()"))
+                }
+                assertReferenced(.struct("ExtensionEntity")) {
+                    self.assertReferenced(.varStatic("typeDisplayRepresentation"))
+                    self.assertReferenced(.varStatic("defaultQuery"))
+                    self.assertReferenced(.varInstance("displayRepresentation"))
+                }
+                assertReferenced(.struct("ExtensionEntityQuery")) {
+                    self.assertReferenced(.functionMethodInstance("entities(for:)"))
+                    self.assertReferenced(.functionMethodInstance("suggestedEntities()"))
+                }
+            }
+        }
+
         func testRetainsAppEntity() {
             analyze {
                 assertReferenced(.struct("SimpleEntity"))
