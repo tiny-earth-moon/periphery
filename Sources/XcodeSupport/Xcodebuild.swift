@@ -61,15 +61,54 @@ public final class Xcodebuild {
         try self.shell.exec(["rm", "-rf", path])
     }
 
-    public func indexStorePath(project: XcodeProjectlike, schemes: [String]) throws -> FilePath {
+    public func indexStorePath(
+        project: XcodeProjectlike,
+        schemes: [String],
+        skipBuild: Bool = false,
+        xcodeDerivedDataRoot: FilePath = Xcodebuild.defaultXcodeDerivedDataRoot
+    ) throws -> FilePath {
         let derivedDataPath = try derivedDataPath(for: project, schemes: schemes)
-        let pathsToTry = ["Index.noindex/DataStore", "Index/DataStore"]
-            .map { derivedDataPath.appending($0) }
-        guard let path = pathsToTry.first(where: { $0.exists }) else {
+        let relativePaths = ["Index.noindex/DataStore", "Index/DataStore"]
+        let pathsToTry = relativePaths.map { derivedDataPath.appending($0) }
+        if let path = pathsToTry.first(where: { $0.exists }) {
+            return path
+        }
+
+        guard skipBuild else {
             throw PeripheryError.indexStoreNotFound(derivedDataPath: derivedDataPath.string)
         }
 
+        // With --skip-build, Periphery's own DerivedData is never populated, so fall back to the one Xcode uses.
+        let projectName = project.path.lexicallyNormalized().lastComponent?.stem ?? ""
+        let xcodeCandidates = xcodeDerivedDataFolders(named: projectName, in: xcodeDerivedDataRoot)
+            .flatMap { folder in relativePaths.map { folder.appending($0) } }
+            .filter(\.exists)
+            .sorted { modificationDate($0) > modificationDate($1) }
+
+        guard let path = xcodeCandidates.first else {
+            let tried = pathsToTry.map(\.string) + [xcodeDerivedDataRoot.appending("\(projectName)-*/Index.noindex/DataStore").string]
+            throw PeripheryError.indexStoreNotFoundAfterSkippedBuild(tried: tried)
+        }
+
+        logger.info("Build skipped, using the index store from Xcode's DerivedData: \(path.string)")
         return path
+    }
+
+    public static var defaultXcodeDerivedDataRoot: FilePath {
+        FilePath(NSHomeDirectory()).appending("Library/Developer/Xcode/DerivedData")
+    }
+
+    private func xcodeDerivedDataFolders(named projectName: String, in root: FilePath) -> [FilePath] {
+        guard !projectName.isEmpty,
+              let names = try? FileManager.default.contentsOfDirectory(atPath: root.string) else { return [] }
+
+        // Xcode names folders `<ProjectName>-<hash>`; require the dash so `Foo` does not match `FooBar-<hash>`.
+        return names.filter { $0.hasPrefix(projectName + "-") }.map { root.appending($0) }
+    }
+
+    private func modificationDate(_ path: FilePath) -> Date {
+        let attributes = try? FileManager.default.attributesOfItem(atPath: path.string)
+        return attributes?[.modificationDate] as? Date ?? .distantPast
     }
 
     func schemes(project: XcodeProjectlike, additionalArguments: [String]) throws -> Set<String> {
