@@ -225,6 +225,7 @@ public final class Declaration {
     public let name: String
     public let usrs: Set<String>
     public var unusedParameters: Set<Declaration> = []
+    public var hasDefaultValue: Bool = false // Only meaningful for `varParameter` declarations.
     public var declarations: Set<Declaration> = []
     public var commentCommands: Set<CommentCommand> = []
     public var references: Set<Reference> = []
