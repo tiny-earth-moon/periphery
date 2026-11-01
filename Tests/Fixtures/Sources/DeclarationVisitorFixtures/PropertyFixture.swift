@@ -23,7 +23,7 @@ class PropertyVisitorTestFixture {
     var unassignedOptionalProperty: Int?
     var nilInitializedOptionalProperty: Int? = nil
     var implicitlyUnwrappedProperty: Int!
-    var genericOptionalProperty: Optional<Int>
+    var genericOptionalProperty: Optional<Int> = nil
     var qualifiedOptionalProperty: Swift.Optional<Int> = 1
     var (optionalTupleElementA, optionalTupleElementB): (Int?, Int?) = (nil, 1)
 }
