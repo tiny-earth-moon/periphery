@@ -28,9 +28,10 @@ fields=$(jq -er '
   | [$f.formula.pkg_version, $f.bottle.root_url, ($f.bottle.rebuild // 0 | tostring), $t.key,
      ($t.value.cellar // $f.bottle.cellar), $t.value.sha256, $t.value.filename]
   | if any(.[]; . == null) then error("missing field in the bottle JSON") else map(tostring) end
-  | @tsv
+  | join("\u001f")
 ' "$json")
-IFS=$'\t' read -r version root_url rebuild tag cellar sha256 filename <<<"$fields"
+# The unit separator is not IFS whitespace, so empty fields are kept (bash 3.2 included).
+IFS=$'\x1f' read -r version root_url rebuild tag cellar sha256 filename <<<"$fields"
 
 if [[ ! $sha256 =~ ^[0-9a-f]{64}$ ]]; then
   echo "error: invalid sha256 '$sha256' in $json" >&2
