@@ -839,14 +839,14 @@ periphery scan --skip-build --index-store-path '../dd/Index.noindex/DataStore/'
 
 ## Known Bugs
 
-Due to some underlying bugs in Swift, Periphery may in some instances report incorrect results.
+Due to some underlying bugs in Swift, Periphery may in some instances report incorrect results. Three of these issues were closed by the Swift project in January 2026 without a confirmed fix; Periphery keeps its workarounds for them.
 
-| ID    | Title |
-| :---  | :---  |
-| [56541](https://github.com/apple/swift/issues/56541) | Index store does not relate static property getter used as subscript key |
-| [56327](https://github.com/apple/swift/issues/56327) | Index store does not relate objc optional protocol method implemented in subclass |
-| [56189](https://github.com/apple/swift/issues/56189) | Index store should relate appendInterpolation from string literals |
-| [56165](https://github.com/apple/swift/issues/56165) | Index store does not relate constructor via literal notation |
+| ID    | Title | State |
+| :---  | :---  | :---  |
+| [56541](https://github.com/swiftlang/swift/issues/56541) | Index store does not relate static property getter used as subscript key | Closed 2026-01, no fix confirmed |
+| [56327](https://github.com/swiftlang/swift/issues/56327) | Index store does not relate objc optional protocol method implemented in subclass | Closed 2026-01, no fix confirmed |
+| [56189](https://github.com/swiftlang/swift/issues/56189) | Index store should relate appendInterpolation from string literals | Closed 2026-01, no fix confirmed |
+| [56165](https://github.com/swiftlang/swift/issues/56165) | Index store does not relate constructor via literal notation | Open |
 
 ## Credits
 

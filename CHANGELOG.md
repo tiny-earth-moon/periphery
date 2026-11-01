@@ -12,6 +12,21 @@
 
 - None.
 
+## 3.12.13 (2026-11-01)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- New opt-in `enable_unused_system_imports` / `--enable-unused-system-imports`: reports unused imports of system frameworks (Foundation, AppKit, UIKit, …) using the system module units of the index store; an import that may re-export a used module is never reported. [#95](https://github.com/tiny-earth-moon/periphery/issues/95)
+- New opt-in `enable_redundant_access_level_analysis` / `--enable-redundant-access-level-analysis`: reports access modifiers identical to the default of their context, such as `internal` at file level or `fileprivate` inside a `private` type (`redundantAccessLevel`). [#87](https://github.com/tiny-earth-moon/periphery/issues/87)
+
+##### Bug Fixes
+
+- Setter access modifiers (`private(set)`, `internal(set)`) are no longer taken as the declaration's access level: `internal(set) public var` now counts as `public` in every analysis, including the redundant public accessibility analysis. [#87](https://github.com/tiny-earth-moon/periphery/issues/87)
+
 ## 3.12.12 (2026-11-01)
 
 ##### Breaking
