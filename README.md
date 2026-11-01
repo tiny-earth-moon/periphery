@@ -23,6 +23,8 @@
 >
 > The original author now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. This fork takes nothing from it; both install a `periphery` executable, so install one or the other (the Homebrew formulae conflict on purpose).
 >
+> This fork is not affiliated with, nor endorsed by, the original author or Periphery Pro. The `periphery` name is kept for the executable and the configuration file so existing scripts keep working; it is not a claim on the Periphery brand.
+>
 > Periphery was created by [Ian Leitch](https://github.com/ileitch), whom we thank for years of excellent work and for keeping the project open source. See [Credits](#credits) for the full attribution.
 
 ## Contents
