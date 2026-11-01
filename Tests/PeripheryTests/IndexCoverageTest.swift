@@ -41,6 +41,7 @@ final class IndexCoverageTest: XCTestCase {
             guard case let PeripheryError.noIndexedSourceFiles(count, stores) = error else {
                 return XCTFail("unexpected error \(error)")
             }
+
             XCTAssertEqual(count, 2)
             XCTAssertEqual(stores, ["/pkg/.build/index/store"])
         }
