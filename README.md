@@ -362,6 +362,10 @@ By default, Periphery does not assume that declarations accessible by the Object
 
 Alternatively, the `--retain-objc-annotated` option can be used to only retain declarations that are explicitly annotated with `@objc` or `@objcMembers`. Types that inherit `NSObject` are not retained unless they have explicit annotations. This option may uncover more unused code, but with the caveat that some of the results may be incorrect if the declaration is used in Objective-C code. To resolve these incorrect results, you must add an `@objc` annotation to the declaration.
 
+### JavaScriptCore
+
+Protocols that inherit `JSExport` expose their members to JavaScript, which Periphery cannot analyze. Use `--retain-js-accessible` (`retain_js_accessible` in the configuration file) to retain every protocol that inherits `JSExport`, either directly or through another protocol, together with its members and the members of the conforming types that satisfy them. `--retain-objc-accessible` does not cover a protocol that is only exposed through `JSExport` and has no `@objc` annotation; where it does retain them, it also retains all other Objective-C accessible declarations. The dedicated option keeps the report focused on JavaScript-exposed declarations.
+
 ### Codable
 
 Swift synthesizes additional code for `Codable` types that is not visible to Periphery and can result in false positives for properties not directly referenced from non-synthesized code. If your project contains many such types, you can retain all properties on `Codable` types with `--retain-codable-properties`. Alternatively, you can retain properties only on `Encodable` types with `--retain-encodable-properties`.
