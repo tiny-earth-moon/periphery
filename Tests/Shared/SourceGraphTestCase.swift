@@ -65,7 +65,7 @@ open class SourceGraphTestCase: XCTestCase {
             configuration: configuration,
             swiftVersion: swiftVersion
         )
-        _ = try! pipeline.perform()
+        try! pipeline.perform()
 
         allIndexedDeclarations = graph.allDeclarations
         try! SourceGraphMutatorRunner(
