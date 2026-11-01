@@ -41,6 +41,8 @@ public final class SourceGraph {
     public private(set) var assetCatalogNameReferences: Set<String> = []
 
     private var indexedModules: Set<String> = []
+    private var indexedSystemModules: Set<String> = []
+    private var systemModulesByUsr: [String: Set<String>] = [:]
     private var unindexedExportedModules: Set<String> = []
     private var allDeclarationsByKind: [Declaration.Kind: Set<Declaration>] = [:]
     private var allDeclarationsByUsr: [String: Declaration] = [:]
@@ -57,7 +59,9 @@ public final class SourceGraph {
     public func indexingComplete() {
         rootDeclarations = allDeclarations.filter { $0.parent == nil }
         rootReferences = allReferences.filter { $0.parent == nil }
-        unindexedExportedModules = Set(moduleToExportingModules.keys).subtracting(indexedModules)
+        unindexedExportedModules = Set(moduleToExportingModules.keys)
+            .subtracting(indexedModules)
+            .subtracting(indexedSystemModules)
     }
 
     public var unusedDeclarations: Set<Declaration> {
@@ -328,18 +332,56 @@ public final class SourceGraph {
     }
 
     public func isModule(_ module: String, exportedBy exportingModule: String) -> Bool {
-        let exportingModules = moduleToExportingModules[module, default: []]
+        // Walk the modules exporting `module`, directly or transitively. System modules can export each other
+        // (a Swift overlay and its Clang module share a name), so visited modules are tracked.
+        var visited: Set<String> = [module]
+        var pending = [module]
 
-        if exportingModules.contains(exportingModule) {
-            // The module is exported directly.
-            return true
+        while let current = pending.popLast() {
+            for exporter in moduleToExportingModules[current, default: []] {
+                if exporter == exportingModule {
+                    return true
+                }
+
+                if visited.insert(exporter).inserted {
+                    pending.append(exporter)
+                }
+            }
         }
 
-        // Recursively check if the module is exported transitively.
-        return exportingModules.contains { nestedExportingModule in
-            isModule(nestedExportingModule, exportedBy: exportingModule) &&
-                isModule(module, exportedBy: nestedExportingModule)
+        return false
+    }
+
+    /// Records the system modules found in the index store, the modules each of them may export, and the system
+    /// modules declaring the given external USRs.
+    public func addSystemModules(
+        _ modules: Set<String>,
+        exports: [String: Set<String>],
+        modulesByUsr: [String: Set<String>]
+    ) {
+        indexedSystemModules.formUnion(modules)
+
+        for (module, exportedModules) in exports.merging(SystemModuleExports.known, uniquingKeysWith: { $0.union($1) }) {
+            for exportedModule in exportedModules
+                where exportedModule != module && !SystemModuleExports.implicitlyImported.contains(exportedModule)
+            {
+                moduleToExportingModules[exportedModule, default: []].insert(module)
+            }
         }
+
+        for (usr, usrModules) in modulesByUsr {
+            systemModulesByUsr[usr, default: []].formUnion(usrModules)
+        }
+    }
+
+    public func isSystemModuleIndexed(_ module: String) -> Bool {
+        indexedSystemModules.contains(module)
+    }
+
+    /// The system modules that may declare the given USR, or `nil` when none is known.
+    public func systemModules(forUsr usr: String) -> Set<String>? {
+        let modules = systemModulesByUsr[usr, default: []].union(SystemModuleUsr.modules(in: usr))
+        return modules.isEmpty ? nil : modules
     }
 
     func markUnusedModuleImport(_ statement: ImportStatement) {

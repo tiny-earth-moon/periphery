@@ -118,6 +118,8 @@ swift_library(
         "SourceGraph/SourceGraphMutator.swift",
         "SourceGraph/SourceGraphMutatorRunner.swift",
         "SourceGraph/SourceGraphMutex.swift",
+        "SourceGraph/SystemModuleExports.swift",
+        "SourceGraph/SystemModuleUsr.swift",
     ],
     module_name = "SourceGraph",
     deps = [
@@ -231,6 +233,7 @@ swift_library(
         "Indexer/LocalizedStringCallResolver.swift",
         "Indexer/SourceFileCollector.swift",
         "Indexer/SwiftIndexer.swift",
+        "Indexer/SystemModuleIndexer.swift",
         "Indexer/XCDataModelIndexer.swift",
         "Indexer/XCDataModelParser.swift",
         "Indexer/XCMappingModelIndexer.swift",

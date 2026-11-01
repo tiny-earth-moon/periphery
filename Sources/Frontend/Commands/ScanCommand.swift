@@ -73,6 +73,9 @@ struct ScanCommand: ParsableCommand {
     @Flag(help: "Disable identification of unused imports")
     var disableUnusedImportAnalysis: Bool = defaultConfiguration.$disableUnusedImportAnalysis.defaultValue
 
+    @Flag(help: "Enable identification of unused imports of system frameworks (experimental)")
+    var enableUnusedSystemImports: Bool = defaultConfiguration.$enableUnusedSystemImports.defaultValue
+
     @Flag(inversion: .prefixedNo, help: "Report superfluous ignore comments")
     var superfluousIgnoreComments: Bool = defaultConfiguration.$superfluousIgnoreComments.defaultValue
     @Flag(help: "Disable identification of unused localized strings from String Catalogs (xcstrings)")
@@ -250,6 +253,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$enableOpenFinalAnalysis, enableOpenFinalAnalysis)
         configuration.apply(\.$disablePlatformConditionalRetention, disablePlatformConditionalRetention)
         configuration.apply(\.$disableUnusedImportAnalysis, disableUnusedImportAnalysis)
+        configuration.apply(\.$enableUnusedSystemImports, enableUnusedSystemImports)
         configuration.apply(\.$superfluousIgnoreComments, superfluousIgnoreComments)
         configuration.apply(\.$disableUnusedLocalizedStringAnalysis, disableUnusedLocalizedStringAnalysis)
         configuration.apply(\.$localizedStringCatalogExclude, localizedStringCatalogExclude)
