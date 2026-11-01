@@ -49,24 +49,36 @@ final class XcodeTargetTest: XCTestCase {
     func testInfoPlistSettingExpandsBuildSettingVariables() throws {
         let target = project.targets.first { $0.name == "UIKitProject" }!
         let settings = ["PLIST_DIR": "${TARGET_NAME}"]
+        var warnings: [String] = []
 
-        let path = try target.resolveInfoPlistSetting("$(PROJECT_DIR)/$(TARGET_NAME)/Info.plist", buildSettings: settings)
-        let indirect = try target.resolveInfoPlistSetting("$(PLIST_DIR)/Info.plist", buildSettings: settings)
+        let path = target.resolveInfoPlistSetting("$(PROJECT_DIR)/$(TARGET_NAME)/Info.plist", buildSettings: settings) { warnings.append($0) }
+        let indirect = target.resolveInfoPlistSetting("$(PLIST_DIR)/Info.plist", buildSettings: settings) { warnings.append($0) }
 
         let expected = project.sourceRoot.lexicallyNormalized().appending("UIKitProject/Info.plist")
         XCTAssertEqual(path, expected)
         XCTAssertEqual(indirect, expected)
+        XCTAssertEqual(warnings, [])
     }
 
-    func testInfoPlistSettingWithUnknownVariableThrows() {
+    func testInfoPlistSettingWithUnresolvableVariableIsSkippedWithWarning() {
         let target = project.targets.first { $0.name == "UIKitProject" }!
         let settings = ["LOOP": "$(LOOP)"]
+        let cases = [
+            ("$(XCCONFIG_DIR)/Info.plist", "XCCONFIG_DIR"),
+            ("$(TARGET_NAME:c99extidentifier)/Info.plist", "TARGET_NAME:c99extidentifier"),
+            ("$(LOOP)/Info.plist", "LOOP"),
+        ]
 
-        XCTAssertThrowsError(try target.resolveInfoPlistSetting("$(UNKNOWN_DIR)/Info.plist", buildSettings: settings)) {
-            XCTAssertEqual($0 as? XcodeTarget.BuildSettingError, .unresolvedVariable(name: "UNKNOWN_DIR", setting: "$(UNKNOWN_DIR)/Info.plist"))
-        }
-        XCTAssertThrowsError(try target.resolveInfoPlistSetting("$(LOOP)/Info.plist", buildSettings: settings)) {
-            XCTAssertEqual($0 as? XcodeTarget.BuildSettingError, .recursiveVariable(name: "LOOP", setting: "$(LOOP)/Info.plist"))
+        for (setting, variable) in cases {
+            var warnings: [String] = []
+            let path = target.resolveInfoPlistSetting(setting, buildSettings: settings) { warnings.append($0) }
+
+            XCTAssertNil(path, setting)
+            XCTAssertEqual(warnings.count, 1, setting)
+            let warning = warnings.first ?? ""
+            XCTAssertTrue(warning.contains("'\(variable)'"), warning)
+            XCTAssertTrue(warning.contains("'\(setting)'"), warning)
+            XCTAssertTrue(warning.contains("'UIKitProject'"), warning)
         }
     }
 

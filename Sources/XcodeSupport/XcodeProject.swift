@@ -83,7 +83,7 @@ public final class XcodeProject: XcodeProjectlike {
         }
 
         targets = xcodeProject.pbxproj.nativeTargets
-            .mapSet { XcodeTarget(project: self, target: $0) }
+            .mapSet { XcodeTarget(project: self, target: $0, logger: logger) }
             .union(subProjects.flatMapSet { $0.targets })
     }
 

@@ -1,4 +1,5 @@
 import Foundation
+import Logger
 import SourceGraph
 import SystemPackage
 import XcodeProj
@@ -7,12 +8,14 @@ public final class XcodeTarget {
     let project: XcodeProject
 
     private let target: PBXTarget
+    private let logger: Logger
     private var files: [ProjectFileKind: Set<FilePath>] = [:]
     public private(set) var swiftSourceFiles: Set<FilePath> = []
 
-    required init(project: XcodeProject, target: PBXTarget) {
+    required init(project: XcodeProject, target: PBXTarget, logger: Logger) {
         self.project = project
         self.target = target
+        self.logger = logger
     }
 
     public var isTestTarget: Bool {
@@ -136,7 +139,9 @@ public final class XcodeTarget {
             }
 
             for setting in settings {
-                try paths.insert(resolveInfoPlistSetting(setting, buildSettings: buildSettings(of: configuration)))
+                if let path = resolveInfoPlistSetting(setting, buildSettings: buildSettings(of: configuration), warn: { logger.warn($0) }) {
+                    paths.insert(path)
+                }
             }
         }
 
@@ -144,10 +149,21 @@ public final class XcodeTarget {
     }
 
     /// The path of an `INFOPLIST_FILE` setting, with its `$(VAR)` / `${VAR}` references expanded from the target and
-    /// project build settings of the configuration, relative to the source root unless absolute.
-    func resolveInfoPlistSetting(_ setting: String, buildSettings: [String: String]) throws -> FilePath {
+    /// project build settings of the configuration, relative to the source root unless absolute. A variable that
+    /// cannot be expanded from the project file (e.g. set in an `.xcconfig`) skips the plist with a warning.
+    func resolveInfoPlistSetting(
+        _ setting: String,
+        buildSettings: [String: String],
+        warn: (String) -> Void
+    ) -> FilePath? {
         let settings = derivedBuildSettings.merging(buildSettings) { _, configured in configured }
-        let expanded = try expandBuildSettings(in: setting, settings: settings, rawSetting: setting, expanding: [])
+        let expanded: String
+        do {
+            expanded = try expandBuildSettings(in: setting, settings: settings, rawSetting: setting, expanding: [])
+        } catch {
+            warn("\(error.description) Info.plist of target '\(target.name)' not analyzed.")
+            return nil
+        }
         let path = FilePath(expanded)
 
         return path.isAbsolute ? path.lexicallyNormalized() : project.sourceRoot.lexicallyNormalized().appending(expanded).lexicallyNormalized()
@@ -155,14 +171,17 @@ public final class XcodeTarget {
 
     // MARK: - Build settings
 
-    public enum BuildSettingError: Error, LocalizedError, Equatable {
+    enum BuildSettingError: Error, Equatable, CustomStringConvertible {
         case unresolvedVariable(name: String, setting: String)
+        case unsupportedOperator(name: String, setting: String)
         case recursiveVariable(name: String, setting: String)
 
-        public var errorDescription: String? {
+        var description: String {
             switch self {
             case let .unresolvedVariable(name, setting):
                 "Cannot resolve the build setting variable '\(name)' in INFOPLIST_FILE '\(setting)'."
+            case let .unsupportedOperator(name, setting):
+                "Unsupported build setting operator in '\(name)' in INFOPLIST_FILE '\(setting)'."
             case let .recursiveVariable(name, setting):
                 "The build setting variable '\(name)' refers to itself in INFOPLIST_FILE '\(setting)'."
             }
@@ -205,7 +224,7 @@ public final class XcodeTarget {
         settings: [String: String],
         rawSetting: String,
         expanding: Set<String>
-    ) throws -> String {
+    ) throws(BuildSettingError) -> String {
         var result = ""
         var remainder = Substring(value)
 
@@ -223,6 +242,9 @@ public final class XcodeTarget {
             }
 
             let name = String(remainder[remainder.index(after: afterDollar) ..< end])
+            guard !name.contains(":") else {
+                throw BuildSettingError.unsupportedOperator(name: name, setting: rawSetting)
+            }
             guard !expanding.contains(name) else {
                 throw BuildSettingError.recursiveVariable(name: name, setting: rawSetting)
             }
