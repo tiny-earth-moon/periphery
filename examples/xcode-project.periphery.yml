@@ -1,0 +1,19 @@
+# Scenario: minimal configuration for an Xcode project (app or app + frameworks).
+# Run from the project root: periphery scan --config examples/xcode-project.periphery.yml
+# Expected: declarations unused by any scanned scheme are reported in the Xcode
+# format (warnings, clickable in a build log). Test targets are not indexed, so
+# code only used by tests is reported as unused.
+project: MyApp.xcodeproj
+schemes:
+  - MyApp
+exclude_tests: true
+# Targets listed here are not indexed at all.
+exclude_targets:
+  - MyAppUITests
+# Cosmetic only: files are still indexed, their results are hidden.
+report_exclude:
+  - "**/Generated/**"
+# Arguments forwarded to xcodebuild.
+build_arguments:
+  - -destination
+  - generic/platform=iOS Simulator

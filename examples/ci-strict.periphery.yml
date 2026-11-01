@@ -1,0 +1,14 @@
+# Scenario: CI gate. The job fails when any unused code is found.
+# Run: periphery scan --config examples/ci-strict.periphery.yml > periphery-report.json
+# Expected: exit status 1 with `strict`, 0 when nothing is reported; stdout contains only
+# the machine-readable report (`quiet` drops progress messages), ready to be
+# archived or parsed. Other formats: xcode, csv, json, checkstyle, codeclimate,
+# github-actions, github-markdown, gitlab-codequality.
+format: json            # or csv, github-actions...
+strict: true
+quiet: true
+color: never
+disable_update_check: true
+relative_results: true  # paths relative to the current directory, stable across runners
+# Also write the report to a file, whatever the stdout format.
+write_results: periphery-report.json
