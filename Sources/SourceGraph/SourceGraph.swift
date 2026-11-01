@@ -12,6 +12,7 @@ public final class SourceGraph {
     public private(set) var redundantOpenAccessibility: [Declaration: Set<String>] = [:]
     public private(set) var missingFinalDeclarations: Set<Declaration> = []
     public private(set) var redundantAccessLevel: [Declaration: RedundantAccessLevel] = [:]
+    public private(set) var emptyExtensions: Set<Declaration> = []
     public private(set) var rootReferences: Set<Reference> = []
     public private(set) var allReferences: Set<Reference> = []
     public private(set) var retainedDeclarations: Set<Declaration> = []
@@ -394,6 +395,14 @@ public final class SourceGraph {
         let usr = "import-\(statement.module)-\(location)"
         let decl = Declaration(name: statement.module, kind: .module, usrs: [usr], location: statement.location)
         unusedModuleImports.insert(decl)
+    }
+
+    /// Empty extensions are absent from the index store, so they are recorded from the syntax tree.
+    public func markEmptyExtension(extendedTypeName: String, location: Location) {
+        let relativeLocation = location.relativeTo(configuration.projectRoot)
+        let usr = "empty-extension-\(extendedTypeName)-\(relativeLocation)"
+        let decl = Declaration(name: extendedTypeName, kind: .extension, usrs: [usr], location: location)
+        emptyExtensions.insert(decl)
     }
 
     func markExtension(_ extensionDecl: Declaration, extending extendedDecl: Declaration) {

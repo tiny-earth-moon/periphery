@@ -37,6 +37,7 @@
     - [Redundant Public Accessibility](#redundant-public-accessibility)
     - [Open / Final Analysis](#open--final-analysis)
     - [Redundant Access Level Analysis](#redundant-access-level-analysis)
+    - [Empty Extension Analysis](#empty-extension-analysis)
     - [Unused Imports](#unused-imports)
     - [Platform Conditionals](#platform-conditionals)
     - [Objective-C](#objective-c)
@@ -387,6 +388,23 @@ This opt-in analysis, enabled with `--enable-redundant-access-level-analysis` (`
 
 A member of a `private` extension marked `private` is reported although, strictly, it stays visible to the extended type's declarations in the file only: the extension already confines it to the file, which is the intended scope in practice. Results of unused declarations are not repeated, and results can be excluded with `report_exclude`, e.g. `**/Generated/**:redundantAccessLevel`.
 
+### Empty Extension Analysis
+
+This opt-in analysis, enabled with `--enable-empty-extension-analysis` (`enable_empty_extension_analysis: true`), reports `emptyExtension` results: extensions that declare neither a member nor a conformance, such as `extension Foo {}`. Removing them does not change the program. The result message reads `Empty extension of 'Foo'` and the JSON `kind` is `extension`.
+
+| Extension | Reported |
+|-----------|----------|
+| `extension Foo {}`, with or without a `where` clause | yes |
+| body containing only comments | yes |
+| body containing only `#if` blocks whose clauses are all empty | yes |
+| `@available` attribute only | yes |
+| conformance (`extension Foo: Bar {}`), even with an empty body | never |
+| at least one member, including in one clause of an `#if` block | never |
+| any other attribute (an attached macro can add members or conformances) | never |
+| preceded by `// periphery:ignore`, in a file with `// periphery:ignore:all`, or in a file matched by `retain_files` | never |
+
+The index store has no record of an extension without members or conformances, so this analysis reads the syntax of the indexed source files instead. As a consequence, an extension is judged on its source text only: the members a macro expansion or another `#if` configuration would produce are unknown, and `// periphery:ignore` is the way to keep an extension that is empty on purpose. Results can be excluded with `report_exclude`, e.g. `**/Generated/**:emptyExtension`.
+
 ### Unused Imports
 
 Periphery can only detect unused imports of targets it has scanned. It cannot detect unused imports of other targets because the Swift source files are unavailable and uses of `@_exported` cannot be observed. `@_exported` is problematic because it changes the public interface of a target such that the declarations exported by the target are no longer necessarily declared by the imported target. For example, the `Foundation` target exports `Dispatch`, among other targets. If any given source file imports `Foundation` and references `DispatchQueue` but no other declarations from `Foundation`, then the `Foundation` import cannot be removed as it would also make the `DispatchQueue` type unavailable. To avoid false positives, therefore, Periphery only detects unused imports of targets it has scanned.
@@ -677,7 +695,7 @@ Both exclusion options described below accept a Bash v4-style path glob, either 
 
 To exclude the results from certain files, pass the `--report-exclude <globs>` option to the `scan` command.
 
-To exclude only some kinds of results, give `report_exclude` an object entry in the configuration file, or append the kinds to the glob with `<glob>:kind1,kind2`. A kind is the result annotation (`unused`, `assignOnlyProperty`, `unassignedOptionalProperty`, `redundantProtocol`, `redundantPublicAccessibility`, `redundantOpenAccessibility`, `missingFinal`, `redundantAccessLevel`, `superfluousIgnoreCommand`) optionally followed by the declaration kind reported in the JSON `kind` field, e.g. `unused.function` (every unused function and method) or `unused.var.parameter`. Entries without kinds exclude every result, and an unknown kind is a configuration error.
+To exclude only some kinds of results, give `report_exclude` an object entry in the configuration file, or append the kinds to the glob with `<glob>:kind1,kind2`. A kind is the result annotation (`unused`, `assignOnlyProperty`, `unassignedOptionalProperty`, `redundantProtocol`, `redundantPublicAccessibility`, `redundantOpenAccessibility`, `missingFinal`, `redundantAccessLevel`, `emptyExtension`, `superfluousIgnoreCommand`) optionally followed by the declaration kind reported in the JSON `kind` field, e.g. `unused.function` (every unused function and method) or `unused.var.parameter`. Entries without kinds exclude every result, and an unknown kind is a configuration error.
 
 ```yaml
 report_exclude:

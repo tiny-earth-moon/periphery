@@ -41,6 +41,8 @@ extension OutputFormatter {
             "missingFinal"
         case .redundantAccessLevel:
             "redundantAccessLevel"
+        case .emptyExtension:
+            "emptyExtension"
         case .superfluousIgnoreCommand:
             "superfluousIgnoreCommand"
         case let .unusedAssetCatalogSymbol(symbol):
@@ -90,6 +92,8 @@ extension OutputFormatter {
             } else {
                 description += "(already the default at the top level)"
             }
+        case .emptyExtension:
+            description += "Empty extension of '\(name)'"
         case .superfluousIgnoreCommand:
             description += "Superfluous ignore comment for \(kindDisplayName) '\(name)' (declaration is referenced and should not be ignored)"
         case let .unusedAssetCatalogSymbol(symbol):

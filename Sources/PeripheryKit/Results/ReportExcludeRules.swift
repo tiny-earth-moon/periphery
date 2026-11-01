@@ -13,7 +13,7 @@ import SourceGraph
 public enum ResultKind {
     static let annotationNames: Set<String> = Set([
         "unused", "assignOnlyProperty", "unassignedOptionalProperty", "redundantProtocol", "redundantPublicAccessibility",
-        "redundantOpenAccessibility", "missingFinal", "redundantAccessLevel", "superfluousIgnoreCommand",
+        "redundantOpenAccessibility", "missingFinal", "redundantAccessLevel", "emptyExtension", "superfluousIgnoreCommand",
     ]).union(AssetCatalogSymbolKind.allCases.map(\.annotationName))
 
     static let identifiers: Set<String> = annotationNames.union(annotationNames.flatMap { annotation in
@@ -43,6 +43,7 @@ public enum ResultKind {
         case .redundantOpenAccessibility: "redundantOpenAccessibility"
         case .missingFinal: "missingFinal"
         case .redundantAccessLevel: "redundantAccessLevel"
+        case .emptyExtension: "emptyExtension"
         case .superfluousIgnoreCommand: "superfluousIgnoreCommand"
         case let .unusedAssetCatalogSymbol(symbol): symbol.kind.annotationName
         }

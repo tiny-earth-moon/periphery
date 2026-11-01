@@ -11,6 +11,7 @@ public struct ScanResult {
         case redundantOpenAccessibility(modules: Set<String>)
         case missingFinal
         case redundantAccessLevel(RedundantAccessLevel)
+        case emptyExtension
         case superfluousIgnoreCommand
         case unusedAssetCatalogSymbol(AssetCatalogSymbol)
     }

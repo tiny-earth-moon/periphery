@@ -274,6 +274,9 @@ final class SwiftIndexer: Indexer {
             let localizedStringSyntaxVisitor: LocalizedStringSyntaxVisitor? = configuration.disableUnusedLocalizedStringAnalysis
                 ? nil
                 : multiplexingSyntaxVisitor.add(LocalizedStringSyntaxVisitor.self)
+            let emptyExtensionSyntaxVisitor: EmptyExtensionSyntaxVisitor? = configuration.enableEmptyExtensionAnalysis
+                ? multiplexingSyntaxVisitor.add(EmptyExtensionSyntaxVisitor.self)
+                : nil
 
             multiplexingSyntaxVisitor.visit()
 
@@ -333,6 +336,10 @@ final class SwiftIndexer: Indexer {
                 if !uses.isEmpty {
                     graph.withLock { $0.addSynthesizedUses(uses) }
                 }
+            }
+
+            if let emptyExtensionSyntaxVisitor {
+                markEmptyExtensions(using: emptyExtensionSyntaxVisitor, fileCommands: multiplexingSyntaxVisitor.parseComments())
             }
 
             associateLatentReferences()
@@ -490,6 +497,20 @@ final class SwiftIndexer: Indexer {
                     // property/subscript, and a getter on the same line. The property/subscript is more likely to be
                     // the declaration that should hold the references.
                     associate(ref, with: decl)
+                }
+            }
+        }
+
+        private func markEmptyExtensions(using visitor: EmptyExtensionSyntaxVisitor, fileCommands: [CommentCommand]) {
+            guard !retainAllDeclarations, !fileCommands.contains(.ignoreAll) else { return }
+
+            let emptyExtensions = visitor.results.filter { !$0.commentCommands.contains(.ignore) }
+
+            guard !emptyExtensions.isEmpty else { return }
+
+            graph.withLock { graph in
+                for emptyExtension in emptyExtensions {
+                    graph.markEmptyExtension(extendedTypeName: emptyExtension.extendedTypeName, location: emptyExtension.location)
                 }
             }
         }
