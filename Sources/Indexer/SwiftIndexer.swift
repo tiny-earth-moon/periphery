@@ -316,6 +316,18 @@ final class SwiftIndexer: Indexer {
                 }
             }
 
+            if configuration.retainSynthesizedUses {
+                let uses = SynthesizedUseCollector.collect(
+                    from: multiplexingSyntaxVisitor.syntax,
+                    file: sourceFile,
+                    locationConverter: multiplexingSyntaxVisitor.locationConverter
+                )
+
+                if !uses.isEmpty {
+                    graph.withLock { $0.addSynthesizedUses(uses) }
+                }
+            }
+
             associateLatentReferences()
             associateDanglingReferences()
             visitDeclarations(using: declarationSyntaxVisitor)

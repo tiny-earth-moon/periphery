@@ -343,6 +343,8 @@ If `Codable` conformance is declared by a protocol in an external module not sca
 
 Swift synthesizes additional code for `Equatable` and `Hashable` types that is not visible to Periphery and can result in false positives for properties not directly referenced from non-synthesized code. If your project contains many such types, you can retain all properties on `Equatable` types with `--retain-equatable-properties`, or all properties on `Hashable` types with `--retain-hashable-properties`. The `Equatable` option also retains properties on `Hashable` types because `Hashable` refines `Equatable`.
 
+Properties can also be read implicitly through reflection, when a value is described by `print`, `debugPrint`, `String(describing:)`, `String(reflecting:)` or string interpolation (structs that do not provide their own description), or by `dump` (structs and classes). Use `--retain-synthesized-uses` to retain the stored properties of such types.
+
 ### XCTestCase
 
 Any class that inherits `XCTestCase` is automatically retained along with its test methods. However, when a class inherits `XCTestCase` indirectly via another class, e.g., `UnitTestCase`, and that class resides in a target that isn't scanned by Periphery, you need to use the `--external-test-case-classes UnitTestCase` option to instruct Periphery to treat `UnitTestCase` as an `XCTestCase` subclass.
