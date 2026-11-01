@@ -125,29 +125,121 @@ public final class XcodeTarget {
     }
 
     private func identifyInfoPlistFiles() throws {
-        let plistFiles = target.buildConfigurationList?.buildConfigurations.flatMap {
-            if let setting = $0.buildSettings["INFOPLIST_FILE"] {
-                switch setting {
-                case let .string(value):
-                    return [value]
-                case let .array(values):
-                    return values
-                }
+        let configurations = target.buildConfigurationList?.buildConfigurations ?? []
+        var paths: Set<FilePath> = []
+
+        for configuration in configurations {
+            let settings: [String] = switch configuration.buildSettings["INFOPLIST_FILE"] {
+            case let .string(value): [value]
+            case let .array(values): values
+            case nil: []
             }
 
-            return []
-        } ?? []
-        files[.infoPlist] = plistFiles.mapSet { parseInfoPlistSetting($0) }
-    }
-
-    private func parseInfoPlistSetting(_ setting: String) -> FilePath {
-        var setting = setting.replacingOccurrences(of: "$(SRCROOT)", with: "")
-
-        if setting.hasPrefix("/") {
-            setting.removeFirst()
+            for setting in settings {
+                try paths.insert(resolveInfoPlistSetting(setting, buildSettings: buildSettings(of: configuration)))
+            }
         }
 
-        return project.sourceRoot.lexicallyNormalized().appending(setting)
+        files[.infoPlist] = paths
+    }
+
+    /// The path of an `INFOPLIST_FILE` setting, with its `$(VAR)` / `${VAR}` references expanded from the target and
+    /// project build settings of the configuration, relative to the source root unless absolute.
+    func resolveInfoPlistSetting(_ setting: String, buildSettings: [String: String]) throws -> FilePath {
+        let settings = derivedBuildSettings.merging(buildSettings) { _, configured in configured }
+        let expanded = try expandBuildSettings(in: setting, settings: settings, rawSetting: setting, expanding: [])
+        let path = FilePath(expanded)
+
+        return path.isAbsolute ? path.lexicallyNormalized() : project.sourceRoot.lexicallyNormalized().appending(expanded).lexicallyNormalized()
+    }
+
+    // MARK: - Build settings
+
+    public enum BuildSettingError: Error, LocalizedError, Equatable {
+        case unresolvedVariable(name: String, setting: String)
+        case recursiveVariable(name: String, setting: String)
+
+        public var errorDescription: String? {
+            switch self {
+            case let .unresolvedVariable(name, setting):
+                "Cannot resolve the build setting variable '\(name)' in INFOPLIST_FILE '\(setting)'."
+            case let .recursiveVariable(name, setting):
+                "The build setting variable '\(name)' refers to itself in INFOPLIST_FILE '\(setting)'."
+            }
+        }
+    }
+
+    /// The settings Xcode derives from the project and target.
+    private var derivedBuildSettings: [String: String] {
+        let sourceRoot = project.sourceRoot.lexicallyNormalized().string
+        return [
+            "SRCROOT": sourceRoot,
+            "SOURCE_ROOT": sourceRoot,
+            "PROJECT_DIR": sourceRoot,
+            "PROJECT_NAME": project.name,
+            "TARGET_NAME": target.name,
+        ]
+    }
+
+    /// The project configuration's settings of the same name, overridden by the target configuration's.
+    private func buildSettings(of configuration: XCBuildConfiguration) -> [String: String] {
+        var settings: [String: String] = [:]
+
+        let projectConfiguration = project.xcodeProject.pbxproj.rootObject?.buildConfigurationList?.buildConfigurations
+            .first { $0.name == configuration.name }
+
+        for buildSettings in [projectConfiguration?.buildSettings, configuration.buildSettings].compactMap(\.self) {
+            for (key, value) in buildSettings {
+                switch value {
+                case let .string(string): settings[key] = string
+                case let .array(values): settings[key] = values.joined(separator: " ")
+                }
+            }
+        }
+
+        return settings
+    }
+
+    private func expandBuildSettings(
+        in value: String,
+        settings: [String: String],
+        rawSetting: String,
+        expanding: Set<String>
+    ) throws -> String {
+        var result = ""
+        var remainder = Substring(value)
+
+        while let dollar = remainder.firstIndex(of: "$") {
+            result += remainder[..<dollar]
+            let afterDollar = remainder.index(after: dollar)
+
+            guard afterDollar < remainder.endIndex,
+                  let close: Character = ["(": ")", "{": "}"][remainder[afterDollar]],
+                  let end = remainder[afterDollar...].firstIndex(of: close)
+            else {
+                result.append("$")
+                remainder = remainder[afterDollar...]
+                continue
+            }
+
+            let name = String(remainder[remainder.index(after: afterDollar) ..< end])
+            guard !expanding.contains(name) else {
+                throw BuildSettingError.recursiveVariable(name: name, setting: rawSetting)
+            }
+            guard let variableValue = settings[name] else {
+                throw BuildSettingError.unresolvedVariable(name: name, setting: rawSetting)
+            }
+
+            result += try expandBuildSettings(
+                in: variableValue,
+                settings: settings,
+                rawSetting: rawSetting,
+                expanding: expanding.union([name])
+            )
+            remainder = remainder[remainder.index(after: end)...]
+        }
+
+        return result + remainder
     }
 }
 

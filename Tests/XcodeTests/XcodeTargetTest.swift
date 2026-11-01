@@ -46,6 +46,30 @@ final class XcodeTargetTest: XCTestCase {
         XCTAssertEqual(testTarget.globalAccentColorNames, [])
     }
 
+    func testInfoPlistSettingExpandsBuildSettingVariables() throws {
+        let target = project.targets.first { $0.name == "UIKitProject" }!
+        let settings = ["PLIST_DIR": "${TARGET_NAME}"]
+
+        let path = try target.resolveInfoPlistSetting("$(PROJECT_DIR)/$(TARGET_NAME)/Info.plist", buildSettings: settings)
+        let indirect = try target.resolveInfoPlistSetting("$(PLIST_DIR)/Info.plist", buildSettings: settings)
+
+        let expected = project.sourceRoot.lexicallyNormalized().appending("UIKitProject/Info.plist")
+        XCTAssertEqual(path, expected)
+        XCTAssertEqual(indirect, expected)
+    }
+
+    func testInfoPlistSettingWithUnknownVariableThrows() {
+        let target = project.targets.first { $0.name == "UIKitProject" }!
+        let settings = ["LOOP": "$(LOOP)"]
+
+        XCTAssertThrowsError(try target.resolveInfoPlistSetting("$(UNKNOWN_DIR)/Info.plist", buildSettings: settings)) {
+            XCTAssertEqual($0 as? XcodeTarget.BuildSettingError, .unresolvedVariable(name: "UNKNOWN_DIR", setting: "$(UNKNOWN_DIR)/Info.plist"))
+        }
+        XCTAssertThrowsError(try target.resolveInfoPlistSetting("$(LOOP)/Info.plist", buildSettings: settings)) {
+            XCTAssertEqual($0 as? XcodeTarget.BuildSettingError, .recursiveVariable(name: "LOOP", setting: "$(LOOP)/Info.plist"))
+        }
+    }
+
     func testIsTestTarget() {
         let projectTarget = project.targets.first { $0.name == "UIKitProject" }!
         let testTarget = project.targets.first { $0.name == "UIKitProjectTests" }!
