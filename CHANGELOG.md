@@ -12,6 +12,20 @@
 
 - None.
 
+## 3.12.5 (2026-11-01)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- Warn about source files of scanned targets that have no index data (paths listed with `--verbose`), and fail with an explicit error when no expected source file is indexed, instead of reporting "No unused code detected" on an unusable index. [#93](https://github.com/tiny-earth-moon/periphery/issues/93)
+
+##### Bug Fixes
+
+- None.
+
 ## 3.12.4 (2026-11-01)
 
 ##### Breaking
