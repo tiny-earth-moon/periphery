@@ -34,31 +34,30 @@ public final class Xcodebuild {
 
     @discardableResult
     public func build(project: XcodeProjectlike, scheme: String, allSchemes: [String], additionalArguments: [String] = []) throws -> String {
-        let args = try [
-            "-\(project.type)", "\"\(project.path.lexicallyNormalized().string.withEscapedQuotes)\"",
-            "-scheme", "\"\(scheme.withEscapedQuotes)\"",
+        let xcodebuild = try [
+            "xcodebuild",
+            "-\(project.type)", project.path.lexicallyNormalized().string,
+            "-scheme", scheme,
             "-parallelizeTargets",
-            "-derivedDataPath", "'\(derivedDataPath(for: project, schemes: allSchemes).string)'",
+            "-derivedDataPath", derivedDataPath(for: project, schemes: allSchemes).string,
             "-quiet",
             "build-for-testing",
-        ]
-        let envs = [
-            "CODE_SIGNING_ALLOWED=\"NO\"",
-            "ENABLE_BITCODE=\"NO\"",
-            "DEBUG_INFORMATION_FORMAT=\"dwarf\"",
-            "COMPILER_INDEX_STORE_ENABLE=\"YES\"",
-            "INDEX_ENABLE_DATA_STORE=\"YES\"",
-        ]
+            "CODE_SIGNING_ALLOWED=NO",
+            "ENABLE_BITCODE=NO",
+            "DEBUG_INFORMATION_FORMAT=dwarf",
+            "COMPILER_INDEX_STORE_ENABLE=YES",
+            "INDEX_ENABLE_DATA_STORE=YES",
+        ] + additionalArguments
 
-        let quotedArguments = quote(arguments: additionalArguments)
-        let xcodebuild = ["xcodebuild"] + args + envs + quotedArguments
         return try shell.exec(xcodebuild)
     }
 
     /// removes the DerivedData folder used to build the specified schemes
     public func removeDerivedData(for project: XcodeProjectlike, allSchemes: [String]) throws {
-        let path = try derivedDataPath(for: project, schemes: allSchemes).string
-        try self.shell.exec(["rm", "-rf", path])
+        let path = try derivedDataPath(for: project, schemes: allSchemes)
+        guard path.exists else { return }
+
+        try FileManager.default.removeItem(atPath: path.string)
     }
 
     public func indexStorePath(
@@ -120,8 +119,9 @@ public final class Xcodebuild {
     }
 
     func schemes(type: String, path: String, additionalArguments: [String]) throws -> Set<String> {
-        let args = [
-            "-\(type)", "\"\(path.withEscapedQuotes)\"",
+        let xcodebuild = try [
+            "xcodebuild",
+            "-\(type)", path,
             "-list",
             "-json",
             // since `xcodebuild -list` performs package resolution (meaning that it needs a DerivedData folder),
@@ -132,11 +132,9 @@ public final class Xcodebuild {
             // `-derivedDataPath <path>/<xcode-default-hashed-folder-name>`.
             // this is not a problem, since we still can scope the folders on a per-project
             // and per-xcode-version level; the actual contents just happen to be one level deeper.
-            "-IDECustomDerivedDataLocation='\(try derivedDataPath(projectIdentifier: path, schemes: []).string)'",
-        ]
+            "-IDECustomDerivedDataLocation=\(derivedDataPath(projectIdentifier: path, schemes: []).string)",
+        ] + additionalArguments
 
-        let quotedArguments = quote(arguments: additionalArguments)
-        let xcodebuild = ["xcodebuild"] + args + quotedArguments
         let lines = try shell.exec(xcodebuild).split(separator: "\n").map { String($0).trimmed }
 
         // xcodebuild may output unrelated warnings, we need to strip them out otherwise
@@ -188,22 +186,5 @@ public final class Xcodebuild {
             name += "-\(schemes.sorted().joined().djb2Hex)"
         }
         return try Constants.cachePath().appending(name)
-    }
-
-    private func quote(arguments: [String]) -> [String] {
-        var quotedArguments = arguments
-
-        for (i, arg) in arguments.enumerated() {
-            if arg.hasPrefix("-"),
-               let value = arguments[safe: i + 1],
-               !value.hasPrefix("-"),
-               !value.hasPrefix("\""),
-               !value.hasPrefix("\'")
-            {
-                quotedArguments[i + 1] = "\"\(value)\""
-            }
-        }
-
-        return quotedArguments
     }
 }
