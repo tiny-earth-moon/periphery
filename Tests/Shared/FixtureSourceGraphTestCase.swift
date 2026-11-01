@@ -23,6 +23,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         retainEquatableProperties: Bool = false,
         retainHashableProperties: Bool = false,
         retainUnusedProtocolFuncParams: Bool = false,
+        retainUnusedParametersWithoutDefault: Bool = false,
         retainAssignOnlyProperties: Bool = false,
         retainAssignOnlyPropertyTypes: [String] = [],
         externalCodableProtocols: [String] = [],
@@ -48,6 +49,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         configuration.retainEquatableProperties = retainEquatableProperties
         configuration.retainHashableProperties = retainHashableProperties
         configuration.retainUnusedProtocolFuncParams = retainUnusedProtocolFuncParams
+        configuration.retainUnusedParametersWithoutDefault = retainUnusedParametersWithoutDefault
         configuration.retainAssignOnlyPropertyTypes = retainAssignOnlyPropertyTypes
         configuration.externalTestCaseClasses = externalTestCaseClasses
         configuration.retainFiles = retainFiles

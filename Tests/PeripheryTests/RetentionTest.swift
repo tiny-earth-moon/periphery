@@ -2086,6 +2086,26 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    func testRetainsUnusedParametersWithoutDefault() {
+        analyze(retainPublic: true) {
+            assertReferenced(.class("FixtureClass1302")) {
+                self.assertReferenced(.functionMethodInstance("myFunc(withoutDefault:withDefault:)")) {
+                    self.assertNotReferenced(.varParameter("withoutDefault"))
+                    self.assertNotReferenced(.varParameter("withDefault"))
+                }
+            }
+        }
+
+        analyze(retainPublic: true, retainUnusedParametersWithoutDefault: true) {
+            assertReferenced(.class("FixtureClass1302")) {
+                self.assertReferenced(.functionMethodInstance("myFunc(withoutDefault:withDefault:)")) {
+                    self.assertReferenced(.varParameter("withoutDefault"))
+                    self.assertNotReferenced(.varParameter("withDefault"))
+                }
+            }
+        }
+    }
+
     func testRetainsProtocolParameters() {
         analyze(retainPublic: true) {
             assertReferenced(.protocol("FixtureProtocol104")) {
