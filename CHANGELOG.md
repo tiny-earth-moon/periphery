@@ -12,6 +12,22 @@
 
 - None.
 
+## 3.12.10 (2026-11-01)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- `INFOPLIST_FILE` build setting variables (`$(PROJECT_DIR)`, `$(TARGET_NAME)`, …) are expanded from the project; an unresolvable variable logs a warning and the plist is skipped for that target. [#120](https://github.com/tiny-earth-moon/periphery/issues/120)
+
+##### Bug Fixes
+
+- SwiftUI `@State` reads under Xcode 27: top-level `$state` reads are retained; fixture and SPM test imported from agoodkind/periphery (author Alex Goodkind), single retention mechanism kept. [#118](https://github.com/tiny-earth-moon/periphery/issues/118)
+- String Catalog: keys of runtime lookups are retained by literal prefix (scoped to the module for `bundle: .module`), keys referenced through Xcode 26+ generated string symbols are no longer all marked used, ternary keys pinned by imported tests (agoodkind/periphery, author Alex Goodkind). [#120](https://github.com/tiny-earth-moon/periphery/issues/120)
+- An unreadable or missing String Catalog, xib, Info.plist, Core Data model or mapping model now raises an explicit error instead of being silently ignored. [#120](https://github.com/tiny-earth-moon/periphery/issues/120)
+
 ## 3.12.9 (2026-11-01)
 
 ##### Breaking
