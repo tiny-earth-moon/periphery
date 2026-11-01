@@ -1,8 +1,42 @@
+import Configuration
+import Logger
+@testable import PeripheryKit
 import SystemPackage
 @testable import TestShared
 import XCTest
 
 final class RetentionTest: FixtureSourceGraphTestCase {
+    func testReportExcludeByKind() throws {
+        let results = analyze(retainPublic: true) {
+            assertReferenced(.class("FixtureClassReportExcludeByKind")) {
+                self.assertNotReferenced(.functionMethodInstance("someMethod()"))
+                self.assertNotReferenced(.varInstance("someVar"))
+            }
+        }
+
+        func remainingKinds(_ entries: [ReportExcludeEntry]) throws -> Set<String> {
+            let configuration = Configuration()
+            configuration.reportExclude = entries
+            let filtered = try OutputDeclarationFilter(
+                configuration: configuration,
+                logger: Logger(quiet: true, verbose: false, colorMode: .never)
+            ).filter(results, with: nil)
+            return Set(filtered
+                .filter { $0.declaration.location.file.path == testFixturePath }
+                .map { ResultKind.identifier(of: $0) })
+        }
+
+        let path = testFixturePath.string
+        let all: Set = ["unused.function.method.instance", "unused.var.instance"]
+        XCTAssertEqual(try remainingKinds([]), all)
+        XCTAssertEqual(try remainingKinds([.pattern(path)]), [])
+        XCTAssertEqual(try remainingKinds([.scoped(path: path, kinds: ["unused.function"])]), ["unused.var.instance"])
+        XCTAssertEqual(try remainingKinds([.pattern("\(path):unused.var.instance")]), ["unused.function.method.instance"])
+        XCTAssertEqual(try remainingKinds([.scoped(path: "**/Other/*.swift", kinds: ["unused"])]), all)
+        XCTAssertEqual(try remainingKinds([.scoped(path: path, kinds: ["assignOnlyProperty"])]), all)
+        XCTAssertThrowsError(try remainingKinds([.scoped(path: path, kinds: ["unused.functoin"])]))
+    }
+
     func testNonReferencedClass() {
         analyze {
             assertNotReferenced(.class("FixtureClass1"))

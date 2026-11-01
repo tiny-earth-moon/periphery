@@ -41,18 +41,20 @@ public final class OutputDeclarationFilter {
             return declarations.sorted { $0.declaration < $1.declaration }
         }
 
+        let reportExcludeRules = try ReportExcludeRule.resolve(configuration)
+
         return declarations
-            .filter { [contextualLogger] in
-                var path = $0.declaration.location.file.path
+            .filter { [contextualLogger] result in
+                var path = result.declaration.location.file.path
 
                 // If the declaration has a location override, use it as the path for filtering.
-                if let override = $0.declaration.commentCommands.locationOverride {
+                if let override = result.declaration.commentCommands.locationOverride {
                     let (overridePath, _, _) = override
                     path = overridePath
                 }
 
                 if configuration.reportIncludeMatchers.isEmpty {
-                    if configuration.reportExcludeMatchers.anyMatch(filename: path.string) {
+                    if reportExcludeRules.contains(where: { $0.excludes(result, path: path.string) }) {
                         contextualLogger.debug("Excluding \(path)")
                         return false
                     }

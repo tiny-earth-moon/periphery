@@ -29,8 +29,8 @@ public final class Configuration {
     @Setting(key: "index_exclude", defaultValue: ["**/*?.build/**/*", "**/SourcePackages/checkouts/**"], requireDefaultValues: true)
     public var indexExclude: [String]
 
-    @Setting(key: "report_exclude", defaultValue: [])
-    public var reportExclude: [String]
+    @Setting(key: "report_exclude", defaultValue: [], setter: reportExcludeSetter)
+    public var reportExclude: [ReportExcludeEntry]
 
     @Setting(key: "report_include", defaultValue: [])
     public var reportInclude: [String]
@@ -234,14 +234,12 @@ public final class Configuration {
     public func buildFilenameMatchers() {
         indexExcludeMatchers = buildFilenameMatchers(with: indexExclude)
         retainFilesMatchers = buildFilenameMatchers(with: retainFiles)
-        reportExcludeMatchers = buildFilenameMatchers(with: reportExclude)
         reportIncludeMatchers = buildFilenameMatchers(with: reportInclude)
         localizedStringCatalogExcludeMatchers = buildFilenameMatchers(with: localizedStringCatalogExclude)
     }
 
     public var indexExcludeMatchers: [FilenameMatcher] = []
     public var retainFilesMatchers: [FilenameMatcher] = []
-    public var reportExcludeMatchers: [FilenameMatcher] = []
     public var reportIncludeMatchers: [FilenameMatcher] = []
     public var localizedStringCatalogExcludeMatchers: [FilenameMatcher] = []
 
@@ -261,7 +259,7 @@ public final class Configuration {
         $retainSynthesizedUses,
     ]
 
-    private func buildFilenameMatchers(with patterns: [String]) -> [FilenameMatcher] {
+    public func buildFilenameMatchers(with patterns: [String]) -> [FilenameMatcher] {
         // TODO: respect filesystem case sensitivity.
         let pwd = FilePath.current.string
         return patterns.map { FilenameMatcher(relativePattern: $0, to: pwd, caseSensitive: false) }

@@ -506,6 +506,16 @@ Both exclusion options described below accept a Bash v4-style path glob, either 
 
 To exclude the results from certain files, pass the `--report-exclude <globs>` option to the `scan` command.
 
+To exclude only some kinds of results, give `report_exclude` an object entry in the configuration file, or append the kinds to the glob with `<glob>:kind1,kind2`. A kind is the result annotation (`unused`, `assignOnlyProperty`, `redundantProtocol`, `redundantPublicAccessibility`, `superfluousIgnoreCommand`) optionally followed by the declaration kind reported in the JSON `kind` field, e.g. `unused.function` (every unused function and method) or `unused.var.parameter`. Entries without kinds exclude every result, and an unknown kind is a configuration error.
+
+```yaml
+report_exclude:
+  - "**/Generated/**"
+  - path: "**/SharedKit/**"
+    kinds: [unused.function, unused.var.parameter]
+  - "**/Legacy/**:unused.var,redundantProtocol"
+```
+
 ### Excluding Indexed Files
 
 Excluding files from the indexing phase means that any declarations and references contained within the files will not be seen by Periphery. Periphery will behave as if the files do not exist.

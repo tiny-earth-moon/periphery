@@ -42,8 +42,8 @@ struct ScanCommand: ParsableCommand {
     @Option(parsing: .upToNextOption, help: "Source file globs to exclude from indexing")
     var indexExclude: [String] = defaultConfiguration.$indexExclude.defaultValue
 
-    @Option(parsing: .upToNextOption, help: "Source file globs to exclude from the results. Note that this option is purely cosmetic, these files will still be indexed")
-    var reportExclude: [String] = defaultConfiguration.$reportExclude.defaultValue
+    @Option(parsing: .upToNextOption, help: "Source file globs to exclude from the results, optionally limited to result kinds with '<glob>:kind1,kind2'. Note that this option is purely cosmetic, these files will still be indexed")
+    var reportExclude: [String] = []
 
     @Option(parsing: .upToNextOption, help: "Source file globs to include in the results. This option supersedes '--report-exclude'. Note that this option is purely cosmetic, these files will still be indexed")
     var reportInclude: [String] = defaultConfiguration.$reportInclude.defaultValue
@@ -209,7 +209,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$project, project)
         configuration.apply(\.$schemes, schemes)
         configuration.apply(\.$indexExclude, indexExclude)
-        configuration.apply(\.$reportExclude, reportExclude)
+        configuration.apply(\.$reportExclude, reportExclude.map { .pattern($0) })
         configuration.apply(\.$reportInclude, reportInclude)
         configuration.apply(\.$outputFormat, format)
         configuration.apply(\.$retainFiles, retainFiles)
@@ -264,6 +264,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$retainSynthesizedUses, retainSynthesizedUses)
 
         configuration.buildFilenameMatchers()
+        _ = try ReportExcludeRule.resolve(configuration)
 
         let logger = Logger(configuration: configuration)
         logger.contextualized(with: "version").debug(PeripheryVersion)
