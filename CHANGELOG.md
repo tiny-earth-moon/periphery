@@ -12,6 +12,21 @@
 
 - None.
 
+## 3.12.14 (2026-11-01)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- New opt-in `enable_redundant_public_members` / `--enable-redundant-public-members`: extends the redundant public accessibility analysis to the members of public types, reporting a `public` member never referenced outside its module (protocol requirements, `open`, `override`, `@inlinable` and implicit members stay silent). [#75](https://github.com/tiny-earth-moon/periphery/issues/75)
+- New opt-in `enable_empty_extension_analysis` / `--enable-empty-extension-analysis`: reports empty extensions (`extension Foo {}`, with only comments, `@available` or empty `#if` branches) by a syntactic pass, since the index store has no entry for them (`emptyExtension`). [#74](https://github.com/tiny-earth-moon/periphery/issues/74)
+
+##### Bug Fixes
+
+- None.
+
 ## 3.12.13 (2026-11-01)
 
 ##### Breaking
