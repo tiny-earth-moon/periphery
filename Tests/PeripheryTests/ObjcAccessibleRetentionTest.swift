@@ -48,7 +48,7 @@ import XCTest
         }
 
         func testDoesNotRetainObjcAnnotatedWithoutOption() {
-            analyze {
+            analyze(retainPublic: true) {
                 assertNotReferenced(.class("FixtureClass23"))
             }
         }
@@ -68,6 +68,38 @@ import XCTest
                     self.assertReferenced(.varInstance("someVar"))
                     self.assertReferenced(.functionMethodInstance("someMethod()"))
                     self.assertNotReferenced(.functionMethodInstance("somePrivateMethod()"))
+                }
+            }
+        }
+
+        func testRetainsJSExportProtocols() {
+            analyze(retainPublic: true) {
+                assertReferenced(.protocol("FixtureProtocolJSExport")) {
+                    self.assertNotReferenced(.functionMethodInstance("exported()"))
+                }
+                assertReferenced(.protocol("FixtureProtocolJSExportIntermediate")) {
+                    self.assertNotReferenced(.varInstance("intermediateValue"))
+                }
+                assertReferenced(.class("FixtureClassJSExport")) {
+                    self.assertNotReferenced(.functionMethodInstance("exported()"))
+                    self.assertNotReferenced(.varInstance("intermediateValue"))
+                    self.assertNotReferenced(.functionMethodInstance("notExported()"))
+                    self.assertNotReferenced(.functionMethodInstance("witness()"))
+                }
+            }
+
+            analyze(retainPublic: true, retainJsAccessible: true) {
+                assertReferenced(.protocol("FixtureProtocolJSExport")) {
+                    self.assertReferenced(.functionMethodInstance("exported()"))
+                }
+                assertReferenced(.protocol("FixtureProtocolJSExportIntermediate")) {
+                    self.assertReferenced(.varInstance("intermediateValue"))
+                }
+                assertReferenced(.class("FixtureClassJSExport")) {
+                    self.assertReferenced(.functionMethodInstance("exported()"))
+                    self.assertReferenced(.varInstance("intermediateValue"))
+                    self.assertNotReferenced(.functionMethodInstance("notExported()"))
+                    self.assertNotReferenced(.functionMethodInstance("witness()"))
                 }
             }
         }

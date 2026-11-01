@@ -105,6 +105,9 @@ struct ScanCommand: ParsableCommand {
     @Flag(help: "Retain declarations that are exposed to Objective-C implicitly by inheriting NSObject classes, or explicitly with the @objc and @objcMembers attributes")
     var retainObjcAccessible: Bool = defaultConfiguration.$retainObjcAccessible.defaultValue
 
+    @Flag(help: "Retain protocols that inherit JSExport, their members, and the members of conforming types that satisfy them")
+    var retainJsAccessible: Bool = defaultConfiguration.$retainJsAccessible.defaultValue
+
     @Flag(help: "Retain declarations that are exposed to Objective-C explicitly with the @objc and @objcMembers attributes")
     var retainObjcAnnotated: Bool = defaultConfiguration.$retainObjcAnnotated.defaultValue
 
@@ -228,6 +231,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$retainAssignOnlyProperties, retainAssignOnlyProperties)
         configuration.apply(\.$retainAssignOnlyPropertyTypes, retainAssignOnlyPropertyTypes)
         configuration.apply(\.$retainObjcAccessible, retainObjcAccessible)
+        configuration.apply(\.$retainJsAccessible, retainJsAccessible)
         configuration.apply(\.$retainObjcAnnotated, retainObjcAnnotated)
         configuration.apply(\.$retainUnusedProtocolFuncParams, retainUnusedProtocolFuncParams)
         configuration.apply(\.$retainUnusedParametersWithoutDefault, retainUnusedParametersWithoutDefault)

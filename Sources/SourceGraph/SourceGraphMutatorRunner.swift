@@ -11,6 +11,7 @@ public final class SourceGraphMutatorRunner {
         // Must come before ExtensionReferenceBuilder.
         AccessibilityCascader.self,
         ObjCAccessibleRetainer.self,
+        JSExportRetainer.self,
         // Must come before ExtensionReferenceBuilder so that it can detect redundant accessibility on extensions.
         RedundantExplicitPublicAccessibilityMarker.self,
         GenericClassAndStructConstructorReferenceBuilder.self,
