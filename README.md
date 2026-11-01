@@ -1,46 +1,3 @@
-> [!NOTE]
->
-> This is a maintained fork of [peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived in August 2026. Scope: keep Periphery building and working with current Xcode/Swift toolchains, fix regressions, review community PRs. No functional roadmap.
->
-> Install: `brew install tiny-earth-moon/tap/periphery` (builds from source) or `swift build -c release --product periphery`. Issues and pull requests: this repository.
->
-> The original author now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. This fork takes nothing from it; both install a `periphery` executable, so install one or the other (the Homebrew formulae conflict on purpose).
->
-> Periphery was created by [Ian Leitch](https://github.com/ileitch), whom we thank for years of excellent work and for keeping the project open source. See [Credits](#credits) for the full attribution.
-
-<br>
-
-## Credits
-
-Periphery is the work of [Ian Leitch](https://github.com/ileitch) ([peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived, MIT license). This fork is maintained by [tiny-earth-moon](https://github.com/tiny-earth-moon) since 2026-10-25. The original copyright notice is kept in [LICENSE.md](LICENSE.md).
-
-Issues in this repository are imported from the upstream tracker and from periphery-pro/issues, keeping the original reference and reporter.
-
-### External contributions
-
-Changes from other people taken in since 3.8.1, with the original author kept in the git history:
-
-| Change | Author | Where | Version |
-|--------|--------|-------|---------|
-| Fix infinite recursion when expanding paths of directories named `**` or starting with `**` | Zev Eisenberg | [#22](https://github.com/tiny-earth-moon/periphery/pull/22) (3b00f30, 9cde22a, ddc54ea, 44e26aa) | 3.8.4 |
-| Honor `--clean-build` and control the derived data path when listing Xcode schemes | Lukas Kollmer | [#25](https://github.com/tiny-earth-moon/periphery/pull/25) (4dded94, 8062d32, 8c2fd27) | 3.8.5 |
-| Retain macro `@State` properties used only via `$projectedValue` | rishabhtpdl | [#36](https://github.com/tiny-earth-moon/periphery/issues/36) (92f0ec4) | 3.8.8 |
-| Detect unused String Catalog (`.xcstrings`) keys (upstream commit, cherry-picked unchanged) | Ian Leitch | d865dde | 3.9.0 |
-| Test and fixture pinning `buildPartialBlock` retention in result builders (our #30 already retained it) | Alex Goodkind | [agoodkind/periphery@153790b](https://github.com/agoodkind/periphery/commit/153790b2ad4ddd51a8b6a1b53d7d3b847640a553) (agoodkind PR #6, our issue #119) | 3.12.9 |
-| Read stdout and stderr of shell commands concurrently (no deadlock on large output) | Alex Goodkind | [agoodkind/periphery@90de96b](https://github.com/agoodkind/periphery/commit/90de96b) ([PR #1](https://github.com/agoodkind/periphery/pull/1)), our [#117](https://github.com/tiny-earth-moon/periphery/issues/117) | 3.12.9 |
-| Ternary String Catalog keys: fixture and tests (our visitor already looked through ternaries) | Alex Goodkind | [agoodkind/periphery@6c57931](https://github.com/agoodkind/periphery/commit/6c57931) (agoodkind PR #11, cherry-picked), our [#120](https://github.com/tiny-earth-moon/periphery/issues/120) | 3.12.10 |
-| Retain String Catalog keys of runtime lookups by literal prefix, scoped to the module for `bundle: .module` (reimplemented) | Alex Goodkind | [agoodkind/periphery@544a77d](https://github.com/agoodkind/periphery/commit/544a77d), [5c5af4c](https://github.com/agoodkind/periphery/commit/5c5af4c), our [#120](https://github.com/tiny-earth-moon/periphery/issues/120) | 3.12.10 |
-| Detect String Catalog keys referenced through Xcode 26+ generated symbols (reimplemented) | Alex Goodkind | [agoodkind/periphery@783b5f8](https://github.com/agoodkind/periphery/commit/783b5f8), [9ca12ad](https://github.com/agoodkind/periphery/commit/9ca12ad), [20f40ce](https://github.com/agoodkind/periphery/commit/20f40ce), our [#120](https://github.com/tiny-earth-moon/periphery/issues/120) | 3.12.10 |
-| SwiftUI `@State` fixture (`StateMacroView`, SPMProjectMacOS) and top-level `$state` reads retained under Xcode 27 (merged into our `MacroWrappedPropertyReferenceBuilder`) | Alex Goodkind | [agoodkind/periphery@e5b4cd2](https://github.com/agoodkind/periphery/commit/e5b4cd24b314467a2b6252f0336c298760d39e80) ([PR #4](https://github.com/agoodkind/periphery/pull/4)), our [#118](https://github.com/tiny-earth-moon/periphery/issues/118) | 3.12.10 |
-| Exclude hidden files and directories (`.build`, `.scratch`) from SwiftPM implicit resource discovery (cherry-picked with a manual conflict resolution; 782a4e2 only touches Bazel for private dependencies, so nothing to port) | Alex Goodkind | [agoodkind/periphery@df83716](https://github.com/agoodkind/periphery/commit/df83716), our [#121](https://github.com/tiny-earth-moon/periphery/issues/121) | 3.12.11 |
-
-### Sibling fork
-
-[agoodkind/periphery](https://github.com/agoodkind/periphery) (the "Forever Free Fork") was forked from the original in August 2026 and imported our 3.10.0 on 2026-10-29, keeping the authors. Anything we take from it is tracked in issues #117 to #123 and credited here, one table row per import (fix, author, original commit).
-
-<details>
-<summary>Click to expand original README</summary>
-
 <h1 align="center">
   <img src="assets/logo.png" alt="Periphery" height="60" />
   <br>
@@ -51,20 +8,29 @@ Changes from other people taken in since 3.8.1, with the original author kept in
 <p align="center"><q><i>Now I am become Delete, the destroyer of codes.</i></q></p>
 
 <p align="center">
-<a href="https://github.com/peripheryapp/periphery/releases/latest">
-<img src="https://img.shields.io/github/release/peripheryapp/periphery.svg?color=008DFF"/></a>
+<a href="https://github.com/tiny-earth-moon/periphery/releases/latest">
+<img src="https://img.shields.io/github/release/tiny-earth-moon/periphery.svg?color=008DFF"/></a>
 <img src="https://img.shields.io/badge/platform-macOS%20|%20Linux-008DFF">
-<a href="#sponsors-">
-<img src="https://img.shields.io/github/sponsors/peripheryapp?logo=githubsponsors&color=db61a2">
-</a>
 <br>
 <br>
 </p>
+
+> [!NOTE]
+>
+> This is a maintained fork of [peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived in August 2026. Scope: keep Periphery building and working with current Xcode/Swift toolchains, fix regressions, review community PRs. No functional roadmap.
+>
+> Install: `brew install tiny-earth-moon/tap/periphery` (builds from source) or `swift build -c release --product periphery`. Issues and pull requests: this repository.
+>
+> The original author now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. This fork takes nothing from it; both install a `periphery` executable, so install one or the other (the Homebrew formulae conflict on purpose).
+>
+> Periphery was created by [Ian Leitch](https://github.com/ileitch), whom we thank for years of excellent work and for keeping the project open source. See [Credits](#credits) for the full attribution.
 
 ## Contents
 
 - [Installation](#installation)
 - [How To Use](#how-to-use)
+    - [The `scan` Command](#the-scan-command)
+    - [Configuration](#configuration)
 - [Analysis](#analysis)
     - [Function Parameters](#function-parameters)
     - [Protocols](#protocols-1)
@@ -75,8 +41,11 @@ Changes from other people taken in since 3.8.1, with the original author kept in
     - [Unused Imports](#unused-imports)
     - [Platform Conditionals](#platform-conditionals)
     - [Objective-C](#objective-c)
+    - [JavaScriptCore](#javascriptcore)
     - [Codable](#codable)
     - [Equatable and Hashable](#equatable-and-hashable)
+    - [Retaining by Attribute](#retaining-by-attribute)
+    - [Unused Parameters Without a Default Value](#unused-parameters-without-a-default-value)
     - [XCTestCase](#xctestcase)
     - [Interface Builder](#interface-builder)
     - [Asset Catalog Colors](#asset-catalog-colors)
@@ -91,30 +60,44 @@ Changes from other people taken in since 3.8.1, with the original author kept in
 - [Troubleshooting](#troubleshooting)
 - [Known Bugs](#known-bugs)
 - [Credits](#credits)
-- [Sponsors (original author)](#sponsors-) ![Sponsors](assets/sponsor.svg)
 
 ## Installation
 
 ### [Homebrew](https://brew.sh/)
 
 ```sh
-brew install periphery
+brew install tiny-earth-moon/tap/periphery
 ```
 
 ### [Mint](https://github.com/yonaskolb/mint)
 
 ```sh
-mint install peripheryapp/periphery
+mint install tiny-earth-moon/periphery
 ```
 
 ### [Bazel](https://bazel.build/)
 
 ```python
-bazel_dep(name = "periphery", version = "<version>", dev_dependency = True)
+bazel_dep(name = "periphery", version = "3.12.11", dev_dependency = True)
+archive_override(
+    module_name = "periphery",
+    urls = ["https://github.com/tiny-earth-moon/periphery/archive/refs/tags/3.12.11.tar.gz"],
+    strip_prefix = "periphery-3.12.11",
+)
 use_repo(use_extension("@periphery//bazel:generated.bzl", "generated"), "periphery_generated")
 ```
 
+This fork's versions are not published on the Bazel Central Registry, hence `archive_override`; keep the version and the archive URL in step with the release you use.
+
 See [Bazel](#build-systems) below for usage instructions.
+
+### From source
+
+```sh
+git clone https://github.com/tiny-earth-moon/periphery.git
+cd periphery
+swift build -c release --product periphery
+```
 
 ## How To Use
 
@@ -685,7 +668,7 @@ Therefore, if you intend to run Periphery directly after calling `swift test`, y
 bazel run @periphery -- scan --bazel
 ```
 
-The `--bazel` option enables Bazel mode, which provides seamless integration with your project. It works by querying your project to identify all top-level targets, generating a hidden implementation of the [scan](https://github.com/peripheryapp/periphery/blob/master/bazel/rules.bzl) rule, and then invoking `bazel run`. You can filter the default top-level target query with the `--bazel-filter <value>` option, where `<value>` will be passed as the first argument to Bazel's [filter](https://bazel.build/query/language#filter) operator. You can also override the generated query entirely with `--bazel-query <value>`, which is useful when you need to exclude targets such as ones tagged `manual`, or avoid building targets that use an incorrect transition when built directly. The generated query can be seen in the console with the `--verbose` option.
+The `--bazel` option enables Bazel mode, which provides seamless integration with your project. It works by querying your project to identify all top-level targets, generating a hidden implementation of the [scan](https://github.com/tiny-earth-moon/periphery/blob/master/bazel/rules.bzl) rule, and then invoking `bazel run`. You can filter the default top-level target query with the `--bazel-filter <value>` option, where `<value>` will be passed as the first argument to Bazel's [filter](https://bazel.build/query/language#filter) operator. You can also override the generated query entirely with `--bazel-query <value>`, which is useful when you need to exclude targets such as ones tagged `manual`, or avoid building targets that use an incorrect transition when built directly. The generated query can be seen in the console with the `--verbose` option.
 
 Periphery's generated scan rule follows embedded bundle and plugin edges transitively, so you can root the scan in application targets while still analyzing code that is only reachable through extensions, app clips, watch applications, or Swift compiler plugins.
 
@@ -818,34 +801,30 @@ Due to some underlying bugs in Swift, Periphery may in some instances report inc
 | [56189](https://github.com/apple/swift/issues/56189) | Index store should relate appendInterpolation from string literals |
 | [56165](https://github.com/apple/swift/issues/56165) | Index store does not relate constructor via literal notation |
 
-## Sponsors ![Sponsors](assets/sponsor-20.svg)
+## Credits
 
-This section is the original author's, kept as published upstream; this fork has no sponsorship. Periphery is a passion project that takes a huge amount of effort to maintain and develop. If you find Periphery useful, please consider sponsoring Ian Leitch through [GitHub Sponsors](https://github.com/sponsors/peripheryapp).
+Periphery is the work of [Ian Leitch](https://github.com/ileitch) ([peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived, MIT license). This fork is maintained by [tiny-earth-moon](https://github.com/tiny-earth-moon) since 2026-10-25. The original copyright notice is kept in [LICENSE.md](LICENSE.md).
 
-Special thanks go to the following generous sponsors:
+Issues in this repository are imported from the upstream tracker and from periphery-pro/issues, keeping the original reference and reporter.
 
-### SaGa Corp
+### External contributions
 
-[SaGa Corp](https://www.sagacorp.fr) develops unique technology for financial players and their customers.
+Changes from other people taken in since 3.8.1, with the original author kept in the git history:
 
-<a href="https://www.sagacorp.fr" alt="SaGa Corp">
-    <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="https://github.com/peripheryapp/periphery/raw/master/assets/sponsors/saga-corp-white.svg">
-        <source media="(prefers-color-scheme: light)" srcset="https://github.com/peripheryapp/periphery/raw/master/assets/sponsors/saga-corp-black.svg">
-        <img src="https://github.com/peripheryapp/periphery/raw/master/assets/sponsors/saga-corp-black.svg" width="150">
-    </picture>
-</a>
+| Change | Author | Where | Version |
+|--------|--------|-------|---------|
+| Fix infinite recursion when expanding paths of directories named `**` or starting with `**` | Zev Eisenberg | [#22](https://github.com/tiny-earth-moon/periphery/pull/22) (3b00f30, 9cde22a, ddc54ea, 44e26aa) | 3.8.4 |
+| Honor `--clean-build` and control the derived data path when listing Xcode schemes | Lukas Kollmer | [#25](https://github.com/tiny-earth-moon/periphery/pull/25) (4dded94, 8062d32, 8c2fd27) | 3.8.5 |
+| Retain macro `@State` properties used only via `$projectedValue` | rishabhtpdl | [#36](https://github.com/tiny-earth-moon/periphery/issues/36) (92f0ec4) | 3.8.8 |
+| Detect unused String Catalog (`.xcstrings`) keys (upstream commit, cherry-picked unchanged) | Ian Leitch | d865dde | 3.9.0 |
+| Test and fixture pinning `buildPartialBlock` retention in result builders (our #30 already retained it) | Alex Goodkind | [agoodkind/periphery@153790b](https://github.com/agoodkind/periphery/commit/153790b2ad4ddd51a8b6a1b53d7d3b847640a553) (agoodkind PR #6, our issue #119) | 3.12.9 |
+| Read stdout and stderr of shell commands concurrently (no deadlock on large output) | Alex Goodkind | [agoodkind/periphery@90de96b](https://github.com/agoodkind/periphery/commit/90de96b) ([PR #1](https://github.com/agoodkind/periphery/pull/1)), our [#117](https://github.com/tiny-earth-moon/periphery/issues/117) | 3.12.9 |
+| Ternary String Catalog keys: fixture and tests (our visitor already looked through ternaries) | Alex Goodkind | [agoodkind/periphery@6c57931](https://github.com/agoodkind/periphery/commit/6c57931) (agoodkind PR #11, cherry-picked), our [#120](https://github.com/tiny-earth-moon/periphery/issues/120) | 3.12.10 |
+| Retain String Catalog keys of runtime lookups by literal prefix, scoped to the module for `bundle: .module` (reimplemented) | Alex Goodkind | [agoodkind/periphery@544a77d](https://github.com/agoodkind/periphery/commit/544a77d), [5c5af4c](https://github.com/agoodkind/periphery/commit/5c5af4c), our [#120](https://github.com/tiny-earth-moon/periphery/issues/120) | 3.12.10 |
+| Detect String Catalog keys referenced through Xcode 26+ generated symbols (reimplemented) | Alex Goodkind | [agoodkind/periphery@783b5f8](https://github.com/agoodkind/periphery/commit/783b5f8), [9ca12ad](https://github.com/agoodkind/periphery/commit/9ca12ad), [20f40ce](https://github.com/agoodkind/periphery/commit/20f40ce), our [#120](https://github.com/tiny-earth-moon/periphery/issues/120) | 3.12.10 |
+| SwiftUI `@State` fixture (`StateMacroView`, SPMProjectMacOS) and top-level `$state` reads retained under Xcode 27 (merged into our `MacroWrappedPropertyReferenceBuilder`) | Alex Goodkind | [agoodkind/periphery@e5b4cd2](https://github.com/agoodkind/periphery/commit/e5b4cd24b314467a2b6252f0336c298760d39e80) ([PR #4](https://github.com/agoodkind/periphery/pull/4)), our [#118](https://github.com/tiny-earth-moon/periphery/issues/118) | 3.12.10 |
+| Exclude hidden files and directories (`.build`, `.scratch`) from SwiftPM implicit resource discovery (cherry-picked with a manual conflict resolution; 782a4e2 only touches Bazel for private dependencies, so nothing to port) | Alex Goodkind | [agoodkind/periphery@df83716](https://github.com/agoodkind/periphery/commit/df83716), our [#121](https://github.com/tiny-earth-moon/periphery/issues/121) | 3.12.11 |
 
-### Emerge Tools
+### Sibling fork
 
-[Emerge Tools](https://www.emergetools.com) is a suite of revolutionary products designed to supercharge mobile apps and the teams that build them.
-
-<a href="https://www.emergetools.com" alt="Emerge Tools">
-    <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="https://github.com/peripheryapp/periphery/raw/master/assets/sponsors/emerge-tools-vertical-white.svg">
-        <source media="(prefers-color-scheme: light)" srcset="https://github.com/peripheryapp/periphery/raw/master/assets/sponsors/emerge-tools-vertical-black.svg">
-        <img src="https://github.com/peripheryapp/periphery/raw/master/assets/sponsors/emerge-tools-vertical-black.svg">
-    </picture>
-</a>
-
-</details>
+[agoodkind/periphery](https://github.com/agoodkind/periphery) (the "Forever Free Fork") was forked from the original in August 2026 and imported our 3.10.0 on 2026-10-29, keeping the authors. Anything we take from it is tracked in issues #117 to #123 and credited here, one table row per import (fix, author, original commit).
