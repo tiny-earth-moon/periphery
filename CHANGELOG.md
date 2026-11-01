@@ -12,6 +12,20 @@
 
 - None.
 
+## 3.12.3 (2026-11-01)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- New option `cache_max_age_days` / `--cache-max-age-days` (default 14, 0 disables): after an Xcode scan, `DerivedData-*` folders of the Periphery cache unused for longer than this age are evicted and logged with their size; the current scan's folder is never evicted. Closes #82.
+
+##### Bug Fixes
+
+- `periphery clear-cache` removes the cache through FileManager instead of `rm -rf`, tolerates entries already gone, does not follow symbolic links and reports every path it could not remove. Closes #82.
+
 ## 3.12.2 (2026-11-01)
 
 ##### Breaking
