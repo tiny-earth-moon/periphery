@@ -11,6 +11,7 @@ public final class SourceGraph {
     public private(set) var redundantPublicAccessibility: [Declaration: Set<String>] = [:]
     public private(set) var redundantOpenAccessibility: [Declaration: Set<String>] = [:]
     public private(set) var missingFinalDeclarations: Set<Declaration> = []
+    public private(set) var redundantAccessLevel: [Declaration: RedundantAccessLevel] = [:]
     public private(set) var rootReferences: Set<Reference> = []
     public private(set) var allReferences: Set<Reference> = []
     public private(set) var retainedDeclarations: Set<Declaration> = []
@@ -110,6 +111,10 @@ public final class SourceGraph {
 
     func markMissingFinal(_ declaration: Declaration) {
         missingFinalDeclarations.insert(declaration)
+    }
+
+    func markRedundantAccessLevel(_ declaration: Declaration, accessibility: Accessibility, context: Accessibility?) {
+        redundantAccessLevel[declaration] = RedundantAccessLevel(accessibility: accessibility, context: context)
     }
 
     func markUnusedAssetCatalogSymbol(_ declaration: Declaration, symbol: AssetCatalogSymbol) {
