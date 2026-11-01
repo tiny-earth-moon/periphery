@@ -182,6 +182,7 @@ swift_library(
         "PeripheryKit/Results/JsonFormatter.swift",
         "PeripheryKit/Results/OutputDeclarationFilter.swift",
         "PeripheryKit/Results/OutputFormatter.swift",
+        "PeripheryKit/Results/ReportExcludeRules.swift",
         "PeripheryKit/Results/XcodeFormatter.swift",
         "PeripheryKit/ScanResult.swift",
         "PeripheryKit/ScanResultBuilder.swift",
@@ -302,6 +303,7 @@ swift_library(
         "Configuration/ColorOption.swift",
         "Configuration/Configuration.swift",
         "Configuration/OutputFormat.swift",
+        "Configuration/ReportExcludeEntry.swift",
     ],
     module_name = "Configuration",
     deps = [
