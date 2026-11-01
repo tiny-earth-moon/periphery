@@ -18,7 +18,11 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "Frontend",
-            dependencies: ["SPMProjectKit"]
+            dependencies: ["SPMProjectKit", "SPMDynamicKeysKit"]
+        ),
+        .target(
+            name: "SPMDynamicKeysKit",
+            resources: [.copy("Localizable.xcstrings")]
         ),
         .target(
             name: "SPMProjectKit",

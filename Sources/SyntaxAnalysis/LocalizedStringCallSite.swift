@@ -29,3 +29,28 @@ public struct LocalizedStringCallSite: Hashable {
         Set(arguments.flatMap(\.keys))
     }
 }
+
+/// A lookup whose key is built from a runtime value, e.g. `NSLocalizedString(name, comment: "")` or
+/// `LocalizedStringKey("settings." + name)`, which cannot be matched to a catalogue key.
+public struct LocalizedStringUnresolvedKey: Hashable {
+    /// The bundle the key is looked up in.
+    public enum BundleScope: Hashable {
+        /// `bundle: .module`: only the catalogues of the calling module.
+        case module
+        /// Any other or no bundle argument: the bundle cannot be determined, every catalogue may hold the key.
+        case unknown
+    }
+
+    /// The static text every possible key starts with, empty when the expression does not start with a literal.
+    public let prefix: String
+    public let bundleScope: BundleScope
+    public let line: Int
+    public let column: Int
+
+    public init(prefix: String, bundleScope: BundleScope, line: Int, column: Int) {
+        self.prefix = prefix
+        self.bundleScope = bundleScope
+        self.line = line
+        self.column = column
+    }
+}

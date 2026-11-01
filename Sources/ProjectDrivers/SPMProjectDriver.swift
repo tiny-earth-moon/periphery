@@ -71,6 +71,7 @@ extension SPMProjectDriver: ProjectDriver {
             xibPaths: xibPaths,
             xcDataModelPaths: xcDataModelPaths,
             xcStringsPaths: xcStringsPaths,
+            xcStringsModules: projectFileModules(of: .xcStrings, from: description),
             expectedSourceFiles: expectedSourceFiles(from: description, excluding: excludedTestTargets),
             indexStorePaths: indexStorePaths
         )
@@ -101,21 +102,26 @@ extension SPMProjectDriver: ProjectDriver {
     }
 
     private func projectFiles(of kind: ProjectFileKind, from description: PackageDescription) -> Set<FilePath> {
-        var files: Set<FilePath> = []
+        Set(projectFileModules(of: kind, from: description).keys)
+    }
+
+    /// The project files of a kind, each with the modules of the targets containing it.
+    private func projectFileModules(of kind: ProjectFileKind, from description: PackageDescription) -> [FilePath: Set<String>] {
+        var files: [FilePath: Set<String>] = [:]
         let extensions = kind.extensions
 
         for target in description.targets {
             let targetPath = pkg.path.appending(target.path)
+            let module = target.c99name ?? target.name
+            var targetFiles: Set<FilePath> = []
 
             // SwiftPM processes Interface Builder files and Core Data models implicitly, without a `resources:` declaration,
             // and `swift package describe` only lists the declared resources.
             for ext in extensions {
-                files.formUnion(FilePath.glob("\(targetPath.string)/**/*.\(ext)"))
+                targetFiles.formUnion(FilePath.glob("\(targetPath.string)/**/*.\(ext)"))
             }
 
-            guard let resources = target.resources else { continue }
-
-            for resource in resources {
+            for resource in target.resources ?? [] {
                 // Resource.path is always a single file path
                 let resourceFilePath = FilePath(resource.path)
                 let resourcePath: FilePath = resourceFilePath.isAbsolute
@@ -126,7 +132,11 @@ extension SPMProjectDriver: ProjectDriver {
                 guard resourcePath.exists else { continue }
                 guard let ext = resourcePath.extension?.lowercased(), extensions.contains(ext) else { continue }
 
-                files.insert(resourcePath.lexicallyNormalized())
+                targetFiles.insert(resourcePath.lexicallyNormalized())
+            }
+
+            for file in targetFiles {
+                files[file, default: []].insert(module)
             }
         }
 

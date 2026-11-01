@@ -11,7 +11,7 @@ final class XibParser {
     }
 
     func parse() throws -> [AssetReference] {
-        guard let data = FileManager.default.contents(atPath: path.string) else { return [] }
+        let data = try Data(contentsOf: URL(fileURLWithPath: path.string))
 
         let structure = try AEXMLDocument(xml: data)
 
@@ -37,7 +37,7 @@ final class XibParser {
     /// The asset catalog color names used by the file, e.g. `<color key="backgroundColor" name="Brand"/>` and
     /// `<namedColor name="Brand">`.
     func namedColors() throws -> Set<String> {
-        guard let data = FileManager.default.contents(atPath: path.string) else { return [] }
+        let data = try Data(contentsOf: URL(fileURLWithPath: path.string))
 
         var names: Set<String> = []
         collectNamedColors(from: try AEXMLDocument(xml: data).root, into: &names)

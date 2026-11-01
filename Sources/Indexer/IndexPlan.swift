@@ -9,6 +9,9 @@ public struct IndexPlan {
     public let xcDataModelPaths: Set<FilePath>
     public let xcMappingModelPaths: Set<FilePath>
     public let xcStringsPaths: Set<FilePath>
+    /// The modules owning each String Catalog, for the project drivers that know the target membership of resources.
+    /// A catalogue without an entry has an unknown owner.
+    public let xcStringsModules: [FilePath: Set<String>]
     public let expectedSourceFiles: [String: Set<FilePath>]
     public let indexStorePaths: Set<FilePath>
     /// Values of the `ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME` build setting, `nil` when the project driver
@@ -22,6 +25,7 @@ public struct IndexPlan {
         xcDataModelPaths: Set<FilePath> = [],
         xcMappingModelPaths: Set<FilePath> = [],
         xcStringsPaths: Set<FilePath> = [],
+        xcStringsModules: [FilePath: Set<String>] = [:],
         expectedSourceFiles: [String: Set<FilePath>] = [:],
         indexStorePaths: Set<FilePath> = [],
         globalAccentColorNames: Set<String>? = nil
@@ -32,6 +36,7 @@ public struct IndexPlan {
         self.xcDataModelPaths = xcDataModelPaths
         self.xcMappingModelPaths = xcMappingModelPaths
         self.xcStringsPaths = xcStringsPaths
+        self.xcStringsModules = xcStringsModules
         self.expectedSourceFiles = expectedSourceFiles
         self.indexStorePaths = indexStorePaths
         self.globalAccentColorNames = globalAccentColorNames

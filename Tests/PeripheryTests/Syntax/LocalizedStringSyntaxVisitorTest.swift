@@ -252,6 +252,51 @@ final class LocalizedStringSyntaxVisitorTest: XCTestCase {
         ])
     }
 
+    func testDetectsNestedTernaryKeys() throws {
+        let usedKeys = try collectUsedStringKeys(from: """
+        String(localized: a ? "nested_first_key" : b ? "nested_second_key" : "nested_third_key")
+        NSLocalizedString(flag ? "ns_on_key" : (other ? "ns_inner_on_key" : "ns_inner_off_key"), comment: "")
+        String(localized: (a ? "paren_on_key" : "paren_off_key"))
+        """)
+
+        XCTAssertEqual(usedKeys, [
+            "nested_first_key", "nested_second_key", "nested_third_key", "ns_on_key", "ns_inner_on_key",
+            "ns_inner_off_key", "paren_on_key", "paren_off_key",
+        ])
+    }
+
+    func testCollectsRuntimeKeysWithPrefixAndBundleScope() throws {
+        let visitor = try visit("""
+        NSLocalizedString(name, comment: "")
+        NSLocalizedString("settings." + name, bundle: .module, comment: "")
+        NSLocalizedString("row.\\(index).title", comment: "")
+        Bundle.module.localizedString(forKey: "menu.\\(id)", value: nil, table: nil)
+        LocalizedStringKey(flag ? "known_key" : name)
+        String.LocalizationValue(name)
+        LocalizedStringResource(name, bundle: Bundle.module)
+        """)
+
+        let keys = visitor.unresolvedKeys.map { "\($0.prefix)|\($0.bundleScope)" }
+        XCTAssertEqual(keys, [
+            "|unknown", "settings.|module", "row.|unknown", "menu.|module", "|unknown", "|unknown", "|module",
+        ])
+        XCTAssertTrue(visitor.usedStringKeys.contains("known_key"))
+    }
+
+    func testLiteralAndFormatKeysAreNotRuntimeKeys() throws {
+        let visitor = try visit("""
+        NSLocalizedString("plain_key", comment: "")
+        NSLocalizedString(a ? "first_key" : b ? "second_key" : "third_key", comment: "")
+        LocalizedStringKey("count \\(count) items")
+        String.LocalizationValue(("wrapped_key"))
+        Bundle.main.localizedString(forKey: "lookup_key", value: nil, table: nil)
+        String(localized: value)
+        Text(title)
+        """)
+
+        XCTAssertEqual(visitor.unresolvedKeys, [])
+    }
+
     func testDetectsTypedArrayDictionaryAndTupleElements() throws {
         let usedKeys = try collectUsedStringKeys(from: """
         let array: [LocalizedStringResource] = ["array_key", "array_other_key"]

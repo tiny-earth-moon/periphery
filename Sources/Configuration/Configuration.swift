@@ -254,6 +254,7 @@ public final class Configuration {
 
     /// Name of the Swift file Xcode generates for the symbols of asset catalog resources.
     public static let generatedAssetSymbolsFileName = "GeneratedAssetSymbols.swift"
+    public static let generatedStringSymbolsFileNamePrefix = "GeneratedStringSymbols_"
 
     /// Whether any kind of unused asset catalog symbol is detected.
     public var detectsUnusedAssetCatalogSymbols: Bool {
@@ -266,10 +267,20 @@ public final class Configuration {
         detectsUnusedAssetCatalogSymbols && path.lastComponent?.string == Self.generatedAssetSymbolsFileName
     }
 
-    /// Whether the file is excluded from indexing by `index_exclude`. Generated asset symbols files are an exception
-    /// when unused asset catalog symbols are detected, as they live in excluded build directories.
+    /// Whether the file holds the String Catalog symbols Xcode generates (`GeneratedStringSymbols_<Table>.swift`)
+    /// and must be read, which is only the case when unused localized strings are detected.
+    public func isAnalyzedGeneratedStringSymbolsFile(_ path: FilePath) -> Bool {
+        guard !disableUnusedLocalizedStringAnalysis, path.extension == "swift",
+              let name = path.lastComponent?.string
+        else { return false }
+
+        return name.hasPrefix(Self.generatedStringSymbolsFileNamePrefix)
+    }
+
+    /// Whether the file is excluded from indexing by `index_exclude`. Generated asset and String Catalog symbols files
+    /// are an exception when their analysis is enabled, as they live in excluded build directories.
     public func isIndexExcluded(_ path: FilePath) -> Bool {
-        guard !isAnalyzedGeneratedAssetSymbolsFile(path) else { return false }
+        guard !isAnalyzedGeneratedAssetSymbolsFile(path), !isAnalyzedGeneratedStringSymbolsFile(path) else { return false }
 
         return indexExcludeMatchers.anyMatch(filename: path.string)
     }

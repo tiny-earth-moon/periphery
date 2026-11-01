@@ -25,8 +25,10 @@ public struct IndexPipeline {
     public func perform() throws -> Int {
         try IndexCoverage(plan: plan, logger: logger, configuration: configuration).verify()
 
+        // Generated String Catalog symbols are mapped to their keys rather than indexed as source.
+        let generatedStringSymbolFiles = plan.sourceFiles.filter { configuration.isAnalyzedGeneratedStringSymbolsFile($0.key.path) }
         let scannedLOC = try SwiftIndexer(
-            sourceFiles: plan.sourceFiles,
+            sourceFiles: plan.sourceFiles.filter { generatedStringSymbolFiles[$0.key] == nil },
             graph: graph,
             logger: logger,
             configuration: configuration,
@@ -70,8 +72,10 @@ public struct IndexPipeline {
         }
 
         if !plan.xcStringsPaths.isEmpty, !configuration.disableUnusedLocalizedStringAnalysis {
+            try GeneratedStringSymbolsIndexer(files: generatedStringSymbolFiles, graph: graph, logger: logger).perform()
             try XCStringsIndexer(
                 files: plan.xcStringsPaths,
+                modulesByFile: plan.xcStringsModules,
                 graph: graph,
                 logger: logger,
                 configuration: configuration
