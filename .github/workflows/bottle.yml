@@ -140,6 +140,8 @@ jobs:
           HOMEBREW_DEVELOPER: "1"
           LOCAL_FILENAME: ${{ steps.bottle.outputs.local_filename }}
         run: |
+          # Developer mode enforces tap trust: without it, brew refuses the local tap's formula.
+          brew trust --formula "$BOTTLE_TAP/periphery"
           brew uninstall --formula "$BOTTLE_TAP/periphery"
           brew install "$RUNNER_TEMP/bottle/$LOCAL_FILENAME"
       - name: Test the poured bottle
