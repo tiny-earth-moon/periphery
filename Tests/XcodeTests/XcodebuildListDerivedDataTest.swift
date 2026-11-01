@@ -46,7 +46,7 @@ final class XcodebuildListDerivedDataTest: XCTestCase {
         let cachePath = try Constants.cachePath().string
         XCTAssertTrue(command.contains("-IDECustomDerivedDataLocation=\(cachePath)/DerivedData-"), command)
         XCTAssertFalse(command.contains("'"), command)
-        XCTAssertTrue(cachePath.hasSuffix("/Library/Caches/com.github.peripheryapp"), cachePath)
+        XCTAssertTrue(cachePath.hasSuffix("/Library/Caches/com.github.tiny-earth-moon.periphery"), cachePath)
     }
 
     func testCleanBuildRemovesTheDerivedDataUsedByList() throws {

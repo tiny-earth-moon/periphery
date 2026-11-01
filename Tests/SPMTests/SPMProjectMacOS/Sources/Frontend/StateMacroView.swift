@@ -2,7 +2,7 @@
 //  StateMacroView.swift
 //  SPMProjectMacOS
 //
-//  Created by Alexander Goodkind <alex@goodkind.io> on 2026-10-27
+//  Created by Alexander Goodkind on 2026-10-27
 //
 
 import SwiftUI
