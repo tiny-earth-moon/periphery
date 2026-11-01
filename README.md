@@ -6,9 +6,30 @@
 >
 > The original author now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. This fork takes nothing from it; both install a `periphery` executable, so install one or the other (the Homebrew formulae conflict on purpose).
 >
-> Periphery was created by [Ian Leitch](https://github.com/ileitch), whom we thank for years of excellent work and for keeping the project open source.
+> Periphery was created by [Ian Leitch](https://github.com/ileitch), whom we thank for years of excellent work and for keeping the project open source. See [Credits](#credits) for the full attribution.
 
 <br>
+
+## Credits
+
+Periphery is the work of [Ian Leitch](https://github.com/ileitch) ([peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived, MIT license). This fork is maintained by [tiny-earth-moon](https://github.com/tiny-earth-moon) since 2026-10-25. The original copyright notice is kept in [LICENSE.md](LICENSE.md).
+
+Issues in this repository are imported from the upstream tracker and from periphery-pro/issues, keeping the original reference and reporter.
+
+### External contributions
+
+Changes from other people taken in since 3.8.1, with the original author kept in the git history:
+
+| Change | Author | Where | Version |
+|--------|--------|-------|---------|
+| Fix infinite recursion when expanding paths of directories named `**` or starting with `**` | Zev Eisenberg | [#22](https://github.com/tiny-earth-moon/periphery/pull/22) (3b00f30, 9cde22a, ddc54ea, 44e26aa) | 3.8.4 |
+| Honor `--clean-build` and control the derived data path when listing Xcode schemes | Lukas Kollmer | [#25](https://github.com/tiny-earth-moon/periphery/pull/25) (4dded94, 8062d32, 8c2fd27) | 3.8.5 |
+| Retain macro `@State` properties used only via `$projectedValue` | rishabhtpdl | [#36](https://github.com/tiny-earth-moon/periphery/issues/36) (92f0ec4) | 3.8.8 |
+| Detect unused String Catalog (`.xcstrings`) keys (upstream commit, cherry-picked unchanged) | Ian Leitch | d865dde | 3.9.0 |
+
+### Sibling fork
+
+[agoodkind/periphery](https://github.com/agoodkind/periphery) (the "Forever Free Fork") was forked from the original in August 2026 and imported our 3.10.0 on 2026-10-29, keeping the authors. Anything we take from it is tracked in issues #117 to #123 and credited here, one table row per import (fix, author, original commit).
 
 <details>
 <summary>Click to expand original README</summary>
@@ -60,7 +81,8 @@
 - [Platforms](#platforms)
 - [Troubleshooting](#troubleshooting)
 - [Known Bugs](#known-bugs)
-- [Sponsors](#sponsors-) ![Sponsors](assets/sponsor.svg)
+- [Credits](#credits)
+- [Sponsors (original author)](#sponsors-) ![Sponsors](assets/sponsor.svg)
 
 ## Installation
 
@@ -759,7 +781,7 @@ Due to some underlying bugs in Swift, Periphery may in some instances report inc
 
 ## Sponsors ![Sponsors](assets/sponsor-20.svg)
 
-Periphery is a passion project that takes a huge amount of effort to maintain and develop. If you find Periphery useful, please consider sponsoring through [GitHub Sponsors](https://github.com/sponsors/peripheryapp).
+This section is the original author's, kept as published upstream; this fork has no sponsorship. Periphery is a passion project that takes a huge amount of effort to maintain and develop. If you find Periphery useful, please consider sponsoring Ian Leitch through [GitHub Sponsors](https://github.com/sponsors/peripheryapp).
 
 Special thanks go to the following generous sponsors:
 
