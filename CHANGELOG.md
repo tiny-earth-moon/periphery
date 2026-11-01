@@ -12,6 +12,20 @@
 
 - None.
 
+## 3.12.8 (2026-11-01)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- New `retain_unused_parameters_without_default` / `--retain-unused-parameters-without-default` option (default false): an unused function parameter with no default value is retained, since removing it is source-breaking for callers; parameters with a default value stay reported. [#83](https://github.com/tiny-earth-moon/periphery/issues/83)
+
+##### Bug Fixes
+
+- None.
+
 ## 3.12.7 (2026-11-01)
 
 ##### Breaking
