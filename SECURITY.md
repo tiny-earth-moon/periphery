@@ -13,4 +13,4 @@ Do not open a public issue for a security problem. This is a volunteer-maintaine
 
 ## Scanning untrusted projects
 
-A scan runs `xcodebuild`, `swift build` or `bazel` on the project being analysed, which can execute arbitrary code from that project (build scripts, plugins, macros). Only scan projects you trust.
+A scan runs `xcodebuild` or `swift build` on the project being analysed, which can execute arbitrary code from that project (build scripts, plugins, macros). Only scan projects you trust.
