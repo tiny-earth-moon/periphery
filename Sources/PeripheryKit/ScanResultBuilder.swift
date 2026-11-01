@@ -61,6 +61,10 @@ public enum ScanResultBuilder {
             .init(declaration: $0.key, annotation: .redundantAccessLevel($0.value))
         }
 
+        let annotatedEmptyExtensions: [ScanResult] = graph.emptyExtensions.map {
+            .init(declaration: $0, annotation: .emptyExtension)
+        }
+
         let annotatedSuperfluousIgnoreCommands: [ScanResult] = {
             guard configuration.superfluousIgnoreComments else { return [] }
 
@@ -89,6 +93,7 @@ public enum ScanResultBuilder {
             annotatedRedundantOpenAccessibility +
             annotatedMissingFinal +
             annotatedRedundantAccessLevel +
+            annotatedEmptyExtensions +
             annotatedSuperfluousIgnoreCommands
 
         return allAnnotatedDeclarations
