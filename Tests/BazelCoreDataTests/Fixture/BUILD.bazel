@@ -26,7 +26,7 @@ swift_library(
 
 macos_application(
     name = "app",
-    bundle_id = "io.goodkind.periphery.coredatafixture",
+    bundle_id = "io.github.tinyearthmoon.periphery.coredatafixture",
     infoplists = ["Info.plist"],
     minimum_os_version = "13.0",
     deps = [":app_sources"],

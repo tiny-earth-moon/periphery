@@ -49,7 +49,7 @@ swift_library(
 
 macos_framework(
     name = "embedded_framework",
-    bundle_id = "io.goodkind.periphery.fixture.framework",
+    bundle_id = "io.github.tinyearthmoon.periphery.fixture.framework",
     infoplists = ["Info.plist"],
     minimum_os_version = "13.0",
     deps = [":embedded_framework_sources"],
@@ -62,7 +62,7 @@ swift_library(
 
 macos_xpc_service(
     name = "embedded_service",
-    bundle_id = "io.goodkind.periphery.fixture.service",
+    bundle_id = "io.github.tinyearthmoon.periphery.fixture.service",
     infoplists = ["Info.plist"],
     minimum_os_version = "13.0",
     deps = [":embedded_service_sources"],
@@ -70,7 +70,7 @@ macos_xpc_service(
 
 macos_application(
     name = "app",
-    bundle_id = "io.goodkind.periphery.fixture",
+    bundle_id = "io.github.tinyearthmoon.periphery.fixture",
     frameworks = [":embedded_framework"],
     infoplists = ["Info.plist"],
     minimum_os_version = "13.0",
@@ -90,7 +90,7 @@ swift_library(
 
 ios_application(
     name = "ios_app",
-    bundle_id = "io.goodkind.periphery.iosfixture",
+    bundle_id = "io.github.tinyearthmoon.periphery.iosfixture",
     families = [
         "iphone",
         "ipad",
@@ -107,7 +107,7 @@ swift_library(
 
 tvos_application(
     name = "tvos_app",
-    bundle_id = "io.goodkind.periphery.tvfixture",
+    bundle_id = "io.github.tinyearthmoon.periphery.tvfixture",
     infoplists = ["Info-iOS.plist"],
     minimum_os_version = "17.0",
     deps = [":tvos_sources"],
@@ -120,7 +120,7 @@ swift_library(
 
 watchos_application(
     name = "watchos_app",
-    bundle_id = "io.goodkind.periphery.watchfixture",
+    bundle_id = "io.github.tinyearthmoon.periphery.watchfixture",
     infoplists = ["Info-iOS.plist"],
     minimum_os_version = "10.0",
     deps = [":watchos_sources"],
@@ -133,7 +133,7 @@ swift_library(
 
 visionos_application(
     name = "visionos_app",
-    bundle_id = "io.goodkind.periphery.visionfixture",
+    bundle_id = "io.github.tinyearthmoon.periphery.visionfixture",
     infoplists = ["Info-iOS.plist"],
     minimum_os_version = "1.0",
     deps = [":visionos_sources"],
