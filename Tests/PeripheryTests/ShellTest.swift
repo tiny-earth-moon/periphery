@@ -2,7 +2,7 @@
 //  ShellTest.swift
 //  Periphery
 //
-//  Created by Alexander Goodkind <alex@goodkind.io> on 2026-10-25.
+//  Created by Alexander Goodkind on 2026-10-25.
 //
 
 import Foundation
