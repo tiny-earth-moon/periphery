@@ -30,4 +30,16 @@ final class SPMProjectTest: SPMSourceGraphTestCase {
         assertReferenced(.localizedString("spm_ternary_third_key"))
         assertNotReferenced(.localizedString("spm_unused_key"))
     }
+
+    func testRetainsKeysOfRuntimeLookupsByPrefixAndBundle() {
+        // Literal prefix of a `+` concatenation or of an interpolation passed to a `String` key parameter.
+        assertReferenced(.localizedString("spm_prefix.alpha"))
+        assertReferenced(.localizedString("spm_interpolated.beta"))
+        // Main bundle lookup: matched in every catalog.
+        assertReferenced(.localizedString("spm_main_bundle.gamma"))
+        // Unprefixed runtime keys and a ternary mixing a literal and a runtime key, with `bundle: .module`: every key
+        // of the calling module's catalog is retained, other modules' catalogs are unaffected (`spm_unused_key`).
+        assertReferenced(.localizedString("dyn_runtime_key"))
+        assertReferenced(.localizedString("dyn_mixed_known_key"))
+    }
 }

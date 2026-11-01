@@ -14,6 +14,8 @@ import SwiftSyntax
 ///   - Literals passed to a call whose callee cannot be located syntactically (conservatively retained).
 /// - `callSites` holds the remaining calls that receive string literals. Whether those literals are keys depends on
 ///   the type of the receiving parameter, which is resolved from the index store by the indexer.
+/// - `unresolvedKeys` holds the lookups whose key is built from a runtime value, with the literal prefix of the key
+///   when there is one.
 public final class LocalizedStringSyntaxVisitor: PeripherySyntaxVisitor {
     /// Type names whose values are created from a localization key when initialized from a string literal.
     public static let localizedTypeNames = [
@@ -35,6 +37,7 @@ public final class LocalizedStringSyntaxVisitor: PeripherySyntaxVisitor {
 
     public private(set) var usedStringKeys: Set<String> = []
     public private(set) var callSites: [LocalizedStringCallSite] = []
+    public private(set) var unresolvedKeys: [LocalizedStringUnresolvedKey] = []
 
     private let sourceLocationBuilder: SourceLocationBuilder
 
@@ -49,6 +52,7 @@ public final class LocalizedStringSyntaxVisitor: PeripherySyntaxVisitor {
     public func visit(_ node: FunctionCallExprSyntax) {
         collectKnownCallKeys(node)
         collectCallSite(node)
+        collectUnresolvedKey(node)
     }
 
     /// `@Parameter(title: "key")` is an attribute rather than a call, so it is invisible to call site resolution.
@@ -215,6 +219,151 @@ public final class LocalizedStringSyntaxVisitor: PeripherySyntaxVisitor {
         {
             insertLiteral(forKeyArg.expression)
         }
+    }
+
+    // MARK: - Runtime keys
+
+    // Based on agoodkind/periphery@544a77d, 6c57931 and 5c5af4c by Alex Goodkind.
+
+    private func collectUnresolvedKey(_ node: FunctionCallExprSyntax) {
+        guard let (keyExpression, acceptsKeyFormat) = runtimeKeyArgument(of: node),
+              !resolvesToLiteralKeys(keyExpression, acceptsKeyFormat: acceptsKeyFormat)
+        else { return }
+
+        let location = sourceLocationBuilder.location(at: node.positionAfterSkippingLeadingTrivia)
+        unresolvedKeys.append(LocalizedStringUnresolvedKey(
+            prefix: literalPrefix(of: keyExpression),
+            bundleScope: bundleScope(of: node),
+            line: location.line,
+            column: location.column
+        ))
+    }
+
+    /// The key argument of the lookups that accept a key built at runtime: `NSLocalizedString(_:)`,
+    /// `LocalizedStringKey(_:)`, `LocalizedStringResource(_:)`, `String.LocalizationValue(_:)` and
+    /// `Bundle.localizedString(forKey:)`. `acceptsKeyFormat` is false for the lookups taking a plain `String`, for which
+    /// an interpolated literal is evaluated at runtime rather than turned into a format key.
+    private func runtimeKeyArgument(of node: FunctionCallExprSyntax) -> (ExprSyntax, Bool)? {
+        let calledExpression = node.calledExpression
+        let firstUnlabeled = node.arguments.first.flatMap { $0.label == nil ? $0.expression : nil }
+
+        if let identifier = calledExpression.as(DeclReferenceExprSyntax.self) {
+            let name = identifier.baseName.text
+            guard ["NSLocalizedString", "LocalizedStringKey", "LocalizedStringResource"].contains(name),
+                  let firstUnlabeled
+            else { return nil }
+
+            return (firstUnlabeled, name != "NSLocalizedString")
+        }
+
+        guard let memberAccess = calledExpression.as(MemberAccessExprSyntax.self) else { return nil }
+
+        switch memberAccess.declName.baseName.text {
+        case "LocalizationValue":
+            return firstUnlabeled.map { ($0, true) }
+        case "localizedString":
+            return node.arguments.first { $0.label?.text == "forKey" }.map { ($0.expression, false) }
+        default:
+            return nil
+        }
+    }
+
+    /// Whether every value the expression may evaluate to is a string literal key.
+    private func resolvesToLiteralKeys(_ expression: ExprSyntax, acceptsKeyFormat: Bool) -> Bool {
+        if let stringLiteral = expression.as(StringLiteralExprSyntax.self) {
+            return acceptsKeyFormat || stringLiteral.representedLiteralValue != nil
+        }
+
+        if let tuple = expression.as(TupleExprSyntax.self), tuple.elements.count == 1, let element = tuple.elements.first {
+            return resolvesToLiteralKeys(element.expression, acceptsKeyFormat: acceptsKeyFormat)
+        }
+
+        if let ternary = expression.as(TernaryExprSyntax.self) {
+            return resolvesToLiteralKeys(ternary.thenExpression, acceptsKeyFormat: acceptsKeyFormat)
+                && resolvesToLiteralKeys(ternary.elseExpression, acceptsKeyFormat: acceptsKeyFormat)
+        }
+
+        if let sequence = expression.as(SequenceExprSyntax.self) {
+            return resolvesToLiteralKeys(Array(sequence.elements)[...], acceptsKeyFormat: acceptsKeyFormat)
+        }
+
+        return false
+    }
+
+    /// An unfolded ternary, `condition ? "a" : "b"`, possibly nested in its else branch.
+    private func resolvesToLiteralKeys(_ elements: ArraySlice<ExprSyntax>, acceptsKeyFormat: Bool) -> Bool {
+        if elements.count == 1, let element = elements.first {
+            return resolvesToLiteralKeys(element, acceptsKeyFormat: acceptsKeyFormat)
+        }
+
+        guard let ternaryIndex = elements.firstIndex(where: { $0.is(UnresolvedTernaryExprSyntax.self) }),
+              let ternary = elements[ternaryIndex].as(UnresolvedTernaryExprSyntax.self)
+        else { return false }
+
+        let elseElements = elements[(ternaryIndex + 1)...]
+        guard !elseElements.isEmpty else { return false }
+
+        return resolvesToLiteralKeys(ternary.thenExpression, acceptsKeyFormat: acceptsKeyFormat)
+            && resolvesToLiteralKeys(elseElements, acceptsKeyFormat: acceptsKeyFormat)
+    }
+
+    /// The static text at the start of a runtime key: the text before the first interpolation of a literal, or the
+    /// left literal of a `+` concatenation. Empty for any other expression.
+    private func literalPrefix(of expression: ExprSyntax) -> String {
+        if let stringLiteral = expression.as(StringLiteralExprSyntax.self) {
+            var prefix = ""
+
+            for segment in stringLiteral.segments {
+                guard case let .stringSegment(stringSegment) = segment,
+                      let value = stringLiteral.with(\.segments, [.stringSegment(stringSegment)]).representedLiteralValue
+                else { break }
+
+                prefix += value
+            }
+
+            return prefix
+        }
+
+        if let tuple = expression.as(TupleExprSyntax.self), tuple.elements.count == 1, let element = tuple.elements.first {
+            return literalPrefix(of: element.expression)
+        }
+
+        if let sequence = expression.as(SequenceExprSyntax.self) {
+            let elements = Array(sequence.elements)
+
+            if elements.count >= 3, elements[1].as(BinaryOperatorExprSyntax.self)?.operator.text == "+" {
+                return literalPrefix(of: elements[0])
+            }
+        }
+
+        if let infix = expression.as(InfixOperatorExprSyntax.self),
+           infix.operator.as(BinaryOperatorExprSyntax.self)?.operator.text == "+"
+        {
+            return literalPrefix(of: infix.leftOperand)
+        }
+
+        return ""
+    }
+
+    private func bundleScope(of node: FunctionCallExprSyntax) -> LocalizedStringUnresolvedKey.BundleScope {
+        if let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self),
+           memberAccess.declName.baseName.text == "localizedString"
+        {
+            return Self.isModuleBundle(memberAccess.base) ? .module : .unknown
+        }
+
+        let bundle = node.arguments.first { $0.label?.text == "bundle" }?.expression
+        return Self.isModuleBundle(bundle) ? .module : .unknown
+    }
+
+    /// `.module` or `Bundle.module`.
+    private static func isModuleBundle(_ expression: ExprSyntax?) -> Bool {
+        guard let memberAccess = expression?.as(MemberAccessExprSyntax.self),
+              memberAccess.declName.baseName.text == "module"
+        else { return false }
+        guard let base = memberAccess.base else { return true }
+
+        return base.as(DeclReferenceExprSyntax.self)?.baseName.text == "Bundle"
     }
 
     private func insertLiteral(_ expression: ExprSyntax) {

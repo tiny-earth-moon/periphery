@@ -374,10 +374,37 @@ final class SwiftIndexer: Indexer {
             }
 
             calleeUsrsByPosition = [:]
+            collectRuntimeLocalizedStringKeys(visitor.unresolvedKeys)
 
             guard !keys.isEmpty else { return }
 
             graph.withLock { $0.addUsedLocalizedStringKeys(keys) }
+        }
+
+        /// Keys built at runtime retain the catalogue keys starting with their literal prefix: in the catalogues of
+        /// the calling module for a `bundle: .module` lookup, in every catalogue otherwise.
+        private func collectRuntimeLocalizedStringKeys(_ unresolvedKeys: [LocalizedStringUnresolvedKey]) {
+            guard !unresolvedKeys.isEmpty else { return }
+
+            var modulePrefixes: Set<String> = []
+            var globalPrefixes: Set<String> = []
+
+            for unresolvedKey in unresolvedKeys {
+                let isModuleScoped = unresolvedKey.bundleScope == .module && !sourceFile.modules.isEmpty
+                let scope = isModuleScoped ? "catalogues of \(sourceFile.modules.sorted().joined(separator: ", "))" : "all catalogues"
+                logger.debug("Runtime localized string key at \(sourceFile.path.string):\(unresolvedKey.line):\(unresolvedKey.column), retaining keys with prefix '\(unresolvedKey.prefix)' in \(scope)")
+
+                if isModuleScoped {
+                    modulePrefixes.insert(unresolvedKey.prefix)
+                } else {
+                    globalPrefixes.insert(unresolvedKey.prefix)
+                }
+            }
+
+            graph.withLock { graph in
+                graph.addRuntimeLocalizedStringKeyPrefixes(modulePrefixes, modules: sourceFile.modules)
+                graph.addRuntimeLocalizedStringKeyPrefixes(globalPrefixes)
+            }
         }
 
         private func establishDeclarationHierarchy() {

@@ -1,6 +1,15 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "spm_interpolated.beta" : {
+
+    },
+    "spm_main_bundle.gamma" : {
+
+    },
+    "spm_prefix.alpha" : {
+
+    },
     "spm_ternary_first_key" : {
 
     },

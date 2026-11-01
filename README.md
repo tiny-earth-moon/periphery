@@ -28,6 +28,8 @@ Changes from other people taken in since 3.8.1, with the original author kept in
 | Detect unused String Catalog (`.xcstrings`) keys (upstream commit, cherry-picked unchanged) | Ian Leitch | d865dde | 3.9.0 |
 | Test and fixture pinning `buildPartialBlock` retention in result builders (our #30 already retained it) | Alex Goodkind | [agoodkind/periphery@153790b](https://github.com/agoodkind/periphery/commit/153790b2ad4ddd51a8b6a1b53d7d3b847640a553) (agoodkind PR #6, our issue #119) | 3.12.9 |
 | Read stdout and stderr of shell commands concurrently (no deadlock on large output) | Alex Goodkind | [agoodkind/periphery@90de96b](https://github.com/agoodkind/periphery/commit/90de96b) ([PR #1](https://github.com/agoodkind/periphery/pull/1)), our [#117](https://github.com/tiny-earth-moon/periphery/issues/117) | 3.12.9 |
+| Ternary String Catalog keys: fixture and tests (our visitor already looked through ternaries) | Alex Goodkind | [agoodkind/periphery@6c57931](https://github.com/agoodkind/periphery/commit/6c57931) (agoodkind PR #11, cherry-picked), our [#120](https://github.com/tiny-earth-moon/periphery/issues/120) | unreleased |
+| Retain String Catalog keys of runtime lookups by literal prefix, scoped to the module for `bundle: .module` (reimplemented) | Alex Goodkind | [agoodkind/periphery@544a77d](https://github.com/agoodkind/periphery/commit/544a77d), [5c5af4c](https://github.com/agoodkind/periphery/commit/5c5af4c), our [#120](https://github.com/tiny-earth-moon/periphery/issues/120) | unreleased |
 
 ### Sibling fork
 
@@ -418,6 +420,8 @@ An interpolated literal is matched to the format key Foundation derives from it:
 
 When the called function cannot be resolved (e.g. calling a closure, an enum case constructor or an Objective-C method), the literals passed to it are conservatively considered keys. Ternaries, tuple, array and dictionary literals, `if`/`switch` expressions and closure bodies are looked through.
 
+A key built at runtime and passed to `NSLocalizedString`, `Bundle.localizedString(forKey:)`, `LocalizedStringKey(_:)`, `LocalizedStringResource(_:)` or `String.LocalizationValue(_:)` (a variable, a concatenation, an interpolation passed to a plain `String` key, or a ternary with a non-literal branch) cannot be matched to a catalogue key. Instead of reporting the keys it may look up, Periphery retains the catalogue keys starting with its literal prefix: `NSLocalizedString("settings." + name, comment: "")` and `NSLocalizedString("settings.\(name)", comment: "")` retain `settings.*`, and a key without a literal prefix retains every key. With `bundle: .module` (or `Bundle.module.localizedString(forKey:)`), only the catalogues of the calling module are affected; with any other bundle, every catalogue is. Catalogue ownership comes from SwiftPM target membership; catalogues of other project types have no known owner and are matched against the runtime keys of every module. A warning names the modules whose catalogues are retained entirely, and `--verbose` lists each runtime key call site.
+
 Catalogues matching the `--localized-string-catalog-exclude` globs (`localized_string_catalog_exclude` in `.periphery.yml`) are not analysed. By default `**/InfoPlist.xcstrings` and `**/AppShortcuts.xcstrings` are excluded, since their keys are consumed by the system rather than referenced from Swift source. Setting the option replaces the default list, so include these patterns if you add your own:
 
 ```yaml
@@ -441,7 +445,7 @@ Codebases that pass keys around as plain `String` values (e.g. `titleKey: String
 > Matching is by value only, so an incidental literal (e.g. `"title"`, `"OK"`) that happens to equal a dead key hides it. Prefer typing keys as `LocalizedStringResource` (or `LocalizedStringKey`), which Periphery detects precisely, and reserve this option for code that cannot be migrated.
 
 > [!NOTE]
-> Only string literals are detected, and keys are matched regardless of the `table:`/`bundle:` arguments. Keys referenced through Xcode 26+ generated symbols (e.g. `Text(.myKey)`) are not yet detected. Dynamic keys (e.g., `String(localized: variable)`) cannot be matched to a catalogue key and may result in false positives. Declare them with `localized_string_key_patterns`, keep them in a dedicated catalogue excluded with `localized_string_catalog_exclude`, or, where possible, refactor dynamic keys to use conditional expressions with static literals:
+> Only string literals are detected, and keys are matched regardless of the `table:`/`bundle:` arguments. Keys referenced through Xcode 26+ generated symbols (e.g. `Text(.myKey)`) are not yet detected. Keys passed around as values (e.g. `String(localized: value)` where `value` is a `String.LocalizationValue` built elsewhere) are only detected where the value is created from a literal. Declare keys used only through such values with `localized_string_key_patterns`, keep them in a dedicated catalogue excluded with `localized_string_catalog_exclude`, or, where possible, refactor dynamic keys to use conditional expressions with static literals:
 > ```swift
 > var message: String {
 >     if condition {
