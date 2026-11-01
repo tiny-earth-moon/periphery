@@ -94,6 +94,7 @@ swift_library(
         "SourceGraph/Mutators/JSExportRetainer.swift",
         "SourceGraph/Mutators/LocalizedStringRetainer.swift",
         "SourceGraph/Mutators/ObjCAccessibleRetainer.swift",
+        "SourceGraph/Mutators/OpenFinalAccessibilityMarker.swift",
         "SourceGraph/Mutators/PlatformConditionalRetainer.swift",
         "SourceGraph/Mutators/PropertyWrapperRetainer.swift",
         "SourceGraph/Mutators/ProtocolConformanceReferenceBuilder.swift",

@@ -8,6 +8,8 @@ public struct ScanResult {
         case unassignedOptionalProperty
         case redundantProtocol(references: Set<Reference>, inherited: Set<String>)
         case redundantPublicAccessibility(modules: Set<String>)
+        case redundantOpenAccessibility(modules: Set<String>)
+        case missingFinal
         case superfluousIgnoreCommand
         case unusedAssetCatalogSymbol(AssetCatalogSymbol)
     }

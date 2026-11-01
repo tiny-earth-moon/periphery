@@ -530,6 +530,8 @@ final class SwiftIndexer: Indexer {
                 decl.hasNonNilInitialValue = result.hasNonNilInitialValue
 
                 decl.hasGenericFunctionReturnedMetatypeParameters = result.hasGenericFunctionReturnedMetatypeParameters
+                decl.isActor = result.isActor
+                decl.isConstant = result.isConstant
 
                 for ref in decl.references.union(decl.related) {
                     if result.inheritedTypeLocations.contains(ref.location) {

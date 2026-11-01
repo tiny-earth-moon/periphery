@@ -24,7 +24,9 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
         variableInitExprLocations: Set<Location>,
         hasGenericFunctionReturnedMetatypeParameters: Bool,
         isOptionalType: Bool,
-        hasNonNilInitialValue: Bool
+        hasNonNilInitialValue: Bool,
+        isActor: Bool,
+        isConstant: Bool
     )
 
     private let sourceLocationBuilder: SourceLocationBuilder
@@ -52,6 +54,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             inheritanceClause: node.inheritanceClause,
             genericParameterClause: node.genericParameterClause,
             genericWhereClause: node.genericWhereClause,
+            isActor: true,
             at: node.name.positionAfterSkippingLeadingTrivia
         )
     }
@@ -208,6 +211,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
                     variableInitFunctionCallExpr: functionCallExpr,
                     variableInitExpr: binding.initializer?.value,
                     hasNonNilInitialValue: hasNonNilInitialValue(binding.initializer?.value),
+                    isConstant: node.bindingSpecifier.tokenKind == .keyword(.let),
                     at: binding.positionAfterSkippingLeadingTrivia
                 )
             } else if let tuplePatternSyntax = binding.pattern.as(TuplePatternSyntax.self) {
@@ -332,6 +336,8 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
         variableInitExpr: ExprSyntax? = nil,
         typeInitializerClause: TypeInitializerClauseSyntax? = nil,
         hasNonNilInitialValue: Bool = false,
+        isActor: Bool = false,
+        isConstant: Bool = false,
         at position: AbsolutePosition
     ) {
         let modifierNames = modifiers?.map(\.name.text) ?? []
@@ -387,7 +393,9 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             variableInitExprLocations: memberBaseLocations(for: variableInitExpr),
             hasGenericFunctionReturnedMetatypeParameters: hasGenericFunctionReturnedMetatypeParameters,
             isOptionalType: variableType.map { typeSyntaxInspector.isOptional($0) } ?? false,
-            hasNonNilInitialValue: hasNonNilInitialValue
+            hasNonNilInitialValue: hasNonNilInitialValue,
+            isActor: isActor,
+            isConstant: isConstant
         ))
     }
 

@@ -235,6 +235,10 @@ public final class Declaration {
     /// Whether the variable is declared with an initial value other than `nil`. Only meaningful for variables.
     public var hasNonNilInitialValue: Bool = false
     public var hasGenericFunctionReturnedMetatypeParameters: Bool = false
+    /// The index reports actors as classes; actors cannot be subclassed.
+    public var isActor: Bool = false
+    /// Whether the variable is declared with `let`; constants cannot be overridden.
+    public var isConstant: Bool = false
     public var parent: Declaration?
     public var related: Set<Reference> = []
     public var isImplicit: Bool = false

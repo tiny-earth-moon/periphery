@@ -184,6 +184,54 @@ open class SourceGraphTestCase: XCTestCase {
         scopeStack.removeLast()
     }
 
+    func assertRedundantOpenAccessibility(_ description: DeclarationDescription, scopedAssertions: (() -> Void)? = nil, file: StaticString = #file, line: UInt = #line) {
+        guard let declaration = materialize(description, in: Self.allIndexedDeclarations, file: file, line: line) else { return }
+
+        if !Self.results.redundantOpenAccessibilityDeclarations.contains(declaration) {
+            XCTFail("Expected declaration to have redundant open accessibility: \(declaration)", file: file, line: line)
+        }
+
+        scopeStack.append(.declaration(declaration))
+        scopedAssertions?()
+        scopeStack.removeLast()
+    }
+
+    func assertNotRedundantOpenAccessibility(_ description: DeclarationDescription, scopedAssertions: (() -> Void)? = nil, file: StaticString = #file, line: UInt = #line) {
+        guard let declaration = materialize(description, in: Self.allIndexedDeclarations, file: file, line: line) else { return }
+
+        if Self.results.redundantOpenAccessibilityDeclarations.contains(declaration) {
+            XCTFail("Expected declaration to not have redundant open accessibility: \(declaration)", file: file, line: line)
+        }
+
+        scopeStack.append(.declaration(declaration))
+        scopedAssertions?()
+        scopeStack.removeLast()
+    }
+
+    func assertMissingFinal(_ description: DeclarationDescription, scopedAssertions: (() -> Void)? = nil, file: StaticString = #file, line: UInt = #line) {
+        guard let declaration = materialize(description, in: Self.allIndexedDeclarations, file: file, line: line) else { return }
+
+        if !Self.results.missingFinalDeclarations.contains(declaration) {
+            XCTFail("Expected declaration to be reported as missing final: \(declaration)", file: file, line: line)
+        }
+
+        scopeStack.append(.declaration(declaration))
+        scopedAssertions?()
+        scopeStack.removeLast()
+    }
+
+    func assertNotMissingFinal(_ description: DeclarationDescription, scopedAssertions: (() -> Void)? = nil, file: StaticString = #file, line: UInt = #line) {
+        guard let declaration = materialize(description, in: Self.allIndexedDeclarations, file: file, line: line) else { return }
+
+        if Self.results.missingFinalDeclarations.contains(declaration) {
+            XCTFail("Expected declaration to not be reported as missing final: \(declaration)", file: file, line: line)
+        }
+
+        scopeStack.append(.declaration(declaration))
+        scopedAssertions?()
+        scopeStack.removeLast()
+    }
+
     func assertUsedParameter(_ name: String, file: StaticString = #file, line: UInt = #line) {
         let declaration = materialize(.varParameter(name), fail: false, file: file, line: line)
 
@@ -377,6 +425,26 @@ private extension [ScanResult] {
     var redundantPublicAccessibilityDeclarations: Set<Declaration> {
         compactMapSet {
             if case .redundantPublicAccessibility = $0.annotation {
+                return $0.declaration
+            }
+
+            return nil
+        }
+    }
+
+    var redundantOpenAccessibilityDeclarations: Set<Declaration> {
+        compactMapSet {
+            if case .redundantOpenAccessibility = $0.annotation {
+                return $0.declaration
+            }
+
+            return nil
+        }
+    }
+
+    var missingFinalDeclarations: Set<Declaration> {
+        compactMapSet {
+            if case .missingFinal = $0.annotation {
                 return $0.declaration
             }
 
