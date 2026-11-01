@@ -67,6 +67,9 @@ struct ScanCommand: ParsableCommand {
     @Flag(help: "Disable identification of redundant public accessibility")
     var disableRedundantPublicAnalysis: Bool = defaultConfiguration.$disableRedundantPublicAnalysis.defaultValue
 
+    @Flag(help: "Enable identification of redundant open accessibility and classes or members that could be final")
+    var enableOpenFinalAnalysis: Bool = defaultConfiguration.$enableOpenFinalAnalysis.defaultValue
+
     @Flag(help: "Disable identification of unused imports")
     var disableUnusedImportAnalysis: Bool = defaultConfiguration.$disableUnusedImportAnalysis.defaultValue
 
@@ -233,6 +236,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$retainUnusedParametersWithoutDefault, retainUnusedParametersWithoutDefault)
         configuration.apply(\.$retainSwiftUIPreviews, retainSwiftUIPreviews)
         configuration.apply(\.$disableRedundantPublicAnalysis, disableRedundantPublicAnalysis)
+        configuration.apply(\.$enableOpenFinalAnalysis, enableOpenFinalAnalysis)
         configuration.apply(\.$disablePlatformConditionalRetention, disablePlatformConditionalRetention)
         configuration.apply(\.$disableUnusedImportAnalysis, disableUnusedImportAnalysis)
         configuration.apply(\.$superfluousIgnoreComments, superfluousIgnoreComments)
