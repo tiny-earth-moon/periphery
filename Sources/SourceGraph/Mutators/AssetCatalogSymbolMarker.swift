@@ -5,7 +5,8 @@ import SystemPackage
 
 /// Reports each asset whose generated symbols are all unused once, on its resource symbol
 /// (e.g. `ColorResource.accent`), and keeps the other symbols of the asset (e.g. `Color.accent`) out of the
-/// results. An asset with any used symbol is used.
+/// results. An asset with any used symbol, or whose name is referenced as a string (e.g. `Color("AccentColor")`,
+/// an Interface Builder named color or the global accent color build setting), is used.
 final class AssetCatalogSymbolMarker: SourceGraphMutator {
     private struct AssetKey: Hashable, Comparable {
         let kind: AssetCatalogSymbolKind
@@ -40,7 +41,14 @@ final class AssetCatalogSymbolMarker: SourceGraphMutator {
             for (key, assetSymbols) in assets.sorted(by: { $0.key < $1.key }) {
                 let declarations = assetSymbols.map(\.0).sorted()
 
-                if declarations.contains(where: graph.isUsed) {
+                if assetNamesByKind[key.kind] == nil {
+                    assetNamesByKind[key.kind] = try GeneratedAssetSymbols.assetNames(in: file, kind: key.kind)
+                }
+
+                let assetName = assetNamesByKind[key.kind]?[key.symbolName]
+                let isReferencedByName = assetName.map { graph.assetCatalogNameReferences.contains($0) } ?? false
+
+                if isReferencedByName || declarations.contains(where: graph.isUsed) {
                     declarations.forEach(graph.markUsed)
                     continue
                 }
@@ -51,11 +59,6 @@ final class AssetCatalogSymbolMarker: SourceGraphMutator {
                     graph.markIgnored(declaration)
                 }
 
-                if assetNamesByKind[key.kind] == nil {
-                    assetNamesByKind[key.kind] = try GeneratedAssetSymbols.assetNames(in: file, kind: key.kind)
-                }
-
-                let assetName = assetNamesByKind[key.kind]?[key.symbolName]
                 let assetPaths = assetName.map { locator.assetPaths(named: $0, kind: key.kind) } ?? []
                 graph.markUnusedAssetCatalogSymbol(
                     resource,

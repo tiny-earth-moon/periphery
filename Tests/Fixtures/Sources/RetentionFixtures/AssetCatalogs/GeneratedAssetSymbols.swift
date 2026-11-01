@@ -24,6 +24,15 @@ extension ColorResource {
     /// The "FixtureResourceUsedColor" asset catalog color resource.
     static let fixtureResourceUsedColor = ColorResource(name: "FixtureResourceUsedColor", bundle: resourceBundle)
 
+    /// The "AccentColor" asset catalog color resource.
+    static let accent = ColorResource(name: "AccentColor", bundle: resourceBundle)
+
+    /// The "FixtureNamedColor" asset catalog color resource.
+    static let fixtureNamedColor = ColorResource(name: "FixtureNamedColor", bundle: resourceBundle)
+
+    /// The "FixtureXibColor" asset catalog color resource.
+    static let fixtureXibColor = ColorResource(name: "FixtureXibColor", bundle: resourceBundle)
+
 }
 
 // MARK: - Color Symbol Extensions -

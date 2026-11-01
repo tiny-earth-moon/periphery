@@ -27,6 +27,9 @@ public final class SourceGraph {
     public private(set) var usedLocalizedStringKeys: Set<String> = []
     public private(set) var synthesizedUses: Set<SynthesizedUse> = []
     public private(set) var unusedAssetCatalogSymbols: [Declaration: AssetCatalogSymbol] = [:]
+    /// Strings that may name an asset catalog resource, from string literals, Interface Builder files and
+    /// build settings.
+    public private(set) var assetCatalogNameReferences: Set<String> = []
 
     private var indexedModules: Set<String> = []
     private var unindexedExportedModules: Set<String> = []
@@ -235,6 +238,10 @@ public final class SourceGraph {
 
     public func addUsedLocalizedStringKeys(_ keys: Set<String>) {
         usedLocalizedStringKeys.formUnion(keys)
+    }
+
+    public func addAssetCatalogNameReferences(_ names: Set<String>) {
+        assetCatalogNameReferences.formUnion(names)
     }
 
     public func addSynthesizedUses(_ uses: Set<SynthesizedUse>) {

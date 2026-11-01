@@ -38,6 +38,14 @@ final class XcodeTargetTest: XCTestCase {
         })
     }
 
+    func testGlobalAccentColorNames_areReadFromTheBuildSettings() {
+        let projectTarget = project.targets.first { $0.name == "UIKitProject" }!
+        let testTarget = project.targets.first { $0.name == "UIKitProjectTests" }!
+
+        XCTAssertEqual(projectTarget.globalAccentColorNames, ["AccentColor"])
+        XCTAssertEqual(testTarget.globalAccentColorNames, [])
+    }
+
     func testIsTestTarget() {
         let projectTarget = project.targets.first { $0.name == "UIKitProject" }!
         let testTarget = project.targets.first { $0.name == "UIKitProjectTests" }!

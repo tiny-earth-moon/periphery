@@ -308,6 +308,17 @@ final class SwiftIndexer: Indexer {
                 }
             }
 
+            // Assets can be loaded by name, e.g. `Color("AccentColor")` or `UIColor(named: "AccentColor")`.
+            if configuration.detectsUnusedAssetCatalogSymbols,
+               !configuration.isAnalyzedGeneratedAssetSymbolsFile(sourceFile.path)
+            {
+                let literals = StringLiteralCollector.collect(from: multiplexingSyntaxVisitor.syntax)
+
+                if !literals.isEmpty {
+                    graph.withLock { $0.addAssetCatalogNameReferences(literals) }
+                }
+            }
+
             if let localizedStringSyntaxVisitor {
                 collectUsedLocalizedStringKeys(using: localizedStringSyntaxVisitor)
 

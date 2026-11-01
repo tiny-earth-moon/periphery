@@ -1457,7 +1457,8 @@ final class RetentionTest: FixtureSourceGraphTestCase {
             }
         }
 
-        let results = analyze(retainPublic: true, additionalFilesToIndex: [generatedSymbols], detectUnusedAssetCatalogColors: true) {
+        let xib = FixturesProjectPath.appending("AssetCatalogs/FixtureView.xib")
+        let results = analyze(retainPublic: true, additionalFilesToIndex: [generatedSymbols], xibPaths: [xib], detectUnusedAssetCatalogColors: true) {
             assertReferenced(.struct("FixtureStruct1400"))
         }
         let colors = assetCatalogResults(results)
@@ -1465,6 +1466,7 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         XCTAssertEqual(colors.map(\.1), [
             AssetCatalogSymbol(kind: .color, assetName: "FixtureUnusedColor", assetPaths: [catalog.appending("FixtureUnusedColor.colorset")]),
         ])
+        // FixtureNamedColor is used by name from Swift, FixtureXibColor from a xib, AccentColor as the default global accent color.
         XCTAssertEqual(colors.first?.0.name, "fixtureUnusedColor")
         XCTAssertEqual(colors.first?.0.parent?.name, "ColorResource")
         XCTAssertEqual(results.filter { $0.declaration.location.file.path == generatedSymbols }.count, 1, "only the unused color is reported from the generated file")

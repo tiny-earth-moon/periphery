@@ -28,6 +28,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         retainAssignOnlyPropertyTypes: [String] = [],
         externalCodableProtocols: [String] = [],
         additionalFilesToIndex: [FilePath] = [],
+        xibPaths: Set<FilePath> = [],
         externalTestCaseClasses: [String] = [],
         retainFiles: [String] = [],
         disablePlatformConditionalRetention: Bool = false,
@@ -65,7 +66,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
             fatalError("\(testFixturePath.string) does not exist")
         }
 
-        Self.index(sourceFiles: [testFixturePath] + additionalFilesToIndex, configuration: configuration)
+        Self.index(sourceFiles: [testFixturePath] + additionalFilesToIndex, xibPaths: xibPaths, configuration: configuration)
         try testBlock()
         return Self.results
     }
