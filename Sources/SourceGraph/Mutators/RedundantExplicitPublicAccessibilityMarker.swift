@@ -2,6 +2,16 @@ import Configuration
 import Shared
 
 final class RedundantExplicitPublicAccessibilityMarker: SourceGraphMutator {
+    /// Attributes that require the members of the attributed type to share its accessibility.
+    private static let memberAccessibilityRequiringTypeAttributes: Set<String> = [
+        "propertyWrapper", "resultBuilder", "dynamicMemberLookup",
+    ]
+    /// Member kinds whose explicit public accessibility may be required by an inferred conformance, which the index
+    /// does not record.
+    private static let excludedMemberKinds: Set<Declaration.Kind> = [
+        .typealias, .associatedtype, .enumelement,
+    ]
+
     private let graph: SourceGraph
     private let configuration: Configuration
 
@@ -19,7 +29,12 @@ final class RedundantExplicitPublicAccessibilityMarker: SourceGraphMutator {
 
         for decl in nonExtensionKinds {
             // Open declarations are not yet implemented.
-            guard !decl.accessibility.isExplicitly(.open) else { continue }
+            guard !decl.accessibility.isExplicitly(.open) else {
+                if configuration.enableRedundantPublicMembers, !graph.isRetained(decl) {
+                    validatePublicMembers(of: decl)
+                }
+                continue
+            }
 
             try validate(decl)
         }
@@ -50,7 +65,8 @@ final class RedundantExplicitPublicAccessibilityMarker: SourceGraphMutator {
                 // declarations because it would lead to many warnings of questionable value. For example, it's
                 // common for a set of properties to be marked public, even if they're not yet all used cross module.
                 // Explicit public declarations nested within a non-public descendant are redundant however.
-                markExplicitPublicDescendentsOfNonPublicDescendents(from: decl)
+                // The opt-in `enable_redundant_public_members` checks the public members as well.
+                validateDescendentsOfPublicDeclaration(decl)
             }
         } else {
             // Declaration is not explicitly public, any explicit public descendants are therefore redundant.
@@ -71,12 +87,12 @@ final class RedundantExplicitPublicAccessibilityMarker: SourceGraphMutator {
 
         // Extensions of external types are assumed to be publicly accessible.
         guard let extendedDecl else {
-            markExplicitPublicDescendentsOfNonPublicDescendents(from: decl)
+            validateDescendentsOfPublicDeclaration(decl)
             return
         }
 
         if try isEffectivelyPublic(extendedDecl) {
-            markExplicitPublicDescendentsOfNonPublicDescendents(from: decl)
+            validateDescendentsOfPublicDeclaration(decl)
         } else {
             // The extended declaration is not publicly accessible, nor are the members of this extension.
             markExplicitPublicDescendentDeclarations(from: decl)
@@ -121,6 +137,46 @@ final class RedundantExplicitPublicAccessibilityMarker: SourceGraphMutator {
                 markExplicitPublicDescendentDeclarations(from: childDecl)
             }
         }
+    }
+
+    private func validateDescendentsOfPublicDeclaration(_ decl: Declaration) {
+        if configuration.enableRedundantPublicMembers {
+            validatePublicMembers(of: decl)
+        } else {
+            markExplicitPublicDescendentsOfNonPublicDescendents(from: decl)
+        }
+    }
+
+    /// Marks the explicit public members of a publicly accessible declaration that are not referenced outside their
+    /// module, and the explicit public descendants of its non-public members.
+    private func validatePublicMembers(of decl: Declaration) {
+        for member in decl.declarations where !member.isImplicit {
+            if member.accessibility.isExplicitly(.public), isRedundantPublicMember(member) {
+                mark(member)
+                markExplicitPublicDescendentDeclarations(from: member)
+            } else if member.accessibility.isAccessibleCrossModule {
+                validatePublicMembers(of: member)
+            } else {
+                markExplicitPublicDescendentDeclarations(from: member)
+            }
+        }
+    }
+
+    private func isRedundantPublicMember(_ member: Declaration) -> Bool {
+        guard !Self.excludedMemberKinds.contains(member.kind),
+              !graph.isRetained(member),
+              // An override, a required initializer and a protocol witness must be as accessible as the declaration
+              // they implement. The index relates a witness to its requirement through an override relation.
+              !member.isOverride,
+              !member.modifiers.contains("required"),
+              !member.related.contains(where: { $0.name == member.name }),
+              !member.attributes.contains(where: { $0.name == "inlinable" || $0.name == "usableFromInline" }),
+              !(member.parent?.attributes.contains(where: {
+                  Self.memberAccessibilityRequiringTypeAttributes.contains($0.name)
+              }) ?? false)
+        else { return false }
+
+        return !isReferencedCrossModule(member) && !isExposedPubliclyByAnotherDeclaration(member)
     }
 
     private func isExposedPubliclyByAnotherDeclaration(_ decl: Declaration) -> Bool {
