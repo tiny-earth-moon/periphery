@@ -18,7 +18,7 @@ struct StateMacroView: View {
     @State private var unused = false
     @State private var deadBinding = false
 
-    // Keep synthesized initializer parameters from referencing the state properties.
+    /// Keep synthesized initializer parameters from referencing the state properties.
     init() {}
 
     var body: some View {
