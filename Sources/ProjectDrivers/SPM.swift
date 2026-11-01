@@ -127,6 +127,7 @@ public struct Target: Decodable {
     public let type: String
     public let path: String
     public let resources: [Resource]?
+    public let sources: [String]?
 
     public var isTestTarget: Bool {
         type == "test"

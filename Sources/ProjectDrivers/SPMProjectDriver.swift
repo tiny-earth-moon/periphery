@@ -70,11 +70,31 @@ extension SPMProjectDriver: ProjectDriver {
             sourceFiles: sourceFiles,
             xibPaths: xibPaths,
             xcDataModelPaths: xcDataModelPaths,
-            xcStringsPaths: xcStringsPaths
+            xcStringsPaths: xcStringsPaths,
+            expectedSourceFiles: expectedSourceFiles(from: description, excluding: excludedTestTargets),
+            indexStorePaths: indexStorePaths
         )
     }
 
     // MARK: - Private
+
+    func expectedSourceFiles(from description: PackageDescription, excluding excludedTargets: Set<String>) -> [String: Set<FilePath>] {
+        let excluded = excludedTargets.union(configuration.excludeTargets)
+        var result: [String: Set<FilePath>] = [:]
+
+        for target in description.targets where !excluded.contains(target.name) {
+            let targetPath = pkg.path.appending(target.path)
+            let files = (target.sources ?? [])
+                .filter { $0.hasSuffix(".swift") }
+                .mapSet { targetPath.appending($0).lexicallyNormalized() }
+
+            if !files.isEmpty {
+                result[target.name] = files
+            }
+        }
+
+        return result
+    }
 
     private func testTargetNames(from description: PackageDescription) -> Set<String> {
         description.targets.filter(\.isTestTarget).mapSet(\.name)
