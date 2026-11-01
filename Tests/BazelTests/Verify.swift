@@ -13,6 +13,7 @@ struct Fixture {
     let unusedFiles: [String]
     let expectedNames: [String]
     let catalog: String?
+    let unusedCatalogKeys: [String]
     let targetedQuery: String?
     let targetedNames: [String]
     let testMissingModelFiles: Bool
@@ -209,6 +210,20 @@ func verify(_ fixtureSpec: Fixture, repository: URL, cache: URL) throws {
         for path in fixtureSpec.unusedFiles {
             try manager.removeItem(at: fixture.appendingPathComponent(path))
         }
+        if let catalog = fixtureSpec.catalog, !fixtureSpec.unusedCatalogKeys.isEmpty {
+            let catalogPath = fixture.appendingPathComponent(catalog)
+            guard var document = try JSONSerialization.jsonObject(with: Data(contentsOf: catalogPath)) as? [String: Any],
+                  var strings = document["strings"] as? [String: Any]
+            else {
+                throw VerificationError.failed("Unreadable String Catalog \(catalogPath.path)")
+            }
+
+            for key in fixtureSpec.unusedCatalogKeys {
+                strings[key] = nil
+            }
+            document["strings"] = strings
+            try JSONSerialization.data(withJSONObject: document).write(to: catalogPath)
+        }
         let cleanResults = temporary.appendingPathComponent("clean.json")
         report("Scanning the fixture after removing its unused declaration.")
         let cleanStatus = try scan(in: fixture, results: cleanResults, log: cleanLog)
@@ -274,6 +289,7 @@ do {
             unusedFiles: ["Sources/Unused.swift"],
             expectedNames: ["unusedGreeting()"],
             catalog: nil,
+            unusedCatalogKeys: [],
             targetedQuery: nil,
             targetedNames: [],
             testMissingModelFiles: false
@@ -283,10 +299,12 @@ do {
             source: repository.appendingPathComponent("Tests/BazelAppleTests/Fixture"),
             files: ["MODULE.bazel", "BUILD.bazel", "Sources", "Private", "IOS", "TVOS", "WatchOS", "VisionOS", "EmbeddedFramework", "EmbeddedService", "Info.plist", "Info-iOS.plist", "Localizable.xcstrings", "First.xib", "Second.xib", "First.storyboard", "Second.storyboard"],
             unusedFiles: ["Sources/Unused.swift", "Private/Unused.swift", "IOS/Unused.swift", "TVOS/Unused.swift", "WatchOS/Unused.swift", "VisionOS/Unused.swift", "EmbeddedFramework/Unused.swift", "EmbeddedService/Unused.swift"],
-            expectedNames: ["unusedEmbeddedFrameworkControl()", "unusedEmbeddedServiceControl()", "unusedGreeting()", "unusedIOSGreeting()", "unusedPrivateGreeting()", "unusedTVOSControl()", "unusedVisionOSControl()", "unusedWatchOSControl()"],
+            // `app.unused` is a genuine unused String Catalog key (Localizable.xcstrings), reported by default.
+            expectedNames: ["app.unused", "unusedEmbeddedFrameworkControl()", "unusedEmbeddedServiceControl()", "unusedGreeting()", "unusedIOSGreeting()", "unusedPrivateGreeting()", "unusedTVOSControl()", "unusedVisionOSControl()", "unusedWatchOSControl()"],
             catalog: "Localizable.xcstrings",
+            unusedCatalogKeys: ["app.unused"],
             targetedQuery: "//:app",
-            targetedNames: ["unusedEmbeddedFrameworkControl()", "unusedEmbeddedServiceControl()", "unusedGreeting()", "unusedPrivateGreeting()"],
+            targetedNames: ["app.unused", "unusedEmbeddedFrameworkControl()", "unusedEmbeddedServiceControl()", "unusedGreeting()", "unusedPrivateGreeting()"],
             testMissingModelFiles: false
         ),
         Fixture(
@@ -296,6 +314,7 @@ do {
             unusedFiles: ["Sources/Unused.swift"],
             expectedNames: ["unusedGreeting()"],
             catalog: nil,
+            unusedCatalogKeys: [],
             targetedQuery: nil,
             targetedNames: [],
             testMissingModelFiles: true
