@@ -182,6 +182,9 @@ public final class Configuration {
     @Setting(key: "retain_synthesized_uses", defaultValue: false)
     public var retainSynthesizedUses: Bool
 
+    @Setting(key: "retain_attributes", defaultValue: [])
+    public var retainAttributes: [String]
+
     // Non user facing.
     public var guidedSetup: Bool = false
     public var projectRoot: FilePath = .init()
@@ -256,7 +259,7 @@ public final class Configuration {
         $jsonPackageManifestPath, $retainCodableProperties, $retainEncodableProperties, $retainEquatableProperties,
         $retainHashableProperties, $baseline, $writeBaseline,
         $writeResults, $genericProjectConfig, $bazel, $bazelFilter, $bazelQuery, $bazelIndexStore, $bazelCheckVisibility,
-        $retainSynthesizedUses,
+        $retainSynthesizedUses, $retainAttributes,
     ]
 
     public func buildFilenameMatchers(with patterns: [String]) -> [FilenameMatcher] {

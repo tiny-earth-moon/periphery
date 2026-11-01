@@ -1410,6 +1410,40 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    func testRetainsDeclarationsWithConfiguredAttributes() {
+        analyze(retainPublic: true, retainAssignOnlyProperties: true) {
+            assertReferenced(.class("FixtureClass1301")) {
+                self.assertNotReferenced(.varInstance("wrapped"))
+                self.assertNotReferenced(.varInstance("plain"))
+                self.assertNotReferenced(.functionMethodInstance("tagged()"))
+                self.assertNotReferenced(.functionMethodInstance("untagged()"))
+            }
+        }
+
+        analyze(retainPublic: true, retainAssignOnlyProperties: true, retainAttributes: ["@FixtureStruct1300Wrapper", "discardableResult"]) {
+            assertReferenced(.class("FixtureClass1301")) {
+                self.assertReferenced(.varInstance("wrapped"))
+                self.assertReferenced(.functionMethodInstance("tagged()"))
+                self.assertNotReferenced(.varInstance("plain"))
+                self.assertNotReferenced(.functionMethodInstance("untagged()"))
+            }
+        }
+
+        analyze(retainPublic: true, retainAssignOnlyProperties: true, retainAttributes: ["FixtureStruct1300Wrapper:var", "discardableResult:var.instance"]) {
+            assertReferenced(.class("FixtureClass1301")) {
+                self.assertReferenced(.varInstance("wrapped"))
+                self.assertNotReferenced(.functionMethodInstance("tagged()"))
+            }
+        }
+
+        analyze(retainPublic: true, retainAssignOnlyProperties: true, retainAttributes: ["discardableResult:function.method"]) {
+            assertReferenced(.class("FixtureClass1301")) {
+                self.assertReferenced(.functionMethodInstance("tagged()"))
+                self.assertNotReferenced(.varInstance("wrapped"))
+            }
+        }
+    }
+
     func testRetainsSynthesizedUses() {
         analyze(retainPublic: true, retainSynthesizedUses: false) {
             assertReferenced(.struct("FixtureStruct1210")) {

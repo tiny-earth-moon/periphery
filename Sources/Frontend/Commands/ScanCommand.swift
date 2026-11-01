@@ -4,6 +4,7 @@ import Foundation
 import Logger
 import PeripheryKit
 import Shared
+import SourceGraph
 import SystemPackage
 
 struct ScanCommand: ParsableCommand {
@@ -191,6 +192,9 @@ struct ScanCommand: ParsableCommand {
     @Flag(help: "Retain stored properties of types whose values are described through reflection, e.g. passed to print, dump, String(describing:) or string interpolation")
     var retainSynthesizedUses: Bool = defaultConfiguration.$retainSynthesizedUses.defaultValue
 
+    @Option(parsing: .upToNextOption, help: "Retain declarations that have any of the given attributes (without the '@'), optionally limited to declaration kinds with '<attribute>:kind1,kind2', e.g. 'OptionGroup' or 'objc:function.method.instance'")
+    var retainAttributes: [String] = defaultConfiguration.$retainAttributes.defaultValue
+
     private static let defaultConfiguration = Configuration()
 
     func run() throws {
@@ -262,9 +266,11 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$bazelIndexStore, bazelIndexStore)
         configuration.apply(\.$bazelCheckVisibility, bazelCheckVisibility)
         configuration.apply(\.$retainSynthesizedUses, retainSynthesizedUses)
+        configuration.apply(\.$retainAttributes, retainAttributes)
 
         configuration.buildFilenameMatchers()
         _ = try ReportExcludeRule.resolve(configuration)
+        _ = try AttributeRetentionRule.resolve(configuration)
 
         let logger = Logger(configuration: configuration)
         logger.contextualized(with: "version").debug(PeripheryVersion)

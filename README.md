@@ -345,6 +345,10 @@ Swift synthesizes additional code for `Equatable` and `Hashable` types that is n
 
 Properties can also be read implicitly through reflection, when a value is described by `print`, `debugPrint`, `String(describing:)`, `String(reflecting:)` or string interpolation (structs that do not provide their own description), or by `dump` (structs and classes). Use `--retain-synthesized-uses` to retain the stored properties of such types.
 
+### Retaining by Attribute
+
+Use `--retain-attributes` (`retain_attributes` in the configuration file) to retain every declaration that has one of the given attributes, as if it had a `// periphery:ignore` comment. Give the attribute name without the `@`, e.g. `--retain-attributes OptionGroup MainActor`. Custom attributes such as property wrappers are supported. To limit an attribute to some declaration kinds, append them after a colon: `--retain-attributes objc:function.method.instance,var.instance`. A kind matches itself and its sub-kinds, so `function` matches every function and method, and an unknown kind is a configuration error.
+
 ### XCTestCase
 
 Any class that inherits `XCTestCase` is automatically retained along with its test methods. However, when a class inherits `XCTestCase` indirectly via another class, e.g., `UnitTestCase`, and that class resides in a target that isn't scanned by Periphery, you need to use the `--external-test-case-classes UnitTestCase` option to instruct Periphery to treat `UnitTestCase` as an `XCTestCase` subclass.
