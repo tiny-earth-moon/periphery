@@ -25,6 +25,7 @@ public final class SourceGraph {
     public private(set) var functionsWithIgnoredParameters: Set<Declaration> = []
     public private(set) var platformConditionalNames: Set<String> = []
     public private(set) var usedLocalizedStringKeys: Set<String> = []
+    public private(set) var synthesizedUses: Set<SynthesizedUse> = []
 
     private var indexedModules: Set<String> = []
     private var unindexedExportedModules: Set<String> = []
@@ -229,6 +230,10 @@ public final class SourceGraph {
 
     public func addUsedLocalizedStringKeys(_ keys: Set<String>) {
         usedLocalizedStringKeys.formUnion(keys)
+    }
+
+    public func addSynthesizedUses(_ uses: Set<SynthesizedUse>) {
+        synthesizedUses.formUnion(uses)
     }
 
     func markUsed(_ declaration: Declaration) {

@@ -1376,6 +1376,64 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    func testRetainsSynthesizedUses() {
+        analyze(retainPublic: true, retainSynthesizedUses: false) {
+            assertReferenced(.struct("FixtureStruct1210")) {
+                self.assertAssignOnlyProperty(.varInstance("id"))
+                self.assertAssignOnlyProperty(.varInstance("name"))
+                self.assertAssignOnlyProperty(.varInstance("nested"))
+            }
+            assertReferenced(.struct("FixtureStruct1211")) {
+                self.assertAssignOnlyProperty(.varInstance("value"))
+            }
+            assertReferenced(.struct("FixtureStruct1212")) {
+                self.assertAssignOnlyProperty(.varInstance("described"))
+            }
+            assertReferenced(.struct("FixtureStruct1213")) {
+                self.assertAssignOnlyProperty(.varInstance("interpolated"))
+            }
+            assertReferenced(.struct("FixtureStruct1214")) {
+                self.assertAssignOnlyProperty(.varInstance("annotated"))
+            }
+            assertReferenced(.class("FixtureClass1217")) {
+                self.assertAssignOnlyProperty(.varInstance("dumped"))
+            }
+        }
+
+        analyze(retainPublic: true, retainSynthesizedUses: true) {
+            assertReferenced(.struct("FixtureStruct1210")) {
+                self.assertReferenced(.varInstance("id"))
+                self.assertReferenced(.varInstance("name"))
+                self.assertReferenced(.varInstance("nested"))
+                self.assertNotReferenced(.varInstance("computed"))
+            }
+            assertReferenced(.struct("FixtureStruct1211")) {
+                self.assertReferenced(.varInstance("value"))
+            }
+            assertReferenced(.struct("FixtureStruct1212")) {
+                self.assertReferenced(.varInstance("described"))
+            }
+            assertReferenced(.struct("FixtureStruct1213")) {
+                self.assertReferenced(.varInstance("interpolated"))
+            }
+            assertReferenced(.struct("FixtureStruct1214")) {
+                self.assertReferenced(.varInstance("annotated"))
+            }
+            assertReferenced(.struct("FixtureStruct1215")) {
+                self.assertAssignOnlyProperty(.varInstance("custom"))
+            }
+            assertReferenced(.class("FixtureClass1216")) {
+                self.assertAssignOnlyProperty(.varInstance("printed"))
+            }
+            assertReferenced(.class("FixtureClass1217")) {
+                self.assertReferenced(.varInstance("dumped"))
+            }
+            assertReferenced(.struct("FixtureStruct1218")) {
+                self.assertAssignOnlyProperty(.varInstance("unused"))
+            }
+        }
+    }
+
     func testRetainsDynamicReplacement() {
         analyze(retainPublic: true) {
             assertReferenced(.struct("FixtureStruct8")) {

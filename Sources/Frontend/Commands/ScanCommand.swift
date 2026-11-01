@@ -185,6 +185,9 @@ struct ScanCommand: ParsableCommand {
     @Flag(help: "Enable Bazel visibility checking")
     var bazelCheckVisibility: Bool = defaultConfiguration.$bazelCheckVisibility.defaultValue
 
+    @Flag(help: "Retain stored properties of types whose values are described through reflection, e.g. passed to print, dump, String(describing:) or string interpolation")
+    var retainSynthesizedUses: Bool = defaultConfiguration.$retainSynthesizedUses.defaultValue
+
     private static let defaultConfiguration = Configuration()
 
     func run() throws {
@@ -254,6 +257,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$bazelQuery, bazelQuery)
         configuration.apply(\.$bazelIndexStore, bazelIndexStore)
         configuration.apply(\.$bazelCheckVisibility, bazelCheckVisibility)
+        configuration.apply(\.$retainSynthesizedUses, retainSynthesizedUses)
 
         configuration.buildFilenameMatchers()
 
