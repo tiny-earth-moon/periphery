@@ -19,7 +19,6 @@ report_exclude:
     kinds:
       - unused.function
       - unused.var
-      - unused.extension
       - assignOnlyProperty
       - redundantProtocol
       - redundantPublicAccessibility
