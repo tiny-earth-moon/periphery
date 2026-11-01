@@ -1,0 +1,231 @@
+name: Bottle
+# Builds an arm64 Homebrew bottle so that `brew install` pours periphery in seconds instead of
+# building it from source; building from source stays the fallback. Homebrew itself builds the
+# bottle: a temporary local tap holds a formula equivalent to Formula/periphery.rb of
+# tiny-earth-moon/homebrew-tap (scripts/bottle-formula.sh), installed with --build-bottle, then
+# `brew bottle`. The job pours the bottle back and runs it, including as on a machine without
+# the runner's Xcode path.
+#
+# Read-only: the bottle and its JSON are a workflow artifact. For a release, the maintainer
+# downloads them, attaches the bottle to the GitHub release and pastes the block printed by
+# scripts/bottle-block.sh (also in the job summary) into the tap formula.
+#
+# libIndexStore.dylib: periphery links @rpath/libIndexStore.dylib and swift-index-store only
+# puts the building Xcode in the rpath (/Applications/Xcode_27.2.app here). A bottle build adds
+# an rpath to /Applications/Xcode.app at link time; a user whose Xcode lives elsewhere installs
+# with `brew install --build-from-source`. Apple's dylib is never bundled.
+on:
+  pull_request:
+    paths:
+      - Package.swift
+      - Package.resolved
+      - Sources/**
+      - .github/workflows/bottle.yml
+      - scripts/bottle-*.sh
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to bottle (X.Y.Z)
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.tag || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+env:
+  BOTTLE_TAP: periphery-ci/local
+  XCODE_LIB: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib
+  HOMEBREW_NO_AUTO_UPDATE: "1"
+  HOMEBREW_NO_INSTALL_CLEANUP: "1"
+  HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: "1"
+  HOMEBREW_NO_ANALYTICS: "1"
+  HOMEBREW_NO_ENV_HINTS: "1"
+defaults:
+  run:
+    shell: bash
+jobs:
+  bottle:
+    name: arm64 bottle (Xcode 27.2)
+    # Same preview image and Xcode as the macOS job of test.yml.
+    runs-on: xcode-27
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || '' }}
+          persist-credentials: false
+      - name: Select Xcode 27.2
+        run: sudo xcode-select -s /Applications/Xcode_27.2.app
+      - name: Resolve the version
+        id: version
+        env:
+          TAG: ${{ inputs.tag || (github.ref_type == 'tag' && github.ref_name) || '' }}
+        run: |
+          source_version=$(sed -nE 's/^let PeripheryVersion = "([0-9.]+)"$/\1/p' Sources/Frontend/Version.swift)
+          if [[ -z $source_version ]]; then
+            echo "::error file=Sources/Frontend/Version.swift::PeripheryVersion not found"
+            exit 1
+          fi
+          if [[ -n $TAG && $TAG != "$source_version" ]]; then
+            echo "::error::Tag $TAG does not match PeripheryVersion $source_version"
+            exit 1
+          fi
+          version=${TAG:-$source_version}
+          if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Version '$version' is not X.Y.Z"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Update Homebrew
+        # The image's Homebrew may predate the runner's macOS and not know its bottle tag.
+        run: |
+          brew update --quiet
+          brew --version
+      - name: Create the local tap
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          tarball="$RUNNER_TEMP/periphery-$VERSION.tar.gz"
+          git archive --format=tar.gz --prefix="periphery-$VERSION/" --output="$tarball" HEAD
+          sha256=$(shasum -a 256 "$tarball" | cut -d ' ' -f 1)
+          brew tap-new --no-git "$BOTTLE_TAP"
+          formula="$(brew --repository "$BOTTLE_TAP")/Formula/periphery.rb"
+          scripts/bottle-formula.sh "$VERSION" "file://$tarball" "$sha256" > "$formula"
+          cat "$formula"
+      - name: Build with Homebrew
+        run: brew install --build-bottle --verbose "$BOTTLE_TAP/periphery"
+      - name: Check the rpaths
+        run: |
+          binary="$(brew --prefix "$BOTTLE_TAP/periphery")/bin/periphery"
+          otool -L "$binary"
+          otool -l "$binary" | grep -A2 LC_RPATH
+          if ! otool -l "$binary" | grep -Fq " path $XCODE_LIB (offset"; then
+            echo "::error::No rpath to $XCODE_LIB"
+            exit 1
+          fi
+      - name: Bottle
+        id: bottle
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          mkdir "$RUNNER_TEMP/bottle"
+          cd "$RUNNER_TEMP/bottle"
+          brew bottle --json --no-rebuild \
+            --root-url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$VERSION" \
+            "$BOTTLE_TAP/periphery"
+          shopt -s nullglob
+          jsons=(periphery--*.bottle.json)
+          if [[ ${#jsons[@]} -ne 1 ]]; then
+            echo "::error::Expected one bottle JSON, found ${#jsons[@]}"
+            exit 1
+          fi
+          cellar=$(jq -er '.[].bottle.cellar' "${jsons[0]}")
+          if [[ $cellar != any_skip_relocation ]]; then
+            echo "::warning::Bottle cellar is $cellar, not any_skip_relocation"
+          fi
+          {
+            echo "json=$RUNNER_TEMP/bottle/${jsons[0]}"
+            echo "local_filename=$(jq -er '.[].bottle.tags[].local_filename' "${jsons[0]}")"
+            echo "filename=$(jq -er '.[].bottle.tags[].filename' "${jsons[0]}")"
+          } >> "$GITHUB_OUTPUT"
+      - name: Pour the bottle
+        env:
+          # Lets brew install a bottle from a local file.
+          HOMEBREW_DEVELOPER: "1"
+          LOCAL_FILENAME: ${{ steps.bottle.outputs.local_filename }}
+        run: |
+          brew uninstall --formula "$BOTTLE_TAP/periphery"
+          brew install "$RUNNER_TEMP/bottle/$LOCAL_FILENAME"
+      - name: Test the poured bottle
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          brew test "$BOTTLE_TAP/periphery"
+          keg="$(brew --cellar "$BOTTLE_TAP/periphery")/$VERSION"
+          cd "$RUNNER_TEMP"
+          for binary in "$keg/bin/periphery" "$(brew --prefix)/bin/periphery"; do
+            output=$("$binary" version)
+            echo "$binary version: $output"
+            if [[ $output != "$VERSION" ]]; then
+              echo "::error::$binary version printed '$output', expected $VERSION"
+              exit 1
+            fi
+          done
+      - name: Run the bottle without the runner's Xcode
+        # A user machine has no /Applications/Xcode_27.2.app: drop every rpath under /Applications
+        # except /Applications/Xcode.app from a copy of the poured binary, which must then load
+        # libIndexStore.dylib from /Applications/Xcode.app.
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if [[ ! -e /Applications/Xcode.app ]]; then
+            sudo ln -s /Applications/Xcode_27.2.app /Applications/Xcode.app
+          fi
+          ls -ld /Applications/Xcode.app
+          user_dir="$RUNNER_TEMP/user-machine"
+          mkdir "$user_dir"
+          binary="$user_dir/periphery"
+          cp "$(brew --cellar "$BOTTLE_TAP/periphery")/$VERSION/bin/periphery" "$binary"
+          chmod u+w "$binary"
+          rpaths=$(otool -l "$binary" | awk '$1 == "cmd" && $2 == "LC_RPATH" { getline; getline; print $2 }')
+          while read -r rpath; do
+            case $rpath in
+              /Applications/Xcode.app/*) ;;
+              /Applications/*) install_name_tool -delete_rpath "$rpath" "$binary" ;;
+            esac
+          done <<< "$rpaths"
+          codesign --force --sign - "$binary"
+          otool -l "$binary" | grep -A2 LC_RPATH
+          cd "$user_dir"
+          output=$(DYLD_PRINT_LIBRARIES=1 ./periphery version 2> dyld.log)
+          grep libIndexStore dyld.log
+          resolved_lib=$(cd "$XCODE_LIB" && pwd -P)
+          if ! grep -Fq -e "$XCODE_LIB/libIndexStore.dylib" -e "$resolved_lib/libIndexStore.dylib" dyld.log; then
+            echo "::error::libIndexStore.dylib was not loaded from $XCODE_LIB"
+            exit 1
+          fi
+          if [[ $output != "$VERSION" ]]; then
+            echo "::error::periphery version printed '$output', expected $VERSION"
+            exit 1
+          fi
+      - name: Name the bottle for the release
+        env:
+          JSON: ${{ steps.bottle.outputs.json }}
+          LOCAL_FILENAME: ${{ steps.bottle.outputs.local_filename }}
+          FILENAME: ${{ steps.bottle.outputs.filename }}
+        run: |
+          cd "$RUNNER_TEMP/bottle"
+          if [[ $LOCAL_FILENAME != "$FILENAME" ]]; then
+            mv "$LOCAL_FILENAME" "$FILENAME"
+          fi
+          ls -l
+          block=$("$GITHUB_WORKSPACE/scripts/bottle-block.sh" "$JSON")
+          echo "$block"
+          {
+            echo "### Homebrew bottle"
+            echo '```'
+            echo "$block"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: periphery-bottle-${{ steps.version.outputs.version }}
+          path: |
+            ${{ runner.temp }}/bottle/*.bottle.tar.gz
+            ${{ runner.temp }}/bottle/*.bottle.json
+          if-no-files-found: error
+          # The bottle is already gzipped.
+          compression-level: 0
+          retention-days: ${{ github.event_name == 'pull_request' && 7 || 90 }}
+      - name: Upload the Homebrew logs
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: homebrew-logs
+          path: ~/Library/Logs/Homebrew
+          if-no-files-found: ignore
+          retention-days: 7
