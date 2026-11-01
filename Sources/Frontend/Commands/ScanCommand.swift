@@ -323,12 +323,6 @@ struct ScanCommand: ParsableCommand {
             swiftVersion: swiftVersion
         ).perform(project: project)
 
-        let planSuggester = PlanSuggester(
-            logger: logger,
-            loc: scanOutput.loc
-        )
-        planSuggester.run()
-
         let results = scanOutput.results
         let interval = logger.beginInterval("result:output")
         var baseline: Baseline?
@@ -378,7 +372,6 @@ struct ScanCommand: ParsableCommand {
         logger.endInterval(interval)
 
         updateChecker.notifyIfAvailable()
-        planSuggester.notifyIfSuggested()
 
         if !filteredResults.isEmpty, configuration.strict {
             throw PeripheryError.foundIssues(count: filteredResults.count)
