@@ -12,8 +12,8 @@ name: Bottle
 #
 # libIndexStore.dylib: periphery links @rpath/libIndexStore.dylib and swift-index-store only
 # puts the building Xcode in the rpath (/Applications/Xcode_27.2.app here). A bottle build adds
-# an rpath to /Applications/Xcode.app at link time; a user whose Xcode lives elsewhere installs
-# with `brew install --build-from-source`. Apple's dylib is never bundled.
+# rpaths to /Applications/Xcode.app, then to the Command Line Tools, at link time; a user with
+# neither installs with `brew install --build-from-source`. Apple's dylib is never bundled.
 on:
   pull_request:
     paths:
@@ -191,6 +191,41 @@ jobs:
           resolved_lib=$(cd "$XCODE_LIB" && pwd -P)
           if ! grep -Fq -e "$XCODE_LIB/libIndexStore.dylib" -e "$resolved_lib/libIndexStore.dylib" dyld.log; then
             echo "::error::libIndexStore.dylib was not loaded from $XCODE_LIB"
+            exit 1
+          fi
+          if [[ $output != "$VERSION" ]]; then
+            echo "::error::periphery version printed '$output', expected $VERSION"
+            exit 1
+          fi
+      - name: Run the bottle with only the Command Line Tools
+        # Xcode installed elsewhere: drop every rpath under /Applications from a copy of the poured
+        # binary, which must then load libIndexStore.dylib from the Command Line Tools.
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          CLT_LIB: /Library/Developer/CommandLineTools/usr/lib
+        run: |
+          if [[ ! -e $CLT_LIB/libIndexStore.dylib ]]; then
+            echo "::notice::No $CLT_LIB/libIndexStore.dylib on this runner, skipping"
+            exit 0
+          fi
+          clt_dir="$RUNNER_TEMP/clt-only"
+          mkdir "$clt_dir"
+          binary="$clt_dir/periphery"
+          cp "$(brew --cellar "$BOTTLE_TAP/periphery")/$VERSION/bin/periphery" "$binary"
+          chmod u+w "$binary"
+          rpaths=$(otool -l "$binary" | awk '$1 == "cmd" && $2 == "LC_RPATH" { getline; getline; print $2 }')
+          while read -r rpath; do
+            case $rpath in
+              /Applications/*) install_name_tool -delete_rpath "$rpath" "$binary" ;;
+            esac
+          done <<< "$rpaths"
+          codesign --force --sign - "$binary"
+          otool -l "$binary" | grep -A2 LC_RPATH
+          cd "$clt_dir"
+          output=$(DYLD_PRINT_LIBRARIES=1 ./periphery version 2> dyld.log)
+          grep libIndexStore dyld.log
+          if ! grep -Fq "$CLT_LIB/libIndexStore.dylib" dyld.log; then
+            echo "::error::libIndexStore.dylib was not loaded from $CLT_LIB"
             exit 1
           fi
           if [[ $output != "$VERSION" ]]; then

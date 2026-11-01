@@ -46,10 +46,12 @@ class Periphery < Formula
     args = %w[--disable-sandbox -c release --product periphery]
     # periphery links @rpath/libIndexStore.dylib and swift-index-store only adds the building
     # Xcode to the rpath, e.g. /Applications/Xcode_27.2.app on a CI runner. A bottle must find
-    # the library in the user's Xcode: search the default Xcode location first.
+    # the library on the user's machine: the default Xcode location first, then the Command Line
+    # Tools, which homebrew-core's periphery formula also relies on.
     if build.bottle?
       args += %w[-Xlinker -rpath -Xlinker
-                 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib]
+                 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib
+                 -Xlinker -rpath -Xlinker /Library/Developer/CommandLineTools/usr/lib]
     end
     system "swift", "build", *args
     bin.install ".build/release/periphery"
@@ -57,8 +59,8 @@ class Periphery < Formula
 
   def caveats
     <<~EOS
-      The bottle loads libIndexStore.dylib from /Applications/Xcode.app. If your Xcode
-      lives elsewhere, build from source instead:
+      The bottle loads libIndexStore.dylib from /Applications/Xcode.app, or else from the
+      Command Line Tools. If neither is installed there, build from source instead:
         brew reinstall --build-from-source periphery
     EOS
   end
