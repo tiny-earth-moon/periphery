@@ -63,6 +63,9 @@ var targets: [PackageDescription.Target] = [
     .target(
         name: "DeclarationVisitorFixtures"
     ),
+    .target(
+        name: "UnassignedOptionalFixtures"
+    ),
 ]
 
 #if os(macOS)

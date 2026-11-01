@@ -26,6 +26,37 @@ struct TypeSyntaxInspector {
         types(for: typeSyntax).mapSet { sourceLocationBuilder.location(at: $0.positionAfterSkippingLeadingTrivia) }
     }
 
+    /// Whether the type is `T?`, `T!` or `Optional<T>` (optionally qualified as `Swift.Optional<T>`).
+    func isOptional(_ typeSyntax: TypeSyntax) -> Bool {
+        if typeSyntax.is(OptionalTypeSyntax.self) || typeSyntax.is(ImplicitlyUnwrappedOptionalTypeSyntax.self) {
+            return true
+        }
+
+        if let attributedType = typeSyntax.as(AttributedTypeSyntax.self) {
+            return isOptional(attributedType.baseType)
+        }
+
+        if let tupleType = typeSyntax.as(TupleTypeSyntax.self),
+           tupleType.elements.count == 1,
+           let element = tupleType.elements.first,
+           element.firstName == nil
+        {
+            return isOptional(element.type)
+        }
+
+        if let identifierType = typeSyntax.as(IdentifierTypeSyntax.self) {
+            return identifierType.name.text == "Optional" && identifierType.genericArgumentClause != nil
+        }
+
+        if let memberType = typeSyntax.as(MemberTypeSyntax.self),
+           memberType.baseType.as(IdentifierTypeSyntax.self)?.name.text == "Swift"
+        {
+            return memberType.name.text == "Optional" && memberType.genericArgumentClause != nil
+        }
+
+        return false
+    }
+
     // MARK: - Private
 
     func types(for typeSyntax: TypeSyntax) -> Set<TokenSyntax> {
