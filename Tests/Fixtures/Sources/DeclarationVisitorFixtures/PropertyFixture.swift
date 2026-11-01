@@ -20,4 +20,10 @@ class PropertyVisitorTestFixture {
     let (implicitDestructuringPropertyA, implicitDestructuringPropertyB) = (CustomType(), "1")
     let multipleBindingPropertyA: Int = 1, multipleBindingPropertyB: String = ""
     var simpleTypeWithComment: Bool = true // comment
+    var unassignedOptionalProperty: Int?
+    var nilInitializedOptionalProperty: Int? = nil
+    var implicitlyUnwrappedProperty: Int!
+    var genericOptionalProperty: Optional<Int>
+    var qualifiedOptionalProperty: Swift.Optional<Int> = 1
+    var (optionalTupleElementA, optionalTupleElementB): (Int?, Int?) = (nil, 1)
 }
