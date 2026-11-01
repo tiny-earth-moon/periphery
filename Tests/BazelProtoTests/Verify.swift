@@ -75,11 +75,17 @@ func verify() throws {
             throw VerificationError.failed("The scan retained the unrelated user type with the compatibility check's name.")
         }
         guard findings.contains(where: { $0.name == "ProtoOnlyMessage" && $0.modules.contains("ProtoFixture") }) else {
-            let diagnostics = try String(contentsOf: log, encoding: .utf8)
-                .split(separator: "\n")
+            let logLines = try String(contentsOf: log, encoding: .utf8).split(separator: "\n")
+            var diagnostics = logLines
                 .filter { $0.contains("does not exist") || $0.contains("Reading ") || $0.contains("pb.swift") || $0.contains("ProtoFixture") }
                 .suffix(60)
                 .joined(separator: "\n")
+            if let generated = logLines.first(where: { $0.contains("[index:swift:phase:one]") && $0.contains("message.pb.swift") }),
+               let start = generated.range(of: "] "), let end = generated.range(of: " (ProtoFixture)")
+            {
+                let source = try String(contentsOfFile: String(generated[start.upperBound ..< end.lowerBound]), encoding: .utf8)
+                diagnostics += "\n--- generated source ---\n" + source
+            }
             throw VerificationError.failed("The scan did not report the genuinely unused generated message. Findings: \(findings.map(\.name).sorted()).\n\(diagnostics)")
         }
         guard !findings.contains(where: { $0.modules.contains("SwiftProtobuf") }) else {

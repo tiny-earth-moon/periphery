@@ -6,8 +6,15 @@ import SourceGraph
 import SystemPackage
 
 final class XCStringsIndexer: Indexer {
-    enum XCStringsError: Error {
+    enum XCStringsError: Error, CustomStringConvertible {
         case failedToParse(path: FilePath, underlyingError: Error)
+
+        var description: String {
+            switch self {
+            case let .failedToParse(path, underlyingError):
+                "Could not read or parse String Catalog at \(path.string): \(underlyingError.localizedDescription)"
+            }
+        }
     }
 
     private let files: Set<FilePath>

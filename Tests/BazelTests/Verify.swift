@@ -255,8 +255,8 @@ func verify(_ fixtureSpec: Fixture, repository: URL, cache: URL) throws {
             let catalogResults = temporary.appendingPathComponent("catalog.json")
             let catalogStatus = try scan(in: fixture, results: catalogResults, log: catalogLog)
             let catalogOutput = try String(contentsOf: catalogLog, encoding: .utf8)
-            guard catalogStatus != 0, catalogOutput.contains("Failed to read String Catalog") else {
-                throw VerificationError.failed("The scan must report the invalid String Catalog. Log: \(catalogLog.path)")
+            guard catalogStatus != 0, catalogOutput.contains("Could not read or parse String Catalog"), catalogOutput.contains(catalogPath.lastPathComponent) else {
+                throw VerificationError.failed("The scan must report the invalid String Catalog (exit \(catalogStatus)). Log: \(catalogLog.path)\n\(catalogOutput.split(separator: "\n").suffix(40).joined(separator: "\n"))")
             }
 
             report("The scan reported the invalid String Catalog.")
