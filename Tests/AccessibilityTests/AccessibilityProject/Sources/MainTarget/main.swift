@@ -116,3 +116,12 @@ PublicMemberInNonPublicExtensionOfPublicType().publicFuncInNonPublicExtensionOfP
 _ = "".publicFuncInExternalTypeExtension()
 openFinalRetain()
 redundantAccessLevelRetain()
+
+// Redundant public members (#75)
+let rpmValue = try rpmRetain()
+rpmValue.rpmUsedCrossModule()
+rpmValue.rpmInExtensionUsedCrossModule()
+let _: RpmProtocol? = nil
+_ = RpmOpenClass()
+_ = RpmPublicStruct()
+let _: RpmPublicEnum? = nil

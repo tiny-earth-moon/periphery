@@ -340,6 +340,17 @@ Declarations that are marked `public` yet are not referenced from outside their 
 
 This analysis can be disabled with `--disable-redundant-public-analysis`.
 
+By default, the explicit `public` members of a `public` type or extension that is itself referenced from outside its module are not checked, since it is common to publish a set of members before they are all used. The opt-in `--enable-redundant-public-members` (`enable_redundant_public_members: true`) reports those members as well: a member explicitly marked `public` (methods, initializers, properties, subscripts, nested types) that is not referenced from outside its module has redundant public accessibility, following the same rules as top-level declarations (references from files that `@testable import` the module do not count). Members of `open` classes are checked too. The following members are never reported, because their accessibility is required or their use cannot be observed:
+
+- `open` members, overrides and `required` initializers.
+- Protocol requirement implementations, including those of external protocols (`Equatable`, `CustomStringConvertible`, `Codable`…), as recorded by the index.
+- `@inlinable` and `@usableFromInline` members, and members referenced from a public `@inlinable` function.
+- Members of `@propertyWrapper`, `@resultBuilder` and `@dynamicMemberLookup` types.
+- Implicit members (synthesized `Codable` conformance, memberwise initializers), `enum` cases, type aliases and associated types.
+- Members whose type appears in another public declaration's signature.
+
+Members that are implicitly public because their extension is marked `public` (`public extension T { func f() }`) are not reported: the modifier to remove is the extension's.
+
 ### Open / Final Analysis
 
 This opt-in analysis, enabled with `--enable-open-final-analysis` (`enable_open_final_analysis: true`), reports two kinds of results:
