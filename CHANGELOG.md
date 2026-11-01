@@ -12,6 +12,20 @@
 
 - None.
 
+## 3.12.7 (2026-11-01)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- New `retain_attributes` / `--retain-attributes` option: declarations carrying one of the listed attributes (e.g. `OptionGroup`, `objc`) are retained as if annotated `// periphery:ignore`; the `Attribute:kind1,kind2` form restricts it to declaration kinds. Kind identifiers are shared with `report_exclude` kinds; unknown kinds raise a usage error before the scan. [#84](https://github.com/tiny-earth-moon/periphery/issues/84)
+
+##### Bug Fixes
+
+- None.
+
 ## 3.12.6 (2026-11-01)
 
 ##### Breaking
