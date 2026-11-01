@@ -36,6 +36,7 @@
     - [Unassigned Optional Analysis](#unassigned-optional-analysis)
     - [Redundant Public Accessibility](#redundant-public-accessibility)
     - [Open / Final Analysis](#open--final-analysis)
+    - [Redundant Access Level Analysis](#redundant-access-level-analysis)
     - [Unused Imports](#unused-imports)
     - [Platform Conditionals](#platform-conditionals)
     - [Objective-C](#objective-c)
@@ -349,6 +350,32 @@ Subclasses and overrides are read from the index store, which only describes the
 
 Either kind can be excluded with `report_exclude`, e.g. `**/Generated/**:missingFinal`.
 
+### Redundant Access Level Analysis
+
+This opt-in analysis, enabled with `--enable-redundant-access-level-analysis` (`enable_redundant_access_level_analysis: true`), reports `redundantAccessLevel` results: explicit access modifiers identical to the access level the declaration would get without them, i.e. the default of its enclosing context. Removing such a modifier does not change the access level of the declaration. The result message names the redundant modifier and the context it repeats.
+
+| Declaration | Context | Reported |
+|-------------|---------|----------|
+| `internal` declaration or extension | top level | yes |
+| `fileprivate` or `private` declaration | top level | no (no enclosing modifier; both mean file scope) |
+| `internal` member | `open`, `public` or `internal` type (explicit or implicit) | yes |
+| `public` member | `public` or `open` type | no (members of a `public` type default to `internal`) |
+| `private` or `fileprivate` member | `internal` type | no (narrower than the default) |
+| `fileprivate` member | `private` or `fileprivate` top-level type, or a type nested in one without modifier | yes |
+| `private` member | `private` or `fileprivate` type | no (restricts access to the type's declarations, narrower than file scope) |
+| any member | `private` nested type | no (its members default to the enclosing scope, which no modifier expresses) |
+| member with the extension's modifier (`public`, `internal`, `fileprivate`, `private`) | extension with that modifier | yes |
+| `fileprivate` member | `private` extension | yes (members of a `private` extension are `fileprivate`) |
+| `private` member | `fileprivate` extension | no (narrower than the default) |
+| `internal` member | `public` extension | no |
+| member | extension without modifier | like a member of the extended type; extensions of external types are treated like extensions of a `public` type |
+| `open` declaration or member | any | never (see [Open / Final Analysis](#open--final-analysis)) |
+| setter modifier (`private(set)`, `internal(set)`…) | any | never; only the getter modifier (`public` in `internal(set) public var`) is checked |
+| protocol requirement, `enum` case | any | never (they cannot carry an access modifier) |
+| member of a `package` type or extension | any | never (the `package` access level is not modelled) |
+
+A member of a `private` extension marked `private` is reported although, strictly, it stays visible to the extended type's declarations in the file only: the extension already confines it to the file, which is the intended scope in practice. Results of unused declarations are not repeated, and results can be excluded with `report_exclude`, e.g. `**/Generated/**:redundantAccessLevel`.
+
 ### Unused Imports
 
 Periphery can only detect unused imports of targets it has scanned. It cannot detect unused imports of other targets because the Swift source files are unavailable and uses of `@_exported` cannot be observed. `@_exported` is problematic because it changes the public interface of a target such that the declarations exported by the target are no longer necessarily declared by the imported target. For example, the `Foundation` target exports `Dispatch`, among other targets. If any given source file imports `Foundation` and references `DispatchQueue` but no other declarations from `Foundation`, then the `Foundation` import cannot be removed as it would also make the `DispatchQueue` type unavailable. To avoid false positives, therefore, Periphery only detects unused imports of targets it has scanned.
@@ -628,7 +655,7 @@ Both exclusion options described below accept a Bash v4-style path glob, either 
 
 To exclude the results from certain files, pass the `--report-exclude <globs>` option to the `scan` command.
 
-To exclude only some kinds of results, give `report_exclude` an object entry in the configuration file, or append the kinds to the glob with `<glob>:kind1,kind2`. A kind is the result annotation (`unused`, `assignOnlyProperty`, `unassignedOptionalProperty`, `redundantProtocol`, `redundantPublicAccessibility`, `superfluousIgnoreCommand`) optionally followed by the declaration kind reported in the JSON `kind` field, e.g. `unused.function` (every unused function and method) or `unused.var.parameter`. Entries without kinds exclude every result, and an unknown kind is a configuration error.
+To exclude only some kinds of results, give `report_exclude` an object entry in the configuration file, or append the kinds to the glob with `<glob>:kind1,kind2`. A kind is the result annotation (`unused`, `assignOnlyProperty`, `unassignedOptionalProperty`, `redundantProtocol`, `redundantPublicAccessibility`, `redundantOpenAccessibility`, `missingFinal`, `redundantAccessLevel`, `superfluousIgnoreCommand`) optionally followed by the declaration kind reported in the JSON `kind` field, e.g. `unused.function` (every unused function and method) or `unused.var.parameter`. Entries without kinds exclude every result, and an unknown kind is a configuration error.
 
 ```yaml
 report_exclude:
