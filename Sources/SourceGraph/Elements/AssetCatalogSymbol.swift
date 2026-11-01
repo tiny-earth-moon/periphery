@@ -5,6 +5,7 @@ import SystemPackage
 /// A kind of asset catalog resource for which Xcode generates Swift symbols in `GeneratedAssetSymbols.swift`.
 public enum AssetCatalogSymbolKind: String, CaseIterable {
     case color
+    case image
 
     /// The kinds whose unused symbols are detected with the given configuration.
     public static func detected(by configuration: Configuration) -> [Self] {
@@ -16,6 +17,7 @@ public enum AssetCatalogSymbolKind: String, CaseIterable {
     public var resourceTypeName: String {
         switch self {
         case .color: "ColorResource"
+        case .image: "ImageResource"
         }
     }
 
@@ -23,13 +25,16 @@ public enum AssetCatalogSymbolKind: String, CaseIterable {
     public var symbolTypeNames: Set<String> {
         switch self {
         case .color: [resourceTypeName, "Color", "ShapeStyle", "UIColor", "NSColor"]
+        case .image: [resourceTypeName, "Image", "UIImage", "NSImage"]
         }
     }
 
-    /// Extension of the asset directories of this kind in an asset catalog.
-    public var assetDirectoryExtension: String {
+    /// Extensions of the asset directories of this kind in an asset catalog. App icons (`appiconset`) have no
+    /// generated symbol and are never reported.
+    public var assetDirectoryExtensions: [String] {
         switch self {
-        case .color: "colorset"
+        case .color: ["colorset"]
+        case .image: ["imageset", "symbolset"]
         }
     }
 
@@ -37,18 +42,21 @@ public enum AssetCatalogSymbolKind: String, CaseIterable {
     public var annotationName: String {
         switch self {
         case .color: "unusedAssetCatalogColor"
+        case .image: "unusedAssetCatalogImage"
         }
     }
 
     public var displayName: String {
         switch self {
         case .color: "color"
+        case .image: "image"
         }
     }
 
     private func isDetected(by configuration: Configuration) -> Bool {
         switch self {
         case .color: configuration.detectUnusedAssetCatalogColors
+        case .image: configuration.detectUnusedAssetCatalogImages
         }
     }
 }

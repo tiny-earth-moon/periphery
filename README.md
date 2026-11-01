@@ -49,6 +49,7 @@
     - [XCTestCase](#xctestcase)
     - [Interface Builder](#interface-builder)
     - [Asset Catalog Colors](#asset-catalog-colors)
+    - [Asset Catalog Images](#asset-catalog-images)
     - [SPI (System Programming Interface)](#spi-system-programming-interface)
     - [Localized Strings](#localized-strings)
 - [Comment Commands](#comment-commands)
@@ -476,6 +477,12 @@ Files inside Xcode 16+ synchronized folders (`PBXFileSystemSynchronizedRootGroup
 ### Asset Catalog Colors
 
 Xcode generates a Swift symbol for each color of an asset catalog (`ColorResource.accent`, `Color.accent`, `UIColor.accent`, ...) in a `GeneratedAssetSymbols.swift` file under DerivedData, which the default `--index-exclude` patterns exclude. Use `--detect-unused-asset-catalog-colors` (`detect_unused_asset_catalog_colors` in the configuration file) to index these files despite `--index-exclude` and report the colors that are never used. A color is used when any of its generated symbols is used, or when its name is referenced as a string: a string literal in the scanned Swift sources (e.g. `Color("Brand")` or `UIColor(named: "Brand")`), a named color of an Interface Builder file, or the global accent color (the `ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME` build setting of Xcode projects, `AccentColor` when no build setting names it). an unused color is reported once as `unusedAssetCatalogColor`, with its asset name and the `.colorset` directories found in the `*.xcassets` catalogs under the project directory (no path is given when none declares it). Every other declaration of the generated file is retained, and the file is left out of unused import analysis. Results are located in the generated file under DerivedData; the `.colorset` paths point to the asset to remove. To skip these results, use `--report-exclude "**/GeneratedAssetSymbols.swift:unusedAssetCatalogColor"`.
+
+### Asset Catalog Images
+
+Images are detected the same way with `--detect-unused-asset-catalog-images` (`detect_unused_asset_catalog_images` in the configuration file), independently of colors: Xcode generates `ImageResource.logo` and the `UIImage.logo` and `NSImage.logo` accessors for each image and symbol image of an asset catalog. An image is used when any of its generated symbols is used (e.g. `Image(.logo)` or `UIImage.logo`), or when its name is referenced as a string: a string literal in the scanned Swift sources (e.g. `Image("Logo")`, `UIImage(named: "Logo")` or `NSImage(named: "Logo")`), an image of an Interface Builder file (`image`, `backgroundImage`, `selectedImage`, ... attributes and `<image name="Logo">` resources), or an Info.plist value of `UILaunchScreen`'s `UIImageName`, `UIApplicationShortcutItemIconFile` or `CFBundleIconName`. App icon sets (`.appiconset`) have no generated symbol and are never reported. An unused image is reported once as `unusedAssetCatalogImage`, with its asset name and the `.imageset` or `.symbolset` directories found in the `*.xcassets` catalogs under the project directory. To skip these results, use `--report-exclude "**/GeneratedAssetSymbols.swift:unusedAssetCatalogImage"`.
+
+Limits: an image loaded with a name built at runtime (e.g. `UIImage(named: "flag-\(code)")`), or referenced only from a file that is not scanned (a widget or app extension target outside the scanned schemes, a storyboard or Info.plist that the project driver does not collect, a SwiftPM resource bundle without generated symbols), is reported as unused. Scan every target that uses the catalog, or exclude these results with `--report-exclude`.
 
 ### SPI (System Programming Interface)
 

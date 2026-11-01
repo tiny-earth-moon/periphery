@@ -4,7 +4,9 @@ import SystemPackage
 
 /// The asset catalog symbols Xcode generates in `GeneratedAssetSymbols.swift`, e.g.
 /// `static let accent = ColorResource(name: "AccentColor", bundle: resourceBundle)` and the `Color.accent`,
-/// `ShapeStyle.accent`, `UIColor.accent` and `NSColor.accent` accessors that wrap it.
+/// `ShapeStyle.accent`, `UIColor.accent` and `NSColor.accent` accessors that wrap it, or
+/// `static let logo = ImageResource(name: "Logo", bundle: resourceBundle)` and the `UIImage.logo` and `NSImage.logo`
+/// accessors.
 enum GeneratedAssetSymbols {
     /// The root declarations of the generated files analyzed with the given configuration.
     static func rootDeclarations(in graph: SourceGraph, configuration: Configuration) -> [Declaration] {

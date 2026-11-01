@@ -215,6 +215,9 @@ public final class Configuration {
     @Setting(key: "detect_unused_asset_catalog_colors", defaultValue: false)
     public var detectUnusedAssetCatalogColors: Bool
 
+    @Setting(key: "detect_unused_asset_catalog_images", defaultValue: false)
+    public var detectUnusedAssetCatalogImages: Bool
+
     // Non user facing.
     public var guidedSetup: Bool = false
     public var projectRoot: FilePath = .init()
@@ -282,7 +285,7 @@ public final class Configuration {
 
     /// Whether any kind of unused asset catalog symbol is detected.
     public var detectsUnusedAssetCatalogSymbols: Bool {
-        detectUnusedAssetCatalogColors
+        detectUnusedAssetCatalogColors || detectUnusedAssetCatalogImages
     }
 
     /// Whether the file holds generated asset catalog symbols that must be analyzed, which is only the case when
@@ -322,7 +325,7 @@ public final class Configuration {
         $jsonPackageManifestPath, $retainCodableProperties, $retainEncodableProperties, $retainEquatableProperties,
         $retainHashableProperties, $baseline, $writeBaseline,
         $writeResults, $genericProjectConfig, $bazel, $bazelFilter, $bazelQuery, $bazelIndexStore, $bazelCheckVisibility,
-        $retainSynthesizedUses, $retainAttributes, $detectUnusedAssetCatalogColors,
+        $retainSynthesizedUses, $retainAttributes, $detectUnusedAssetCatalogColors, $detectUnusedAssetCatalogImages,
     ]
 
     public func buildFilenameMatchers(with patterns: [String]) -> [FilenameMatcher] {

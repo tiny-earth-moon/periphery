@@ -6,7 +6,8 @@ import SystemPackage
 /// Reports each asset whose generated symbols are all unused once, on its resource symbol
 /// (e.g. `ColorResource.accent`), and keeps the other symbols of the asset (e.g. `Color.accent`) out of the
 /// results. An asset with any used symbol, or whose name is referenced as a string (e.g. `Color("AccentColor")`,
-/// an Interface Builder named color or the global accent color build setting), is used.
+/// `UIImage(named: "Logo")`, an Interface Builder named color or image, an Info.plist launch image or the global
+/// accent color build setting), is used.
 final class AssetCatalogSymbolMarker: SourceGraphMutator {
     private struct AssetKey: Hashable, Comparable {
         let kind: AssetCatalogSymbolKind
