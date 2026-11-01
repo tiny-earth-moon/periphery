@@ -56,7 +56,7 @@ func verify() throws {
         let status = try run(
             [
                 "run", "@periphery", "--", "scan", "--bazel", "--strict",
-                "--format", "json", "--disable-update-check", "--write-results", results.path,
+                "--format", "json", "--disable-update-check", "--verbose", "--write-results", results.path,
             ],
             in: fixture,
             log: log
@@ -75,7 +75,12 @@ func verify() throws {
             throw VerificationError.failed("The scan retained the unrelated user type with the compatibility check's name.")
         }
         guard findings.contains(where: { $0.name == "ProtoOnlyMessage" && $0.modules.contains("ProtoFixture") }) else {
-            throw VerificationError.failed("The scan did not report the genuinely unused generated message.")
+            let diagnostics = try String(contentsOf: log, encoding: .utf8)
+                .split(separator: "\n")
+                .filter { $0.contains("does not exist") || $0.contains("Reading ") || $0.contains("pb.swift") || $0.contains("ProtoFixture") }
+                .suffix(60)
+                .joined(separator: "\n")
+            throw VerificationError.failed("The scan did not report the genuinely unused generated message. Findings: \(findings.map(\.name).sorted()).\n\(diagnostics)")
         }
         guard !findings.contains(where: { $0.modules.contains("SwiftProtobuf") }) else {
             throw VerificationError.failed("The scan reported declarations from the SwiftProtobuf dependency.")
