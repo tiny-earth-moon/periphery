@@ -1,5 +1,0 @@
-#!/bin/bash
-
-set -euo pipefail
-
-bazel run :periphery -- scan --bazel --bazel-check-visibility --baseline baselines/bazel.json "$@"
