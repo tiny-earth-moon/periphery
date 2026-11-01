@@ -102,8 +102,10 @@ jobs:
         run: |
           binary="$(brew --prefix "$BOTTLE_TAP/periphery")/bin/periphery"
           otool -L "$binary"
-          otool -l "$binary" | grep -A2 LC_RPATH
-          if ! otool -l "$binary" | grep -Fq " path $XCODE_LIB (offset"; then
+          # Read the whole output first: under pipefail, `grep -q` closing the pipe early could fail otool.
+          load_commands=$(otool -l "$binary")
+          grep -A2 LC_RPATH <<< "$load_commands"
+          if ! grep -Fq " path $XCODE_LIB (offset" <<< "$load_commands"; then
             echo "::error::No rpath to $XCODE_LIB"
             exit 1
           fi
