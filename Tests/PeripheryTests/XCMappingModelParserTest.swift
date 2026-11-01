@@ -5,7 +5,7 @@ import XCTest
 
 final class XCMappingModelParserTest: XCTestCase {
     func testThrowsForMissingFile() {
-        XCTAssertThrowsError(try XCMappingModelParser(path: missingPath("xcmappingmodel")).parse())
+        XCTAssertThrowsError(try XCMappingModelParser(input: .directory(missingPath("xcmappingmodel"))).parse())
     }
 }
 

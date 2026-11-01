@@ -10,6 +10,6 @@ final class XCDataModelParserTest: XCTestCase {
         addTeardownBlock { try FileManager.default.removeItem(at: model) }
 
         // A model version without its `contents` file.
-        XCTAssertThrowsError(try XCDataModelParser(path: FilePath(model.path)).parse())
+        XCTAssertThrowsError(try XCDataModelParser(input: .directory(FilePath(model.path))).parse())
     }
 }
