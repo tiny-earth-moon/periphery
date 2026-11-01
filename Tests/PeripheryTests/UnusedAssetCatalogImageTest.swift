@@ -21,7 +21,7 @@
             ) {
                 assertReferenced(.struct("FixtureStruct1500"))
             }
-            let images = assetCatalogResults(results)
+            let images = assetCatalogResults(results).sorted { ($0.1.assetName ?? "") < ($1.1.assetName ?? "") }
 
             // FixtureUsedImage is used by its generated symbol, FixtureResourceUsedImage by its resource, FixtureNamedImage
             // by name from Swift, FixtureXibImage and FixtureXibButtonImage from a xib, FixtureLaunchImage from an
