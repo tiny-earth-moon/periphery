@@ -382,14 +382,22 @@ final class SwiftIndexer: Indexer {
         }
 
         /// Keys built at runtime retain the catalogue keys starting with their literal prefix: in the catalogues of
-        /// the calling module for a `bundle: .module` lookup, in every catalogue otherwise.
+        /// the calling module for a `bundle: .module` lookup, in every catalogue otherwise. A key without a literal
+        /// prefix may be any key: it retains nothing unless `retain_runtime_localized_keys` is set, and its call site
+        /// is recorded to be reported.
         private func collectRuntimeLocalizedStringKeys(_ unresolvedKeys: [LocalizedStringUnresolvedKey]) {
             guard !unresolvedKeys.isEmpty else { return }
 
             var modulePrefixes: Set<String> = []
             var globalPrefixes: Set<String> = []
+            var unprefixedLocations: Set<Location> = []
 
             for unresolvedKey in unresolvedKeys {
+                if unresolvedKey.prefix.isEmpty {
+                    unprefixedLocations.insert(Location(file: sourceFile, line: unresolvedKey.line, column: unresolvedKey.column))
+                    guard configuration.retainRuntimeLocalizedKeys else { continue }
+                }
+
                 let isModuleScoped = unresolvedKey.bundleScope == .module && !sourceFile.modules.isEmpty
                 let scope = isModuleScoped ? "catalogues of \(sourceFile.modules.sorted().joined(separator: ", "))" : "all catalogues"
                 logger.debug("Runtime localized string key at \(sourceFile.path.string):\(unresolvedKey.line):\(unresolvedKey.column), retaining keys with prefix '\(unresolvedKey.prefix)' in \(scope)")
@@ -404,6 +412,7 @@ final class SwiftIndexer: Indexer {
             graph.withLock { graph in
                 graph.addRuntimeLocalizedStringKeyPrefixes(modulePrefixes, modules: sourceFile.modules)
                 graph.addRuntimeLocalizedStringKeyPrefixes(globalPrefixes)
+                graph.addUnprefixedRuntimeLocalizedStringKeyLocations(unprefixedLocations)
             }
         }
 
@@ -525,6 +534,8 @@ final class SwiftIndexer: Indexer {
                 decl.modifiers = Set(result.modifiers)
                 decl.commentCommands = Set(result.commentCommands)
                 decl.declaredType = result.variableType
+                decl.isOptionalType = result.isOptionalType
+                decl.hasNonNilInitialValue = result.hasNonNilInitialValue
 
                 decl.hasGenericFunctionReturnedMetatypeParameters = result.hasGenericFunctionReturnedMetatypeParameters
                 decl.isActor = result.isActor

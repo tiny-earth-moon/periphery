@@ -44,6 +44,9 @@ public final class Configuration {
     @Setting(key: "retain_assign_only_property_types", defaultValue: [])
     public var retainAssignOnlyPropertyTypes: [String]
 
+    @Setting(key: "enable_unassigned_optional_analysis", defaultValue: false)
+    public var enableUnassignedOptionalAnalysis: Bool
+
     @Setting(key: "external_encodable_protocols", defaultValue: [])
     public var externalEncodableProtocols: [String]
 
@@ -55,6 +58,9 @@ public final class Configuration {
 
     @Setting(key: "retain_objc_accessible", defaultValue: false)
     public var retainObjcAccessible: Bool
+
+    @Setting(key: "retain_js_accessible", defaultValue: false)
+    public var retainJsAccessible: Bool
 
     @Setting(key: "retain_objc_annotated", defaultValue: false)
     public var retainObjcAnnotated: Bool
@@ -103,6 +109,9 @@ public final class Configuration {
 
     @Setting(key: "localized_string_key_literal_match", defaultValue: false)
     public var localizedStringKeyLiteralMatch: Bool
+
+    @Setting(key: "retain_runtime_localized_keys", defaultValue: false)
+    public var retainRuntimeLocalizedKeys: Bool
 
     @Setting(key: "superfluous_ignore_comments", defaultValue: true)
     public var superfluousIgnoreComments: Bool
@@ -292,9 +301,9 @@ public final class Configuration {
 
     lazy var settings: [any AbstractSetting] = [
         $project, $schemes, $excludeTargets, $excludeTests, $indexExclude, $reportExclude, $reportInclude, $outputFormat,
-        $retainPublic, $noRetainSPI, $retainFiles, $retainAssignOnlyProperties, $retainAssignOnlyPropertyTypes, $retainObjcAccessible,
-        $retainObjcAnnotated, $retainUnusedProtocolFuncParams, $retainUnusedParametersWithoutDefault, $retainSwiftUIPreviews, $disableRedundantPublicAnalysis, $enableOpenFinalAnalysis,
-        $disablePlatformConditionalRetention, $disableUnusedImportAnalysis, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $superfluousIgnoreComments, $retainUnusedImportedModules,
+        $retainPublic, $noRetainSPI, $retainFiles, $retainAssignOnlyProperties, $retainAssignOnlyPropertyTypes, $enableUnassignedOptionalAnalysis, $retainObjcAccessible,
+        $retainJsAccessible, $retainObjcAnnotated, $retainUnusedProtocolFuncParams, $retainUnusedParametersWithoutDefault, $retainSwiftUIPreviews, $disableRedundantPublicAnalysis, $enableOpenFinalAnalysis,
+        $disablePlatformConditionalRetention, $disableUnusedImportAnalysis, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $retainRuntimeLocalizedKeys, $superfluousIgnoreComments, $retainUnusedImportedModules,
         $externalEncodableProtocols, $externalCodableProtocols, $externalTestCaseClasses, $verbose, $quiet, $color,
         $disableUpdateCheck, $strict, $indexStorePath,
         $skipBuild, $skipSchemesValidation, $cleanBuild, $cacheMaxAgeDays, $buildArguments, $xcodeListArguments, $relativeResults,

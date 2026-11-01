@@ -126,6 +126,40 @@ final class PropertyVisitTest: XCTestCase {
         XCTAssertEqual(result.variableTypeLocations, [fixtureLocation(line: 22, column: 32)])
     }
 
+    func testOptionalTypeMetadata() {
+        let nonOptional = results[fixtureLocation(line: 22)]!
+        XCTAssertFalse(nonOptional.isOptionalType)
+        XCTAssertTrue(nonOptional.hasNonNilInitialValue)
+
+        let unassigned = results[fixtureLocation(line: 23)]!
+        XCTAssertTrue(unassigned.isOptionalType)
+        XCTAssertFalse(unassigned.hasNonNilInitialValue)
+
+        let nilInitialized = results[fixtureLocation(line: 24)]!
+        XCTAssertTrue(nilInitialized.isOptionalType)
+        XCTAssertFalse(nilInitialized.hasNonNilInitialValue)
+
+        let implicitlyUnwrapped = results[fixtureLocation(line: 25)]!
+        XCTAssertTrue(implicitlyUnwrapped.isOptionalType)
+        XCTAssertFalse(implicitlyUnwrapped.hasNonNilInitialValue)
+
+        let generic = results[fixtureLocation(line: 26)]!
+        XCTAssertTrue(generic.isOptionalType)
+        XCTAssertFalse(generic.hasNonNilInitialValue)
+
+        let qualified = results[fixtureLocation(line: 27)]!
+        XCTAssertTrue(qualified.isOptionalType)
+        XCTAssertTrue(qualified.hasNonNilInitialValue)
+
+        let tupleElementA = results[fixtureLocation(line: 28, column: 10)]!
+        XCTAssertTrue(tupleElementA.isOptionalType)
+        XCTAssertFalse(tupleElementA.hasNonNilInitialValue)
+
+        let tupleElementB = results[fixtureLocation(line: 28, column: 33)]!
+        XCTAssertTrue(tupleElementB.isOptionalType)
+        XCTAssertTrue(tupleElementB.hasNonNilInitialValue)
+    }
+
     // MARK: - Private
 
     private var fixturePath: SourceFile {

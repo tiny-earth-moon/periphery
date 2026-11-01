@@ -5,6 +5,7 @@ public struct ScanResult {
     enum Annotation {
         case unused
         case assignOnlyProperty
+        case unassignedOptionalProperty
         case redundantProtocol(references: Set<Reference>, inherited: Set<String>)
         case redundantPublicAccessibility(modules: Set<String>)
         case redundantOpenAccessibility(modules: Set<String>)

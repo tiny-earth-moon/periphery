@@ -230,6 +230,10 @@ public final class Declaration {
     public var commentCommands: Set<CommentCommand> = []
     public var references: Set<Reference> = []
     public var declaredType: String?
+    /// Whether the declared type annotation is optional (`T?`, `T!`, `Optional<T>`). Only meaningful for variables.
+    public var isOptionalType: Bool = false
+    /// Whether the variable is declared with an initial value other than `nil`. Only meaningful for variables.
+    public var hasNonNilInitialValue: Bool = false
     public var hasGenericFunctionReturnedMetatypeParameters: Bool = false
     /// The index reports actors as classes; actors cannot be subclassed.
     public var isActor: Bool = false

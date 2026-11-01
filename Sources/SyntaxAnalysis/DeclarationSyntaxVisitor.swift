@@ -23,6 +23,8 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
         typeInitializerLocations: Set<Location>,
         variableInitExprLocations: Set<Location>,
         hasGenericFunctionReturnedMetatypeParameters: Bool,
+        isOptionalType: Bool,
+        hasNonNilInitialValue: Bool,
         isActor: Bool,
         isConstant: Bool
     )
@@ -208,6 +210,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
                     returnClause: closureSignature?.returnClause,
                     variableInitFunctionCallExpr: functionCallExpr,
                     variableInitExpr: binding.initializer?.value,
+                    hasNonNilInitialValue: hasNonNilInitialValue(binding.initializer?.value),
                     isConstant: node.bindingSpecifier.tokenKind == .keyword(.let),
                     at: binding.positionAfterSkippingLeadingTrivia
                 )
@@ -216,7 +219,8 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
                     node: node,
                     pattern: tuplePatternSyntax,
                     typeTuple: binding.typeAnnotation?.type.as(TupleTypeSyntax.self)?.elements,
-                    initializerTuple: binding.initializer?.value.as(TupleExprSyntax.self)?.elements
+                    initializerTuple: binding.initializer?.value.as(TupleExprSyntax.self)?.elements,
+                    hasOpaqueInitializer: hasOpaqueTupleInitializer(binding.initializer?.value)
                 )
             } else {
                 parse(
@@ -229,7 +233,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
         }
     }
 
-    func visitVariableTupleBinding(node: VariableDeclSyntax, pattern: TuplePatternSyntax, typeTuple: TupleTypeElementListSyntax?, initializerTuple: LabeledExprListSyntax?) {
+    func visitVariableTupleBinding(node: VariableDeclSyntax, pattern: TuplePatternSyntax, typeTuple: TupleTypeElementListSyntax?, initializerTuple: LabeledExprListSyntax?, hasOpaqueInitializer: Bool) {
         let elements = Array(pattern.elements)
         let types: [TupleTypeElementSyntax?] = typeTuple?.map(\.self) ?? Array(repeating: nil, count: elements.count)
         let initializers: [LabeledExprSyntax?] = initializerTuple?.map(\.self) ?? Array(repeating: nil, count: elements.count)
@@ -243,7 +247,8 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
                     node: node,
                     pattern: elementTuplePattern,
                     typeTuple: typeTuple,
-                    initializerTuple: initializerTuple
+                    initializerTuple: initializerTuple,
+                    hasOpaqueInitializer: hasOpaqueInitializer || hasOpaqueTupleInitializer(initializer?.expression)
                 )
             } else {
                 parse(
@@ -252,6 +257,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
                     trivia: node.commentCommandTrivia,
                     variableType: type?.type,
                     variableInitFunctionCallExpr: initializer?.expression.as(FunctionCallExprSyntax.self),
+                    hasNonNilInitialValue: hasOpaqueInitializer || hasNonNilInitialValue(initializer?.expression),
                     at: element.positionAfterSkippingLeadingTrivia
                 )
             }
@@ -329,6 +335,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
         variableInitFunctionCallExpr: FunctionCallExprSyntax? = nil,
         variableInitExpr: ExprSyntax? = nil,
         typeInitializerClause: TypeInitializerClauseSyntax? = nil,
+        hasNonNilInitialValue: Bool = false,
         isActor: Bool = false,
         isConstant: Bool = false,
         at position: AbsolutePosition
@@ -385,6 +392,8 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             typeInitializerLocations: typeLocations(for: typeInitializerClause?.value),
             variableInitExprLocations: memberBaseLocations(for: variableInitExpr),
             hasGenericFunctionReturnedMetatypeParameters: hasGenericFunctionReturnedMetatypeParameters,
+            isOptionalType: variableType.map { typeSyntaxInspector.isOptional($0) } ?? false,
+            hasNonNilInitialValue: hasNonNilInitialValue,
             isActor: isActor,
             isConstant: isConstant
         ))
@@ -414,6 +423,20 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
 
                 return false
             }
+    }
+
+    private func hasNonNilInitialValue(_ initializer: ExprSyntax?) -> Bool {
+        guard let initializer else { return false }
+
+        return !initializer.is(NilLiteralExprSyntax.self)
+    }
+
+    /// A tuple binding initialized by anything other than a tuple literal (e.g. a function call) gives each element
+    /// a value that cannot be attributed syntactically, so every element is considered initialized.
+    private func hasOpaqueTupleInitializer(_ initializer: ExprSyntax?) -> Bool {
+        guard let initializer else { return false }
+
+        return !initializer.is(TupleExprSyntax.self)
     }
 
     private func type(for typeSyntax: TypeSyntax?) -> String? {

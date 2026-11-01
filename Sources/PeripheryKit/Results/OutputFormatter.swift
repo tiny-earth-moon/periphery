@@ -29,6 +29,8 @@ extension OutputFormatter {
             "unused"
         case .assignOnlyProperty:
             "assignOnlyProperty"
+        case .unassignedOptionalProperty:
+            "unassignedOptionalProperty"
         case .redundantProtocol:
             "redundantProtocol"
         case .redundantPublicAccessibility:
@@ -56,6 +58,8 @@ extension OutputFormatter {
             description += "Unused \(kindDisplayName) '\(name)'"
         case .assignOnlyProperty:
             description += "Assign-only \(kindDisplayName) '\(name)' is assigned, but never used"
+        case .unassignedOptionalProperty:
+            description += "Optional property '\(name)' is never assigned (always nil)"
         case let .redundantProtocol(references, inherited):
             description += "Redundant protocol '\(name)' (never used as an existential type)"
             secondaryResults = references.map {

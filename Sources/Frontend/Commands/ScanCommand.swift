@@ -87,6 +87,9 @@ struct ScanCommand: ParsableCommand {
     @Flag(help: "Retain localized string keys equal to any string literal of the source, whatever its type or position")
     var localizedStringKeyLiteralMatch: Bool = defaultConfiguration.$localizedStringKeyLiteralMatch.defaultValue
 
+    @Flag(help: "Retain every String Catalog key that a localized string key built at runtime without a literal prefix may look up")
+    var retainRuntimeLocalizedKeys: Bool = defaultConfiguration.$retainRuntimeLocalizedKeys.defaultValue
+
     @Option(parsing: .upToNextOption, help: "Names of unused imported modules to retain")
     var retainUnusedImportedModules: [String] = defaultConfiguration.$retainUnusedImportedModules.defaultValue
 
@@ -95,6 +98,9 @@ struct ScanCommand: ParsableCommand {
 
     @Option(parsing: .upToNextOption, help: "Property types to retain if the property is assigned, but never read")
     var retainAssignOnlyPropertyTypes: [String] = defaultConfiguration.$retainAssignOnlyPropertyTypes.defaultValue
+
+    @Flag(help: "Report optional properties that are read, but never assigned (always nil)")
+    var enableUnassignedOptionalAnalysis: Bool = defaultConfiguration.$enableUnassignedOptionalAnalysis.defaultValue
 
     @Option(parsing: .upToNextOption, help: "Names of external protocols that inherit Encodable. Properties and CodingKey enums of types conforming to these protocols will be retained")
     var externalEncodableProtocols: [String] = defaultConfiguration.$externalEncodableProtocols.defaultValue
@@ -107,6 +113,9 @@ struct ScanCommand: ParsableCommand {
 
     @Flag(help: "Retain declarations that are exposed to Objective-C implicitly by inheriting NSObject classes, or explicitly with the @objc and @objcMembers attributes")
     var retainObjcAccessible: Bool = defaultConfiguration.$retainObjcAccessible.defaultValue
+
+    @Flag(help: "Retain protocols that inherit JSExport, their members, and the members of conforming types that satisfy them")
+    var retainJsAccessible: Bool = defaultConfiguration.$retainJsAccessible.defaultValue
 
     @Flag(help: "Retain declarations that are exposed to Objective-C explicitly with the @objc and @objcMembers attributes")
     var retainObjcAnnotated: Bool = defaultConfiguration.$retainObjcAnnotated.defaultValue
@@ -230,7 +239,9 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$noRetainSPI, noRetainSPI)
         configuration.apply(\.$retainAssignOnlyProperties, retainAssignOnlyProperties)
         configuration.apply(\.$retainAssignOnlyPropertyTypes, retainAssignOnlyPropertyTypes)
+        configuration.apply(\.$enableUnassignedOptionalAnalysis, enableUnassignedOptionalAnalysis)
         configuration.apply(\.$retainObjcAccessible, retainObjcAccessible)
+        configuration.apply(\.$retainJsAccessible, retainJsAccessible)
         configuration.apply(\.$retainObjcAnnotated, retainObjcAnnotated)
         configuration.apply(\.$retainUnusedProtocolFuncParams, retainUnusedProtocolFuncParams)
         configuration.apply(\.$retainUnusedParametersWithoutDefault, retainUnusedParametersWithoutDefault)
@@ -244,6 +255,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$localizedStringCatalogExclude, localizedStringCatalogExclude)
         configuration.apply(\.$localizedStringKeyPatterns, localizedStringKeyPatterns)
         configuration.apply(\.$localizedStringKeyLiteralMatch, localizedStringKeyLiteralMatch)
+        configuration.apply(\.$retainRuntimeLocalizedKeys, retainRuntimeLocalizedKeys)
         configuration.apply(\.$retainUnusedImportedModules, retainUnusedImportedModules)
         configuration.apply(\.$externalEncodableProtocols, externalEncodableProtocols)
         configuration.apply(\.$externalCodableProtocols, externalCodableProtocols)

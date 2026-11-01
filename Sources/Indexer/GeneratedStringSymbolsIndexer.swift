@@ -12,7 +12,7 @@ import SyntaxAnalysis
 /// The generated files are not indexed as source: each generated symbol is mapped to its catalogue key, and the key
 /// is used when the symbol is referenced. A referenced `LocalizedStringResource` extension member that is neither
 /// generated nor declared in the scanned source (e.g. its generated file was removed) cannot be mapped to a key: it
-/// is reported with a warning and retains every key of the catalogues of its module.
+/// is reported with a warning and retains nothing, so its key is only used if referenced by a literal.
 ///
 /// Based on agoodkind/periphery@783b5f8, 9ca12ad and 20f40ce by Alex Goodkind.
 final class GeneratedStringSymbolsIndexer {
@@ -49,7 +49,7 @@ final class GeneratedStringSymbolsIndexer {
         }
 
         for symbol in unresolvedSymbols {
-            retainCatalogues(ofUnresolvedSymbol: symbol.usr, module: symbol.module)
+            warnAboutUnresolvedSymbol(symbol.usr, module: symbol.module)
         }
     }
 
@@ -81,10 +81,9 @@ final class GeneratedStringSymbolsIndexer {
         return keysByUsr
     }
 
-    private func retainCatalogues(ofUnresolvedSymbol usr: String, module: String) {
+    private func warnAboutUnresolvedSymbol(_ usr: String, module: String) {
         let name = graph.withLock { $0.references(to: usr).map(\.name) }.min() ?? usr
-        logger.warn("Cannot map the referenced localized string symbol '\(name)' of \(module) to a String Catalog key (is its GeneratedStringSymbols file missing?), retaining every key of the catalogues of \(module).")
-        graph.withLock { $0.addRuntimeLocalizedStringKeyPrefixes([""], modules: [module]) }
+        logger.warn("Cannot map the referenced localized string symbol '\(name)' of \(module) to a String Catalog key (is its GeneratedStringSymbols file missing?): its key is only considered used if referenced by a string literal.")
     }
 
     /// The module declaring a `LocalizedStringResource` extension member, from its USR, e.g. `App` in

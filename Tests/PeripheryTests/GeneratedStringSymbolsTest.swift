@@ -37,7 +37,7 @@ final class GeneratedStringSymbolsTest: XCTestCase {
         XCTAssertNil(GeneratedStringSymbolsIndexer.extendingModule(ofUsr: "s:7SwiftUI4TextV"))
     }
 
-    func testRetainsCataloguesOfModuleWhenGeneratedSourceIsMissing() throws {
+    func testDoesNotRetainCataloguesWhenGeneratedSourceIsMissing() throws {
         let graph = SourceGraph(configuration: Configuration(), logger: logger)
         let location = Location(file: SourceFile(path: FilePath("/tmp/App/View.swift"), modules: ["Client"]), line: 1, column: 1)
         graph.add(Reference(
@@ -51,7 +51,7 @@ final class GeneratedStringSymbolsTest: XCTestCase {
 
         try GeneratedStringSymbolsIndexer(files: [:], graph: mutex, logger: logger.contextualized(with: "test")).perform()
 
-        XCTAssertEqual(graph.runtimeLocalizedStringKeyPrefixesByModule, ["Owner": [""]])
+        XCTAssertEqual(graph.runtimeLocalizedStringKeyPrefixesByModule, [:])
         XCTAssertEqual(graph.runtimeLocalizedStringKeyPrefixes, [])
     }
 

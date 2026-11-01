@@ -22,6 +22,7 @@ public final class SourceGraph {
     public private(set) var unusedModuleImports: Set<Declaration> = []
     public private(set) var assignOnlyProperties: Set<Declaration> = []
     public private(set) var suppressedAssignOnlyProperties: Set<Declaration> = []
+    public private(set) var unassignedOptionalProperties: Set<Declaration> = []
     public private(set) var extensions: [Declaration: Set<Declaration>] = [:]
     public private(set) var commandIgnoredDeclarations: [Declaration: CommandIgnoreKind] = [:]
     public private(set) var functionsWithIgnoredParameters: Set<Declaration> = []
@@ -31,6 +32,8 @@ public final class SourceGraph {
     public private(set) var runtimeLocalizedStringKeyPrefixesByModule: [String: Set<String>] = [:]
     /// Literal prefixes of keys built at runtime and looked up in an unknown bundle.
     public private(set) var runtimeLocalizedStringKeyPrefixes: Set<String> = []
+    /// Call sites of keys built at runtime without a literal prefix, whose catalogue keys cannot be determined.
+    public private(set) var unprefixedRuntimeLocalizedStringKeyLocations: Set<Location> = []
     public private(set) var synthesizedUses: Set<SynthesizedUse> = []
     public private(set) var unusedAssetCatalogSymbols: [Declaration: AssetCatalogSymbol] = [:]
     /// Strings that may name an asset catalog resource, from string literals, Interface Builder files and
@@ -169,6 +172,10 @@ public final class SourceGraph {
         _ = suppressedAssignOnlyProperties.insert(declaration)
     }
 
+    func markUnassignedOptionalProperty(_ declaration: Declaration) {
+        _ = unassignedOptionalProperties.insert(declaration)
+    }
+
     func markMainAttributed(_ declaration: Declaration) {
         _ = mainAttributedDeclarations.insert(declaration)
     }
@@ -212,6 +219,7 @@ public final class SourceGraph {
         usedDeclarations.remove(declaration)
         assignOnlyProperties.remove(declaration)
         suppressedAssignOnlyProperties.remove(declaration)
+        unassignedOptionalProperties.remove(declaration)
         declaration.usrs.forEach { allDeclarationsByUsr.removeValue(forKey: $0) }
     }
 
@@ -267,6 +275,10 @@ public final class SourceGraph {
 
     public func addRuntimeLocalizedStringKeyPrefixes(_ prefixes: Set<String>) {
         runtimeLocalizedStringKeyPrefixes.formUnion(prefixes)
+    }
+
+    public func addUnprefixedRuntimeLocalizedStringKeyLocations(_ locations: Set<Location>) {
+        unprefixedRuntimeLocalizedStringKeyLocations.formUnion(locations)
     }
 
     public func addAssetCatalogNameReferences(_ names: Set<String>) {

@@ -15,6 +15,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         retainPublic: Bool = false,
         noRetainSPI: [String] = [],
         retainObjcAccessible: Bool = false,
+        retainJsAccessible: Bool = false,
         retainObjcAnnotated: Bool = false,
         disableRedundantPublicAnalysis: Bool = false,
         superfluousIgnoreComments: Bool = true,
@@ -26,6 +27,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         retainUnusedParametersWithoutDefault: Bool = false,
         retainAssignOnlyProperties: Bool = false,
         retainAssignOnlyPropertyTypes: [String] = [],
+        enableUnassignedOptionalAnalysis: Bool = false,
         externalCodableProtocols: [String] = [],
         additionalFilesToIndex: [FilePath] = [],
         xibPaths: Set<FilePath> = [],
@@ -41,6 +43,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         configuration.retainPublic = retainPublic
         configuration.noRetainSPI = noRetainSPI
         configuration.retainObjcAccessible = retainObjcAccessible
+        configuration.retainJsAccessible = retainJsAccessible
         configuration.retainObjcAnnotated = retainObjcAnnotated
         configuration.retainAssignOnlyProperties = retainAssignOnlyProperties
         configuration.disableRedundantPublicAnalysis = disableRedundantPublicAnalysis
@@ -53,6 +56,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         configuration.retainUnusedProtocolFuncParams = retainUnusedProtocolFuncParams
         configuration.retainUnusedParametersWithoutDefault = retainUnusedParametersWithoutDefault
         configuration.retainAssignOnlyPropertyTypes = retainAssignOnlyPropertyTypes
+        configuration.enableUnassignedOptionalAnalysis = enableUnassignedOptionalAnalysis
         configuration.externalTestCaseClasses = externalTestCaseClasses
         configuration.retainFiles = retainFiles
         configuration.disablePlatformConditionalRetention = disablePlatformConditionalRetention
