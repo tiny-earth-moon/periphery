@@ -36,6 +36,7 @@ public final class SourceGraphMutatorRunner {
         AssetReferenceRetainer.self,
         LocalizedStringRetainer.self,
         EntryPointAttributeRetainer.self,
+        AttributeRetainer.self,
         PubliclyAccessibleRetainer.self,
         XCTestRetainer.self,
         SwiftTestingRetainer.self,

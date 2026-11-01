@@ -31,6 +31,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         retainFiles: [String] = [],
         disablePlatformConditionalRetention: Bool = false,
         retainSynthesizedUses: Bool = false,
+        retainAttributes: [String] = [],
         testBlock: () throws -> Void
     ) rethrows -> [ScanResult] {
         let configuration = Configuration()
@@ -52,6 +53,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         configuration.retainFiles = retainFiles
         configuration.disablePlatformConditionalRetention = disablePlatformConditionalRetention
         configuration.retainSynthesizedUses = retainSynthesizedUses
+        configuration.retainAttributes = retainAttributes
 
         configuration.buildFilenameMatchers()
 
