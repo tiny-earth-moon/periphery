@@ -12,6 +12,21 @@
 
 - None.
 
+## 3.12.4 (2026-11-01)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- New opt-in option `retain_synthesized_uses` / `--retain-synthesized-uses` (default false): stored properties of a struct whose instance is passed to `print`, `debugPrint`, `dump`, `String(describing:)`, `String(reflecting:)` or interpolated into a string are retained (classes only through `dump`, recursive on nested structs; types with their own description and computed properties are excluded). Closes #85.
+- Regression test pins that a property used as a `Dictionary` key (then read through `.keys`) is referenced and not assign-only (upstream #412, already correct with Swift 6.4). Closes #85.
+
+##### Bug Fixes
+
+- None.
+
 ## 3.12.3 (2026-11-01)
 
 ##### Breaking
