@@ -22,7 +22,9 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
         functionCallMetatypeArgumentLocations: Set<Location>,
         typeInitializerLocations: Set<Location>,
         variableInitExprLocations: Set<Location>,
-        hasGenericFunctionReturnedMetatypeParameters: Bool
+        hasGenericFunctionReturnedMetatypeParameters: Bool,
+        isActor: Bool,
+        isConstant: Bool
     )
 
     private let sourceLocationBuilder: SourceLocationBuilder
@@ -50,6 +52,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             inheritanceClause: node.inheritanceClause,
             genericParameterClause: node.genericParameterClause,
             genericWhereClause: node.genericWhereClause,
+            isActor: true,
             at: node.name.positionAfterSkippingLeadingTrivia
         )
     }
@@ -205,6 +208,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
                     returnClause: closureSignature?.returnClause,
                     variableInitFunctionCallExpr: functionCallExpr,
                     variableInitExpr: binding.initializer?.value,
+                    isConstant: node.bindingSpecifier.tokenKind == .keyword(.let),
                     at: binding.positionAfterSkippingLeadingTrivia
                 )
             } else if let tuplePatternSyntax = binding.pattern.as(TuplePatternSyntax.self) {
@@ -325,6 +329,8 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
         variableInitFunctionCallExpr: FunctionCallExprSyntax? = nil,
         variableInitExpr: ExprSyntax? = nil,
         typeInitializerClause: TypeInitializerClauseSyntax? = nil,
+        isActor: Bool = false,
+        isConstant: Bool = false,
         at position: AbsolutePosition
     ) {
         let modifierNames = modifiers?.map(\.name.text) ?? []
@@ -378,7 +384,9 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             functionCallMetatypeArgumentLocations: functionCallMetatypeArgumentLocations(for: variableInitFunctionCallExpr),
             typeInitializerLocations: typeLocations(for: typeInitializerClause?.value),
             variableInitExprLocations: memberBaseLocations(for: variableInitExpr),
-            hasGenericFunctionReturnedMetatypeParameters: hasGenericFunctionReturnedMetatypeParameters
+            hasGenericFunctionReturnedMetatypeParameters: hasGenericFunctionReturnedMetatypeParameters,
+            isActor: isActor,
+            isConstant: isConstant
         ))
     }
 

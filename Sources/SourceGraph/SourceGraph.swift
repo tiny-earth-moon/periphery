@@ -9,6 +9,8 @@ public final class SourceGraph {
     public private(set) var redundantProtocols: [Declaration: (references: Set<Reference>, inherited: Set<Reference>)] = [:]
     public private(set) var rootDeclarations: Set<Declaration> = []
     public private(set) var redundantPublicAccessibility: [Declaration: Set<String>] = [:]
+    public private(set) var redundantOpenAccessibility: [Declaration: Set<String>] = [:]
+    public private(set) var missingFinalDeclarations: Set<Declaration> = []
     public private(set) var rootReferences: Set<Reference> = []
     public private(set) var allReferences: Set<Reference> = []
     public private(set) var retainedDeclarations: Set<Declaration> = []
@@ -97,6 +99,14 @@ public final class SourceGraph {
 
     func unmarkRedundantPublicAccessibility(_ declaration: Declaration) {
         _ = redundantPublicAccessibility.removeValue(forKey: declaration)
+    }
+
+    func markRedundantOpenAccessibility(_ declaration: Declaration, modules: Set<String>) {
+        redundantOpenAccessibility[declaration] = modules
+    }
+
+    func markMissingFinal(_ declaration: Declaration) {
+        missingFinalDeclarations.insert(declaration)
     }
 
     func markUnusedAssetCatalogSymbol(_ declaration: Declaration, symbol: AssetCatalogSymbol) {
