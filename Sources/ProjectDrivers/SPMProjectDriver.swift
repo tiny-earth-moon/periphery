@@ -118,7 +118,13 @@ extension SPMProjectDriver: ProjectDriver {
             // SwiftPM processes Interface Builder files and Core Data models implicitly, without a `resources:` declaration,
             // and `swift package describe` only lists the declared resources.
             for ext in extensions {
-                targetFiles.formUnion(FilePath.glob("\(targetPath.string)/**/*.\(ext)"))
+                for file in FilePath.glob("\(targetPath.string)/**/*.\(ext)") {
+                    // SwiftPM ignores hidden files and directories, such as `.build` and `.scratch`.
+                    let relativeComponents = file.components.dropFirst(targetPath.components.count)
+                    guard !relativeComponents.contains(where: { $0.string.hasPrefix(".") }) else { continue }
+
+                    targetFiles.insert(file)
+                }
             }
 
             for resource in target.resources ?? [] {
