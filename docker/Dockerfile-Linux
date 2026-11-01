@@ -1,4 +1,4 @@
-FROM swift:latest
+FROM swift:6.4.2
 WORKDIR /workspace
 COPY . /workspace
 RUN swift build --product periphery
