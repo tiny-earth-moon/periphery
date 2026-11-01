@@ -12,6 +12,20 @@
 
 - None.
 
+## 3.12.2 (2026-11-01)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- None.
+
+##### Bug Fixes
+
+- `periphery scan --skip-build` without `--index-store-path` now falls back to Xcode's DerivedData index store (`~/Library/Developer/Xcode/DerivedData/<Project>-*/Index.noindex/DataStore`, newest first) and reports the paths tried when none exists. Closes #91.
+
 ## 3.12.1 (2026-10-31)
 
 ##### Breaking
