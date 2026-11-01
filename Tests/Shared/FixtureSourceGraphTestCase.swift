@@ -31,12 +31,14 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         externalCodableProtocols: [String] = [],
         additionalFilesToIndex: [FilePath] = [],
         xibPaths: Set<FilePath> = [],
+        plistPaths: Set<FilePath> = [],
         externalTestCaseClasses: [String] = [],
         retainFiles: [String] = [],
         disablePlatformConditionalRetention: Bool = false,
         retainSynthesizedUses: Bool = false,
         retainAttributes: [String] = [],
         detectUnusedAssetCatalogColors: Bool = false,
+        detectUnusedAssetCatalogImages: Bool = false,
         testBlock: () throws -> Void
     ) rethrows -> [ScanResult] {
         let configuration = Configuration()
@@ -63,6 +65,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         configuration.retainSynthesizedUses = retainSynthesizedUses
         configuration.retainAttributes = retainAttributes
         configuration.detectUnusedAssetCatalogColors = detectUnusedAssetCatalogColors
+        configuration.detectUnusedAssetCatalogImages = detectUnusedAssetCatalogImages
 
         configuration.buildFilenameMatchers()
 
@@ -70,7 +73,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
             fatalError("\(testFixturePath.string) does not exist")
         }
 
-        Self.index(sourceFiles: [testFixturePath] + additionalFilesToIndex, xibPaths: xibPaths, configuration: configuration)
+        Self.index(sourceFiles: [testFixturePath] + additionalFilesToIndex, xibPaths: xibPaths, plistPaths: plistPaths, configuration: configuration)
         try testBlock()
         return Self.results
     }
