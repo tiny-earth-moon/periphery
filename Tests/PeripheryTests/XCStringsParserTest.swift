@@ -29,6 +29,12 @@ final class XCStringsParserTest: XCTestCase {
         XCTAssertEqual(keys, ["hello_world", "goodbye", "welcome_message"])
     }
 
+    func testThrowsForMissingCatalog() {
+        let path = FilePath(FileManager.default.temporaryDirectory.appendingPathComponent("Missing-\(UUID().uuidString).xcstrings").path)
+
+        XCTAssertThrowsError(try XCStringsParser(path: path).parse())
+    }
+
     func testDecodesEscapedCharactersInKeys() throws {
         let xcstringsContent = #"""
         {
