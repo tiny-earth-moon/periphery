@@ -147,6 +147,10 @@
                 configuration: configuration
             )
             let sourceFiles = try collector.collect()
+            let excluded = excludedTestTargets.union(configuration.excludeTargets)
+            let expectedSourceFiles = targets
+                .filter { !excluded.contains($0.name) && !$0.swiftSourceFiles.isEmpty }
+                .reduce(into: [String: Set<FilePath>]()) { $0[$1.name, default: []].formUnion($1.swiftSourceFiles) }
             let infoPlistPaths = targets.flatMapSet { $0.files(kind: .infoPlist) }
             let xibPaths = targets.flatMapSet { $0.files(kind: .interfaceBuilder) }
             let xcDataModelPaths = targets.flatMapSet { $0.files(kind: .xcDataModel) }
@@ -159,7 +163,9 @@
                 xibPaths: xibPaths,
                 xcDataModelPaths: xcDataModelPaths,
                 xcMappingModelPaths: xcMappingModelPaths,
-                xcStringsPaths: xcStringsPaths
+                xcStringsPaths: xcStringsPaths,
+                expectedSourceFiles: expectedSourceFiles,
+                indexStorePaths: indexStorePaths
             )
         }
     }

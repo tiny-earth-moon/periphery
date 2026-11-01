@@ -8,6 +8,7 @@ public final class XcodeTarget {
 
     private let target: PBXTarget
     private var files: [ProjectFileKind: Set<FilePath>] = [:]
+    public private(set) var swiftSourceFiles: Set<FilePath> = []
 
     required init(project: XcodeProject, target: PBXTarget) {
         self.project = project
@@ -23,11 +24,14 @@ public final class XcodeTarget {
     }
 
     public func identifyFiles() throws {
-        try identifyFiles(in: synchronizedGroupFiles())
+        let groupFiles = try synchronizedGroupFiles()
+        try identifyFiles(in: groupFiles)
+        swiftSourceFiles = groupFiles.filter { $0.extension?.lowercased() == "swift" }
 
         let sourcesBuildPhases = project.xcodeProject.pbxproj.sourcesBuildPhases
         let resourcesBuildPhases = project.xcodeProject.pbxproj.resourcesBuildPhases
 
+        swiftSourceFiles.formUnion(try swiftFiles(in: sourcesBuildPhases))
         try identifyFiles(kind: .xcDataModel, in: sourcesBuildPhases)
         try identifyFiles(kind: .xcMappingModel, in: sourcesBuildPhases)
         try identifyFiles(kind: .interfaceBuilder, in: resourcesBuildPhases)
@@ -58,6 +62,19 @@ public final class XcodeTarget {
 
             return FilePath.glob(groupPath.appending("**/*").string).filter { path in
                 !excludedPaths.contains { path == $0 || path.starts(with: $0) }
+            }
+        }
+    }
+
+    private func swiftFiles(in buildPhases: [PBXBuildPhase]) throws -> Set<FilePath> {
+        let sourceRoot = project.sourceRoot.lexicallyNormalized()
+
+        return try buildPhases.filter { target.buildPhases.contains($0) }.flatMapSet {
+            try ($0.files ?? []).compactMapSet {
+                guard let stringPath = try $0.file?.fullPath(sourceRoot: sourceRoot.string) else { return nil }
+
+                let path = FilePath(stringPath).lexicallyNormalized()
+                return path.extension?.lowercased() == "swift" ? path : nil
             }
         }
     }
