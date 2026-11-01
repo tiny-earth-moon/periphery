@@ -25,9 +25,12 @@ _TRANSITIVE_ATTRS = [
     "deps",
     "extension",
     "extensions",
+    "frameworks",
     "plugins",
+    "private_deps",
     "swift_target",
     "watch_application",
+    "xpc_services",
 ]
 
 def _periphery_info_providers(rule_attr):
@@ -95,27 +98,32 @@ def _scan_inputs_aspect_impl(target, ctx):
                 plists.extend(info.infoplists[0][2].to_list())
 
             if hasattr(info, "xibs"):
-                xibs.extend(info.xibs[0][2].to_list())
+                for bucket in info.xibs:
+                    xibs.extend(bucket[2].to_list())
 
             if hasattr(info, "storyboards"):
                 # Periphery uses the same parser for xibs and storyboards.
-                xibs.extend(info.storyboards[0][2].to_list())
+                for bucket in info.storyboards:
+                    xibs.extend(bucket[2].to_list())
 
             if hasattr(info, "datamodels"):
                 # 'datamodels' contains both .xcdatamodel and .xcmappingmodel files.
                 # We separate them because Periphery uses a different parser for each.
-                resources = info.datamodels[0][2].to_list()
-
-                for resource in resources:
-                    if ".xcdatamodel" in resource.path:
-                        xcdatamodels.append(resource)
-                    elif ".xcmappingmodel" in resource.path:
-                        xcmappingmodels.append(resource)
+                for bucket in info.datamodels:
+                    for resource in bucket[2].to_list():
+                        if ".xcdatamodel" in resource.path and resource.basename == "contents":
+                            xcdatamodels.append(resource)
+                        elif ".xcmappingmodel" in resource.path and resource.basename == "xcmapping.xml":
+                            xcmappingmodels.append(resource)
 
             if hasattr(info, "strings"):
                 for resource in info.strings[0][2].to_list():
                     if resource.path.endswith(".xcstrings"):
                         xcstrings.append(resource)
+
+            if hasattr(info, "xcstrings") and info.xcstrings:
+                for bucket in info.xcstrings:
+                    xcstrings.extend(bucket[2].to_list())
 
     providers = _periphery_info_providers(ctx.rule.attr)
 
