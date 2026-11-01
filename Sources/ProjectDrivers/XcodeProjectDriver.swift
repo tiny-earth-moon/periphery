@@ -122,7 +122,7 @@
             let indexStorePaths: Set<FilePath> = if !configuration.indexStorePath.isEmpty {
                 Set(configuration.indexStorePath)
             } else {
-                try [xcodebuild.indexStorePath(project: project, schemes: Array(schemes))]
+                try [xcodebuild.indexStorePath(project: project, schemes: Array(schemes), skipBuild: configuration.skipBuild)]
             }
 
             let targets = project.targets
