@@ -23,8 +23,6 @@ final class Project {
             kind = .xcode(projectPath: path)
         } else if let path = configuration.genericProjectConfig {
             kind = .generic(genericProjectConfig: path)
-        } else if BazelProjectDriver.isSupported, configuration.bazel {
-            kind = .bazel
         } else if SPM.isSupported {
             kind = .spm
         }
@@ -63,12 +61,6 @@ final class Project {
             #endif
         case .spm:
             try SPMProjectDriver(configuration: configuration, shell: shell, logger: logger)
-        case .bazel:
-            BazelProjectDriver(
-                configuration: configuration,
-                shell: shell,
-                logger: logger
-            )
         case let .generic(genericProjectConfig):
             try GenericProjectDriver(
                 genericProjectConfig: genericProjectConfig,

@@ -33,10 +33,6 @@ final class GuidedSetup: SetupGuideHelpers {
             }
         #endif
 
-        if let guide = BazelProjectSetupGuide.detect(logger: logger) {
-            projectGuides.append(guide)
-        }
-
         var projectGuide_: SetupGuide?
 
         if projectGuides.count > 1 {

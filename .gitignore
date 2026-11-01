@@ -26,6 +26,3 @@ Tests/Fixtures/.build/
 
 # VSCode
 .vscode/*
-
-# Bazel
-bazel-*

@@ -76,22 +76,6 @@ brew install tiny-earth-moon/tap/periphery
 mint install tiny-earth-moon/periphery
 ```
 
-### [Bazel](https://bazel.build/)
-
-```python
-bazel_dep(name = "periphery", version = "3.12.11", dev_dependency = True)
-archive_override(
-    module_name = "periphery",
-    urls = ["https://github.com/tiny-earth-moon/periphery/archive/refs/tags/3.12.11.tar.gz"],
-    strip_prefix = "periphery-3.12.11",
-)
-use_repo(use_extension("@periphery//bazel:generated.bzl", "generated"), "periphery_generated")
-```
-
-This fork's versions are not published on the Bazel Central Registry, hence `archive_override`; keep the version and the archive URL in step with the release you use.
-
-See [Bazel](#build-systems) below for usage instructions.
-
 ### From source
 
 ```sh
@@ -498,7 +482,7 @@ For example, with `--retain-public --no-retain-spi Internal`, Periphery will:
 This is particularly useful for internal SPIs that should be audited for unused code while still retaining the framework's public API.
 ### Localized Strings
 
-Periphery can identify unused localized strings in String Catalog (`.xcstrings`) files. Catalogues are discovered from Xcode target resources (including synchronized folders), SPM target `resources`, Bazel `AppleResourceInfo` and the `xcstrings` key of a generic project configuration. This analysis can be disabled with `--disable-unused-localized-string-analysis` (or `disable_unused_localized_string_analysis: true` in `.periphery.yml`).
+Periphery can identify unused localized strings in String Catalog (`.xcstrings`) files. Catalogues are discovered from Xcode target resources (including synchronized folders), SPM target `resources` and the `xcstrings` key of a generic project configuration. This analysis can be disabled with `--disable-unused-localized-string-analysis` (or `disable_unused_localized_string_analysis: true` in `.periphery.yml`).
 
 A key is considered used when a static string literal with the same value is:
 
@@ -745,24 +729,9 @@ Therefore, if you intend to run Periphery directly after calling `swift test`, y
 
 ## Build Systems
 
-### Bazel
-
-```sh
-bazel run @periphery -- scan --bazel
-```
-
-The `--bazel` option enables Bazel mode, which provides seamless integration with your project. It works by querying your project to identify all top-level targets, generating a hidden implementation of the [scan](https://github.com/tiny-earth-moon/periphery/blob/master/bazel/rules.bzl) rule, and then invoking `bazel run`. You can filter the default top-level target query with the `--bazel-filter <value>` option, where `<value>` will be passed as the first argument to Bazel's [filter](https://bazel.build/query/language#filter) operator. You can also override the generated query entirely with `--bazel-query <value>`, which is useful when you need to exclude targets such as ones tagged `manual`, or avoid building targets that use an incorrect transition when built directly. The generated query can be seen in the console with the `--verbose` option.
-
-Periphery's generated scan rule follows embedded bundle and plugin edges transitively, so you can root the scan in application targets while still analyzing code that is only reachable through extensions, app clips, watch applications, or Swift compiler plugins.
-
-> [!TIP]
-> By default, Periphery passes `--check_visibility=false` to `bazel run` to simplify integration, since the generated scan target references your project's targets which may not otherwise be visible. However, disabling visibility checking can invalidate Bazel's analysis cache, resulting in slower subsequent builds.
->
-> You can disable this behavior with the `--bazel-check-visibility` option. You must ensure the necessary targets are visible to Periphery's generated package, for example by adding the `@@+generated+periphery//bazel:generated` visibility label to your targets.
-
 ### Other
 
-Periphery can analyze projects using other build systems, though it cannot drive them automatically like SPM, Xcode, and Bazel. Instead, you need to create a configuration file that specifies the location of indexstore and other resource files. The format is as follows:
+Periphery can analyze projects using other build systems, though it cannot drive them automatically like SPM and Xcode. Instead, you need to create a configuration file that specifies the location of indexstore and other resource files. The format is as follows:
 
 ```json
 {
@@ -907,7 +876,7 @@ Changes from other people taken in since 3.8.1, with the original author kept in
 | Detect String Catalog keys referenced through Xcode 26+ generated symbols (reimplemented) | Alex Goodkind | [agoodkind/periphery@783b5f8](https://github.com/agoodkind/periphery/commit/783b5f8), [9ca12ad](https://github.com/agoodkind/periphery/commit/9ca12ad), [20f40ce](https://github.com/agoodkind/periphery/commit/20f40ce), our [#120](https://github.com/tiny-earth-moon/periphery/issues/120) | 3.12.10 |
 | SwiftUI `@State` fixture (`StateMacroView`, SPMProjectMacOS) and top-level `$state` reads retained under Xcode 27 (merged into our `MacroWrappedPropertyReferenceBuilder`) | Alex Goodkind | [agoodkind/periphery@e5b4cd2](https://github.com/agoodkind/periphery/commit/e5b4cd24b314467a2b6252f0336c298760d39e80) ([PR #4](https://github.com/agoodkind/periphery/pull/4)), our [#118](https://github.com/tiny-earth-moon/periphery/issues/118) | 3.12.10 |
 | Exclude hidden files and directories (`.build`, `.scratch`) from SwiftPM implicit resource discovery (cherry-picked with a manual conflict resolution; 782a4e2 only touches Bazel for private dependencies, so nothing to port) | Alex Goodkind | [agoodkind/periphery@df83716](https://github.com/agoodkind/periphery/commit/df83716), our [#121](https://github.com/tiny-earth-moon/periphery/issues/121) | 3.12.11 |
-| Bazel resource and framework rules: embedded Apple frameworks and XPC services, all XIB and storyboard resource groups, Core Data model and mapping model files (with parse errors reported and uppercase extensions accepted), plus Swift protocol buffer targets (`ProtobufAPIVersionCheckRetainer`) and the Bazel consumer-scan fixtures (cherry-picked, conflicts resolved to keep our code) | Alex Goodkind | [agoodkind/periphery#21](https://github.com/agoodkind/periphery/pull/21) (b1a49cd, 72b19a3, 8de9900), [#22](https://github.com/agoodkind/periphery/pull/22) (57ebc75, 405fb72), [#23](https://github.com/agoodkind/periphery/pull/23) (a580f96), [#24](https://github.com/agoodkind/periphery/pull/24) (fb3c7db, ecd320d, 6167672, 8043d63, dc63dc3, 281b88b), [ec864a9](https://github.com/agoodkind/periphery/commit/ec864a9) with prerequisites 782a4e2, e090789 and 88a40ce, our [#122](https://github.com/tiny-earth-moon/periphery/issues/122) | 3.12.16 |
+| Bazel resource and framework rules: embedded Apple frameworks and XPC services, all XIB and storyboard resource groups, Core Data model and mapping model files (with parse errors reported and uppercase extensions accepted), plus Swift protocol buffer targets (`ProtobufAPIVersionCheckRetainer`) and the Bazel consumer-scan fixtures (cherry-picked, conflicts resolved to keep our code); the Bazel parts of this import were removed in 3.13.0 ([#165](https://github.com/tiny-earth-moon/periphery/issues/165)), the Core Data model inputs, the String Catalog error description and the platform conditional collector fix remain | Alex Goodkind | [agoodkind/periphery#21](https://github.com/agoodkind/periphery/pull/21) (b1a49cd, 72b19a3, 8de9900), [#22](https://github.com/agoodkind/periphery/pull/22) (57ebc75, 405fb72), [#23](https://github.com/agoodkind/periphery/pull/23) (a580f96), [#24](https://github.com/agoodkind/periphery/pull/24) (fb3c7db, ecd320d, 6167672, 8043d63, dc63dc3, 281b88b), [ec864a9](https://github.com/agoodkind/periphery/commit/ec864a9) with prerequisites 782a4e2, e090789 and 88a40ce, our [#122](https://github.com/tiny-earth-moon/periphery/issues/122) | 3.12.16 |
 
 ### Sibling fork
 
