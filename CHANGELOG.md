@@ -12,6 +12,20 @@
 
 - None.
 
+## 3.13.0 (2026-11-01)
+
+##### Breaking
+
+- Bazel support is removed: the Bazel module and rules, the `--bazel` scan mode and every `--bazel-*` option. Passing one of these options, or a `bazel` or `bazel_*` key in the configuration file, fails with an explicit error; [agoodkind/periphery](https://github.com/agoodkind/periphery) maintains a Bazel mode. [#165](https://github.com/tiny-earth-moon/periphery/issues/165)
+
+##### Enhancements
+
+- Homebrew bottle: `brew install tiny-earth-moon/tap/periphery` pours a prebuilt bottle on Apple silicon with macOS 27 or later, instead of building from source. The bottle loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools; with neither, `brew reinstall --build-from-source periphery` builds it locally. [#123](https://github.com/tiny-earth-moon/periphery/issues/123)
+
+##### Bug Fixes
+
+- None.
+
 ## 3.12.16 (2026-11-01)
 
 ##### Breaking
