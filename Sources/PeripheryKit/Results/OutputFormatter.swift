@@ -35,6 +35,8 @@ extension OutputFormatter {
             "redundantPublicAccessibility"
         case .superfluousIgnoreCommand:
             "superfluousIgnoreCommand"
+        case let .unusedAssetCatalogSymbol(symbol):
+            symbol.kind.annotationName
         }
     }
 
@@ -66,13 +68,33 @@ extension OutputFormatter {
             description += "Redundant public accessibility for \(kindDisplayName) '\(name)' (not used outside of \(modulesJoined))"
         case .superfluousIgnoreCommand:
             description += "Superfluous ignore comment for \(kindDisplayName) '\(name)' (declaration is referenced and should not be ignored)"
+        case let .unusedAssetCatalogSymbol(symbol):
+            description += unusedAssetCatalogSymbolDescription(symbol, symbolName: name)
         }
 
         return [(location, description)] + secondaryResults
     }
 
+    func unusedAssetCatalogSymbolDescription(_ symbol: AssetCatalogSymbol, symbolName: String) -> String {
+        guard let assetName = symbol.assetName else {
+            return "Unused asset catalog \(symbol.kind.displayName) '\(symbolName)' (asset name not found in the generated symbols)"
+        }
+
+        var description = "Unused asset catalog \(symbol.kind.displayName) '\(assetName)'"
+
+        if !symbol.assetPaths.isEmpty {
+            description += " (\(symbol.assetPaths.map { outputPath($0).string }.joined(separator: ", ")))"
+        }
+
+        return description
+    }
+
     func outputPath(_ location: Location) -> FilePath {
-        var path = location.file.path.lexicallyNormalized()
+        outputPath(location.file.path)
+    }
+
+    func outputPath(_ file: FilePath) -> FilePath {
+        var path = file.lexicallyNormalized()
 
         if configuration.relativeResults, path.isAbsolute {
             path = path.relativeTo(currentFilePath).removingRoot()

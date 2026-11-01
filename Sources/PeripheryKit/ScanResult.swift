@@ -8,6 +8,7 @@ public struct ScanResult {
         case redundantProtocol(references: Set<Reference>, inherited: Set<String>)
         case redundantPublicAccessibility(modules: Set<String>)
         case superfluousIgnoreCommand
+        case unusedAssetCatalogSymbol(AssetCatalogSymbol)
     }
 
     let declaration: Declaration

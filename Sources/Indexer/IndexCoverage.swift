@@ -31,7 +31,7 @@ struct IndexCoverage {
     func gaps() throws -> [Gap] {
         let indexed = Set(plan.sourceFiles.keys.map { $0.path.lexicallyNormalized() })
         let expected = plan.expectedSourceFiles
-            .mapValues { $0.filter { !configuration.indexExcludeMatchers.anyMatch(filename: $0.string) } }
+            .mapValues { $0.filter { !configuration.isIndexExcluded($0) } }
             .filter { !$0.value.isEmpty }
         let allExpected = Set(expected.values.joined())
 

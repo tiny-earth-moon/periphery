@@ -5,6 +5,9 @@ import Shared
 import SourceGraph
 
 public struct IndexPipeline {
+    /// The global accent color of Xcode's app templates, assumed when no build setting names it.
+    static let defaultGlobalAccentColorName = "AccentColor"
+
     private let plan: IndexPlan
     private let graph: SourceGraphMutex
     private let logger: ContextualLogger
@@ -73,6 +76,11 @@ public struct IndexPipeline {
                 logger: logger,
                 configuration: configuration
             ).perform()
+        }
+
+        if configuration.detectsUnusedAssetCatalogSymbols {
+            let accentColorNames = plan.globalAccentColorNames.flatMap { $0.isEmpty ? nil : $0 } ?? [Self.defaultGlobalAccentColorName]
+            graph.withLock { $0.addAssetCatalogNameReferences(accentColorNames) }
         }
 
         graph.withLock { $0.indexingComplete() }
