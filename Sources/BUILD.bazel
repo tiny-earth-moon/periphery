@@ -135,6 +135,7 @@ swift_library(
         "Shared/Constants.swift",
         "Shared/JobPool.swift",
         "Shared/PeripheryError.swift",
+        "Shared/UpdateNotice.swift",
         "Shared/ProjectKind.swift",
         "Shared/PropertyTypeSanitizer.swift",
         "Shared/SetupGuide.swift",
