@@ -72,6 +72,7 @@ Changes from other people taken in since 3.8.1, with the original author kept in
     - [Equatable and Hashable](#equatable-and-hashable)
     - [XCTestCase](#xctestcase)
     - [Interface Builder](#interface-builder)
+    - [Asset Catalog Colors](#asset-catalog-colors)
     - [SPI (System Programming Interface)](#spi-system-programming-interface)
     - [Localized Strings](#localized-strings)
 - [Comment Commands](#comment-commands)
@@ -385,6 +386,10 @@ Any class that inherits `XCTestCase` is automatically retained along with its te
 If your project contains Interface Builder files (such as storyboards and XIBs), Periphery will take these into account when identifying unused declarations. Periphery parses these files to identify which classes, `@IBOutlet` properties, `@IBAction` methods, and `@IBInspectable` properties are actually referenced. Only those members that are connected in the Interface Builder file will be retained. Any `@IB*` members that are declared but not connected will be reported as unused.
 
 Files inside Xcode 16+ synchronized folders (`PBXFileSystemSynchronizedRootGroup`) are supported: they are collected per target, honouring each target's membership exceptions.
+
+### Asset Catalog Colors
+
+Xcode generates a Swift symbol for each color of an asset catalog (`ColorResource.accent`, `Color.accent`, `UIColor.accent`, ...) in a `GeneratedAssetSymbols.swift` file under DerivedData, which the default `--index-exclude` patterns exclude. Use `--detect-unused-asset-catalog-colors` (`detect_unused_asset_catalog_colors` in the configuration file) to index these files despite `--index-exclude` and report the colors that are never used. A color is used when any of its generated symbols is used, or when its name is referenced as a string: a string literal in the scanned Swift sources (e.g. `Color("Brand")` or `UIColor(named: "Brand")`), a named color of an Interface Builder file, or the global accent color (the `ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME` build setting of Xcode projects, `AccentColor` when no build setting names it). an unused color is reported once as `unusedAssetCatalogColor`, with its asset name and the `.colorset` directories found in the `*.xcassets` catalogs under the project directory (no path is given when none declares it). Every other declaration of the generated file is retained, and the file is left out of unused import analysis. Results are located in the generated file under DerivedData; the `.colorset` paths point to the asset to remove. To skip these results, use `--report-exclude "**/GeneratedAssetSymbols.swift:unusedAssetCatalogColor"`.
 
 ### SPI (System Programming Interface)
 

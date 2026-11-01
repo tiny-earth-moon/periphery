@@ -11,6 +11,9 @@ public struct IndexPlan {
     public let xcStringsPaths: Set<FilePath>
     public let expectedSourceFiles: [String: Set<FilePath>]
     public let indexStorePaths: Set<FilePath>
+    /// Values of the `ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME` build setting, `nil` when the project driver
+    /// does not read build settings.
+    public let globalAccentColorNames: Set<String>?
 
     public init(
         sourceFiles: [SourceFile: [IndexUnit]],
@@ -20,7 +23,8 @@ public struct IndexPlan {
         xcMappingModelPaths: Set<FilePath> = [],
         xcStringsPaths: Set<FilePath> = [],
         expectedSourceFiles: [String: Set<FilePath>] = [:],
-        indexStorePaths: Set<FilePath> = []
+        indexStorePaths: Set<FilePath> = [],
+        globalAccentColorNames: Set<String>? = nil
     ) {
         self.sourceFiles = sourceFiles
         self.plistPaths = plistPaths
@@ -30,5 +34,6 @@ public struct IndexPlan {
         self.xcStringsPaths = xcStringsPaths
         self.expectedSourceFiles = expectedSourceFiles
         self.indexStorePaths = indexStorePaths
+        self.globalAccentColorNames = globalAccentColorNames
     }
 }

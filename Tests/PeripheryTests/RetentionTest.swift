@@ -1,6 +1,7 @@
 import Configuration
 import Logger
 @testable import PeripheryKit
+import SourceGraph
 import SystemPackage
 @testable import TestShared
 import XCTest
@@ -1453,6 +1454,39 @@ final class RetentionTest: FixtureSourceGraphTestCase {
                 self.assertNotReferenced(.varInstance("wrapped"))
             }
         }
+    }
+
+    func testDetectsUnusedAssetCatalogColors() {
+        let generatedSymbols = FixturesProjectPath.appending("Sources/RetentionFixtures/AssetCatalogs/GeneratedAssetSymbols.swift")
+        let catalog = FixturesProjectPath.appending("AssetCatalogs/FixtureAssets.xcassets")
+
+        func assetCatalogResults(_ results: [ScanResult]) -> [(Declaration, AssetCatalogSymbol)] {
+            results.compactMap { result in
+                guard case let .unusedAssetCatalogSymbol(symbol) = result.annotation else { return nil }
+
+                return (result.declaration, symbol)
+            }
+        }
+
+        let xib = FixturesProjectPath.appending("AssetCatalogs/FixtureView.xib")
+        let results = analyze(retainPublic: true, additionalFilesToIndex: [generatedSymbols], xibPaths: [xib], detectUnusedAssetCatalogColors: true) {
+            assertReferenced(.struct("FixtureStruct1400"))
+        }
+        let colors = assetCatalogResults(results)
+
+        XCTAssertEqual(colors.map(\.1), [
+            AssetCatalogSymbol(kind: .color, assetName: "FixtureUnusedColor", assetPaths: [catalog.appending("FixtureUnusedColor.colorset")]),
+        ])
+        // FixtureNamedColor is used by name from Swift, FixtureXibColor from a xib, AccentColor as the default global accent color.
+        XCTAssertEqual(colors.first?.0.name, "fixtureUnusedColor")
+        XCTAssertEqual(colors.first?.0.parent?.name, "ColorResource")
+        XCTAssertEqual(results.filter { $0.declaration.location.file.path == generatedSymbols }.count, 1, "only the unused color is reported from the generated file")
+
+        let defaultResults = analyze(retainPublic: true, additionalFilesToIndex: [generatedSymbols]) {
+            assertReferenced(.struct("FixtureStruct1400"))
+        }
+
+        XCTAssertTrue(assetCatalogResults(defaultResults).isEmpty)
     }
 
     func testRetainsSynthesizedUses() {

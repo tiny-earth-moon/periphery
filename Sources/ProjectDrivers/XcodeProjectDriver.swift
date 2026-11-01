@@ -165,7 +165,8 @@
                 xcMappingModelPaths: xcMappingModelPaths,
                 xcStringsPaths: xcStringsPaths,
                 expectedSourceFiles: expectedSourceFiles,
-                indexStorePaths: indexStorePaths
+                indexStorePaths: indexStorePaths,
+                globalAccentColorNames: targets.flatMapSet(\.globalAccentColorNames)
             )
         }
     }

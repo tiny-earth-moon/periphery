@@ -11,9 +11,9 @@ import SourceGraph
 /// `assignOnlyProperty.var.instance`. An identifier matches a result if it is equal to, or a dotted prefix of,
 /// the result identifier, so `unused.function` matches every unused function and method.
 public enum ResultKind {
-    static let annotationNames: Set<String> = [
+    static let annotationNames: Set<String> = Set([
         "unused", "assignOnlyProperty", "redundantProtocol", "redundantPublicAccessibility", "superfluousIgnoreCommand",
-    ]
+    ]).union(AssetCatalogSymbolKind.allCases.map(\.annotationName))
 
     static let identifiers: Set<String> = annotationNames.union(annotationNames.flatMap { annotation in
         Declaration.Kind.identifiers.map { "\(annotation).\($0)" }
@@ -39,6 +39,7 @@ public enum ResultKind {
         case .redundantProtocol: "redundantProtocol"
         case .redundantPublicAccessibility: "redundantPublicAccessibility"
         case .superfluousIgnoreCommand: "superfluousIgnoreCommand"
+        case let .unusedAssetCatalogSymbol(symbol): symbol.kind.annotationName
         }
     }
 }

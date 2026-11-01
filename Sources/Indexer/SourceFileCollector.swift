@@ -74,6 +74,6 @@ public struct SourceFileCollector {
     // MARK: - Private
 
     private func isExcluded(_ file: FilePath) -> Bool {
-        configuration.indexExcludeMatchers.anyMatch(filename: file.string)
+        configuration.isIndexExcluded(file)
     }
 }
