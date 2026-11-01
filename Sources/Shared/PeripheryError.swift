@@ -40,7 +40,7 @@ public enum PeripheryError: Error, LocalizedError, CustomStringConvertible {
         case let .sourceGraphIntegrityError(message):
             return message
         case let .guidedSetupError(message):
-            return "\(message). Please refer to the documentation for instructions on configuring Periphery manually - https://github.com/peripheryapp/periphery/blob/master/README.md"
+            return "\(message). Please refer to the documentation for instructions on configuring Periphery manually - https://github.com/tiny-earth-moon/periphery#xcode-integration"
         case let .updateCheckError(message):
             return message
         case .xcodebuildNotConfigured:
