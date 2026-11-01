@@ -198,6 +198,9 @@ struct ScanCommand: ParsableCommand {
     @Option(parsing: .upToNextOption, help: "Retain declarations that have any of the given attributes (without the '@'), optionally limited to declaration kinds with '<attribute>:kind1,kind2', e.g. 'OptionGroup' or 'objc:function.method.instance'")
     var retainAttributes: [String] = defaultConfiguration.$retainAttributes.defaultValue
 
+    @Flag(help: "Report unused colors of Xcode asset catalogs, analyzing the symbols Xcode generates for them in GeneratedAssetSymbols.swift (indexed despite '--index-exclude')")
+    var detectUnusedAssetCatalogColors: Bool = defaultConfiguration.$detectUnusedAssetCatalogColors.defaultValue
+
     private static let defaultConfiguration = Configuration()
 
     func run() throws {
@@ -271,6 +274,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$bazelCheckVisibility, bazelCheckVisibility)
         configuration.apply(\.$retainSynthesizedUses, retainSynthesizedUses)
         configuration.apply(\.$retainAttributes, retainAttributes)
+        configuration.apply(\.$detectUnusedAssetCatalogColors, detectUnusedAssetCatalogColors)
 
         configuration.buildFilenameMatchers()
         _ = try ReportExcludeRule.resolve(configuration)

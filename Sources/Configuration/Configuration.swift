@@ -188,6 +188,9 @@ public final class Configuration {
     @Setting(key: "retain_attributes", defaultValue: [])
     public var retainAttributes: [String]
 
+    @Setting(key: "detect_unused_asset_catalog_colors", defaultValue: false)
+    public var detectUnusedAssetCatalogColors: Bool
+
     // Non user facing.
     public var guidedSetup: Bool = false
     public var projectRoot: FilePath = .init()
@@ -249,6 +252,28 @@ public final class Configuration {
     public var reportIncludeMatchers: [FilenameMatcher] = []
     public var localizedStringCatalogExcludeMatchers: [FilenameMatcher] = []
 
+    /// Name of the Swift file Xcode generates for the symbols of asset catalog resources.
+    public static let generatedAssetSymbolsFileName = "GeneratedAssetSymbols.swift"
+
+    /// Whether any kind of unused asset catalog symbol is detected.
+    public var detectsUnusedAssetCatalogSymbols: Bool {
+        detectUnusedAssetCatalogColors
+    }
+
+    /// Whether the file holds generated asset catalog symbols that must be analyzed, which is only the case when
+    /// unused asset catalog symbols are detected.
+    public func isAnalyzedGeneratedAssetSymbolsFile(_ path: FilePath) -> Bool {
+        detectsUnusedAssetCatalogSymbols && path.lastComponent?.string == Self.generatedAssetSymbolsFileName
+    }
+
+    /// Whether the file is excluded from indexing by `index_exclude`. Generated asset symbols files are an exception
+    /// when unused asset catalog symbols are detected, as they live in excluded build directories.
+    public func isIndexExcluded(_ path: FilePath) -> Bool {
+        guard !isAnalyzedGeneratedAssetSymbolsFile(path) else { return false }
+
+        return indexExcludeMatchers.anyMatch(filename: path.string)
+    }
+
     // MARK: - Private
 
     lazy var settings: [any AbstractSetting] = [
@@ -262,7 +287,7 @@ public final class Configuration {
         $jsonPackageManifestPath, $retainCodableProperties, $retainEncodableProperties, $retainEquatableProperties,
         $retainHashableProperties, $baseline, $writeBaseline,
         $writeResults, $genericProjectConfig, $bazel, $bazelFilter, $bazelQuery, $bazelIndexStore, $bazelCheckVisibility,
-        $retainSynthesizedUses, $retainAttributes,
+        $retainSynthesizedUses, $retainAttributes, $detectUnusedAssetCatalogColors,
     ]
 
     public func buildFilenameMatchers(with patterns: [String]) -> [FilenameMatcher] {
