@@ -40,7 +40,7 @@
     {
       "identity" : "swift-filename-matcher",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/ileitch/swift-filename-matcher",
+      "location" : "https://github.com/tiny-earth-moon/swift-filename-matcher",
       "state" : {
         "revision" : "eef5ac0b6b3cdc64b3039b037bed2def8a1edaeb",
         "version" : "2.0.1"
@@ -49,7 +49,7 @@
     {
       "identity" : "swift-index-store",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/ileitch/swift-index-store",
+      "location" : "https://github.com/tiny-earth-moon/swift-index-store",
       "state" : {
         "revision" : "ed1f232d33b8e03956af0f4206fbd30171a43138"
       }
