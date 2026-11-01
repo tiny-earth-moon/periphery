@@ -201,21 +201,6 @@ struct ScanCommand: ParsableCommand {
     @Option(help: "Project configuration for non-Apple build systems")
     var genericProjectConfig: FilePath?
 
-    @Flag(help: "Enable Bazel project mode")
-    var bazel: Bool = defaultConfiguration.$bazel.defaultValue
-
-    @Option(help: "Filter pattern applied to the Bazel top-level targets query")
-    var bazelFilter: String?
-
-    @Option(help: "Query expression used for the Bazel top-level targets query. Overrides the default query and bypasses bazelFilter.")
-    var bazelQuery: String?
-
-    @Option(help: "Path to a global index store populated by Bazel. If provided, will be used instead of individual module stores.")
-    var bazelIndexStore: FilePath?
-
-    @Flag(help: "Enable Bazel visibility checking")
-    var bazelCheckVisibility: Bool = defaultConfiguration.$bazelCheckVisibility.defaultValue
-
     @Flag(help: "Retain stored properties of types whose values are described through reflection, e.g. passed to print, dump, String(describing:) or string interpolation")
     var retainSynthesizedUses: Bool = defaultConfiguration.$retainSynthesizedUses.defaultValue
 
@@ -228,7 +213,14 @@ struct ScanCommand: ParsableCommand {
     @Flag(help: "Report unused images of Xcode asset catalogs, analyzing the symbols Xcode generates for them in GeneratedAssetSymbols.swift (indexed despite '--index-exclude')")
     var detectUnusedAssetCatalogImages: Bool = defaultConfiguration.$detectUnusedAssetCatalogImages.defaultValue
 
+    @OptionGroup(visibility: .hidden)
+    var removedBazelOptions: RemovedBazelOptions
+
     private static let defaultConfiguration = Configuration()
+
+    func validate() throws {
+        try removedBazelOptions.rejectUse()
+    }
 
     func run() throws {
         if !FileManager.default.changeCurrentDirectoryPath(projectRoot.string) {
@@ -302,11 +294,6 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$writeBaseline, writeBaseline)
         configuration.apply(\.$writeResults, writeResults)
         configuration.apply(\.$genericProjectConfig, genericProjectConfig)
-        configuration.apply(\.$bazel, bazel)
-        configuration.apply(\.$bazelFilter, bazelFilter)
-        configuration.apply(\.$bazelQuery, bazelQuery)
-        configuration.apply(\.$bazelIndexStore, bazelIndexStore)
-        configuration.apply(\.$bazelCheckVisibility, bazelCheckVisibility)
         configuration.apply(\.$retainSynthesizedUses, retainSynthesizedUses)
         configuration.apply(\.$retainAttributes, retainAttributes)
         configuration.apply(\.$detectUnusedAssetCatalogColors, detectUnusedAssetCatalogColors)
@@ -401,9 +388,7 @@ struct ScanCommand: ParsableCommand {
     // MARK: - Private
 
     private static var projectRootDefault: FilePath {
-        let bazelWorkspace = ProcessInfo.processInfo.environment["BUILD_WORKSPACE_DIRECTORY"]
-        let root = bazelWorkspace ?? FileManager.default.currentDirectoryPath
-        return FilePath(root)
+        FilePath(FileManager.default.currentDirectoryPath)
     }
 }
 

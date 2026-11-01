@@ -191,21 +191,6 @@ public final class Configuration {
     @Setting(key: "generic_project_config", defaultValue: nil, setter: filePathSetter)
     public var genericProjectConfig: FilePath?
 
-    @Setting(key: "bazel", defaultValue: false)
-    public var bazel: Bool
-
-    @Setting(key: "bazel_filter", defaultValue: nil)
-    public var bazelFilter: String?
-
-    @Setting(key: "bazel_query", defaultValue: nil)
-    public var bazelQuery: String?
-
-    @Setting(key: "bazel_index_store", defaultValue: nil)
-    public var bazelIndexStore: FilePath?
-
-    @Setting(key: "bazel_check_visibility", defaultValue: false)
-    public var bazelCheckVisibility: Bool
-
     @Setting(key: "retain_synthesized_uses", defaultValue: false)
     public var retainSynthesizedUses: Bool
 
@@ -247,6 +232,10 @@ public final class Configuration {
         let encodedYAML = try String(contentsOf: path.url, encoding: .utf8)
         let yaml = try Yams.load(yaml: encodedYAML) as? [String: Any] ?? [:]
         let logger = Logger(quiet: false, verbose: false, colorMode: .never)
+
+        if let key = yaml.keys.sorted().first(where: Self.isRemovedBazelKey) {
+            throw PeripheryError.removedBazelOption("'\(key)' in \(path.string)")
+        }
 
         for (key, value) in yaml {
             if let setting = settings.first(where: { key == $0.key }) {
@@ -314,6 +303,11 @@ public final class Configuration {
 
     // MARK: - Private
 
+    /// Keys of the Bazel mode, removed in 3.13.0, which are rejected instead of being reported as invalid keys.
+    private static func isRemovedBazelKey(_ key: String) -> Bool {
+        key == "bazel" || key.hasPrefix("bazel_")
+    }
+
     lazy var settings: [any AbstractSetting] = [
         $project, $schemes, $excludeTargets, $excludeTests, $indexExclude, $reportExclude, $reportInclude, $outputFormat,
         $retainPublic, $noRetainSPI, $retainFiles, $retainAssignOnlyProperties, $retainAssignOnlyPropertyTypes, $enableUnassignedOptionalAnalysis, $retainObjcAccessible,
@@ -324,7 +318,7 @@ public final class Configuration {
         $skipBuild, $skipSchemesValidation, $cleanBuild, $cacheMaxAgeDays, $buildArguments, $xcodeListArguments, $relativeResults,
         $jsonPackageManifestPath, $retainCodableProperties, $retainEncodableProperties, $retainEquatableProperties,
         $retainHashableProperties, $baseline, $writeBaseline,
-        $writeResults, $genericProjectConfig, $bazel, $bazelFilter, $bazelQuery, $bazelIndexStore, $bazelCheckVisibility,
+        $writeResults, $genericProjectConfig,
         $retainSynthesizedUses, $retainAttributes, $detectUnusedAssetCatalogColors, $detectUnusedAssetCatalogImages,
     ]
 
