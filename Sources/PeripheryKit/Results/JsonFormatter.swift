@@ -18,7 +18,7 @@ final class JsonFormatter: OutputFormatter {
 
         for result in results {
             let location = declarationLocation(from: result.declaration)
-            let object: [AnyHashable: Any] = [
+            var object: [AnyHashable: Any] = [
                 "kind": declarationKind(from: result.declaration),
                 "modules": location.file.modules.sorted(),
                 "name": result.declaration.name,
@@ -29,6 +29,14 @@ final class JsonFormatter: OutputFormatter {
                 "hints": [describe(result.annotation)],
                 "location": locationDescription(location),
             ]
+
+            if case let .unusedAssetCatalogSymbol(symbol) = result.annotation {
+                object["asset"] = [
+                    "name": symbol.assetName.map { $0 as Any } ?? NSNull(),
+                    "paths": symbol.assetPaths.map { outputPath($0).string },
+                ]
+            }
+
             jsonObject.append(object)
 
             switch result.annotation {

@@ -33,6 +33,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         disablePlatformConditionalRetention: Bool = false,
         retainSynthesizedUses: Bool = false,
         retainAttributes: [String] = [],
+        detectUnusedAssetCatalogColors: Bool = false,
         testBlock: () throws -> Void
     ) rethrows -> [ScanResult] {
         let configuration = Configuration()
@@ -56,6 +57,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         configuration.disablePlatformConditionalRetention = disablePlatformConditionalRetention
         configuration.retainSynthesizedUses = retainSynthesizedUses
         configuration.retainAttributes = retainAttributes
+        configuration.detectUnusedAssetCatalogColors = detectUnusedAssetCatalogColors
 
         configuration.buildFilenameMatchers()
 

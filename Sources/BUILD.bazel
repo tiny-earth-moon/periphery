@@ -51,7 +51,10 @@ swift_library(
 swift_library(
     name = "SourceGraph",
     srcs = [
+        "SourceGraph/AssetCatalogs/AssetCatalogLocator.swift",
+        "SourceGraph/AssetCatalogs/GeneratedAssetSymbols.swift",
         "SourceGraph/Elements/Accessibility.swift",
+        "SourceGraph/Elements/AssetCatalogSymbol.swift",
         "SourceGraph/Elements/AssetReference.swift",
         "SourceGraph/Elements/CommandIgnoreKind.swift",
         "SourceGraph/Elements/CommentCommand.swift",
@@ -68,6 +71,8 @@ swift_library(
         "SourceGraph/Mutators/AccessibilityCascader.swift",
         "SourceGraph/Mutators/AncestralReferenceEliminator.swift",
         "SourceGraph/Mutators/AppIntentsRetainer.swift",
+        "SourceGraph/Mutators/AssetCatalogSymbolMarker.swift",
+        "SourceGraph/Mutators/AssetCatalogSymbolRetainer.swift",
         "SourceGraph/Mutators/AssetReferenceRetainer.swift",
         "SourceGraph/Mutators/AssignOnlyPropertyReferenceEliminator.swift",
         "SourceGraph/Mutators/AttributeRetainer.swift",

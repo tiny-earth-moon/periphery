@@ -37,6 +37,7 @@ public final class SourceGraphMutatorRunner {
         LocalizedStringRetainer.self,
         EntryPointAttributeRetainer.self,
         AttributeRetainer.self,
+        AssetCatalogSymbolRetainer.self,
         PubliclyAccessibleRetainer.self,
         XCTestRetainer.self,
         SwiftTestingRetainer.self,
@@ -56,6 +57,8 @@ public final class SourceGraphMutatorRunner {
         AssignOnlyPropertyReferenceEliminator.self,
 
         UsedDeclarationMarker.self,
+        // Must come after UsedDeclarationMarker as it groups the used and unused symbols of each asset.
+        AssetCatalogSymbolMarker.self,
         RedundantProtocolMarker.self,
     ]
 

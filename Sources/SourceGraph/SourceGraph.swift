@@ -26,6 +26,7 @@ public final class SourceGraph {
     public private(set) var platformConditionalNames: Set<String> = []
     public private(set) var usedLocalizedStringKeys: Set<String> = []
     public private(set) var synthesizedUses: Set<SynthesizedUse> = []
+    public private(set) var unusedAssetCatalogSymbols: [Declaration: AssetCatalogSymbol] = [:]
 
     private var indexedModules: Set<String> = []
     private var unindexedExportedModules: Set<String> = []
@@ -89,6 +90,10 @@ public final class SourceGraph {
 
     func unmarkRedundantPublicAccessibility(_ declaration: Declaration) {
         _ = redundantPublicAccessibility.removeValue(forKey: declaration)
+    }
+
+    func markUnusedAssetCatalogSymbol(_ declaration: Declaration, symbol: AssetCatalogSymbol) {
+        unusedAssetCatalogSymbols[declaration] = symbol
     }
 
     func markIgnored(_ declaration: Declaration) {

@@ -296,7 +296,11 @@ final class SwiftIndexer: Indexer {
                 }
             }
 
-            if !configuration.disablePlatformConditionalRetention {
+            // The platform conditionals of generated asset symbols only name the generated symbols themselves,
+            // which would retain every asset.
+            if !configuration.disablePlatformConditionalRetention,
+               !configuration.isAnalyzedGeneratedAssetSymbolsFile(sourceFile.path)
+            {
                 let names = PlatformConditionalNameCollector.collect(from: multiplexingSyntaxVisitor.syntax)
 
                 if !names.isEmpty {
