@@ -23,7 +23,7 @@ final class UpdateChecker {
         self.configuration = configuration
         let config = URLSessionConfiguration.ephemeral
         urlSession = URLSession(configuration: config)
-        latestReleaseURL = URL(string: "https://api.github.com/repos/peripheryapp/periphery/releases/latest")!
+        latestReleaseURL = UpdateNotice.latestReleaseURL
         semaphore = DispatchSemaphore(value: 0)
     }
 
@@ -81,16 +81,15 @@ final class UpdateChecker {
 
         guard latestVersion.isVersion(greaterThan: PeripheryVersion) else { return }
 
-        logger.info(logger.colorize("\nUpdate Available!", .boldGreen))
-        let boldLatestVersion = logger.colorize(latestVersion, .bold)
-        let boldLocalVersion = logger.colorize(PeripheryVersion, .bold)
-        logger.info("Version \(boldLatestVersion) is now available, you are using version \(boldLocalVersion).")
-        logger.info("Release notes: " + logger.colorize("https://github.com/peripheryapp/periphery/releases/tag/\(latestVersion)", .bold))
-        let boldOption = logger.colorize("--disable-update-check", .bold)
-        let boldScan = logger.colorize("scan", .bold)
-        logger.info("To disable update checks pass the \(boldOption) option to the \(boldScan) command.")
-
-        logger.info(logger.colorize("\nIf you are enjoying Periphery, please consider becoming a sponsor.", .bold) + "\nYour support helps ensure the continued development of new features and updates to support new Swift versions.\n" + logger.colorize("https://github.com/sponsors/peripheryapp", .boldMagenta))
+        let lines = UpdateNotice.lines(latestVersion: latestVersion, localVersion: PeripheryVersion) { text, style in
+            switch style {
+            case .bold: logger.colorize(text, .bold)
+            case .boldGreen: logger.colorize(text, .boldGreen)
+            }
+        }
+        for line in lines {
+            logger.info(line)
+        }
     }
 
     func wait() -> Result<String, PeripheryError> {
