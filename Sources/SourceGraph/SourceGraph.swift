@@ -362,7 +362,9 @@ public final class SourceGraph {
         indexedSystemModules.formUnion(modules)
 
         for (module, exportedModules) in exports.merging(SystemModuleExports.known, uniquingKeysWith: { $0.union($1) }) {
-            for exportedModule in exportedModules where exportedModule != module {
+            for exportedModule in exportedModules
+                where exportedModule != module && !SystemModuleExports.implicitlyImported.contains(exportedModule)
+            {
                 moduleToExportingModules[exportedModule, default: []].insert(module)
             }
         }

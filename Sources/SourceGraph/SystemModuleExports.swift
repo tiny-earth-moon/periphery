@@ -10,4 +10,8 @@ enum SystemModuleExports {
         "SwiftUI": ["SwiftUICore"],
         "UIKit": ["Foundation"],
     ]
+
+    /// Modules every Swift file imports implicitly. A system module depending on them does not make their
+    /// declarations a use of that module.
+    static let implicitlyImported: Set<String> = ["Swift", "SwiftOnoneSupport", "_Concurrency", "_StringProcessing"]
 }
