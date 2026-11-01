@@ -75,11 +75,18 @@ public final class ShellImpl: Shell {
         _ cmd: [String],
         captureOutput: Bool = true
     ) throws -> (Int32, String, String) {
-        let process = Process()
-        process.launchPath = "/bin/bash"
-        process.arguments = ["-c", cmd.joined(separator: " ")]
+        guard let executable = cmd.first else {
+            throw PeripheryError.executableNotFound(name: "", searchPath: [])
+        }
 
-        logger.debug("\(cmd.joined(separator: " "))")
+        let process = Process()
+        process.executableURL = try Self.executableURL(
+            for: executable,
+            environment: ProcessInfo.processInfo.environment
+        )
+        process.arguments = Array(cmd.dropFirst())
+
+        logger.debug(cmd.shellQuoted)
         store.add(process)
         defer { store.remove(process) }
 
@@ -93,7 +100,7 @@ public final class ShellImpl: Shell {
             process.standardError = stderrPipe
         }
 
-        process.launch()
+        try process.run()
 
         var standardOutput = ""
         var standardError = ""
@@ -136,5 +143,49 @@ public final class ShellImpl: Shell {
         }
 
         return (process.terminationStatus, standardOutput, standardError)
+    }
+
+    /// Resolves the executable of a command without a shell: a name containing a slash is used as a path,
+    /// any other name is looked up in the `PATH` of the given environment.
+    static func executableURL(for name: String, environment: [String: String]) throws -> URL {
+        if name.contains("/") {
+            return URL(fileURLWithPath: name)
+        }
+
+        let searchPath = (environment["PATH"] ?? "")
+            .split(separator: ":")
+            .map(String.init)
+            .filter { !$0.isEmpty }
+
+        for directory in searchPath {
+            let candidate = URL(fileURLWithPath: directory).appendingPathComponent(name)
+            var isDirectory: ObjCBool = false
+            if FileManager.default.fileExists(atPath: candidate.path, isDirectory: &isDirectory),
+               !isDirectory.boolValue,
+               FileManager.default.isExecutableFile(atPath: candidate.path)
+            {
+                return candidate
+            }
+        }
+
+        throw PeripheryError.executableNotFound(name: name, searchPath: searchPath)
+    }
+}
+
+public extension [String] {
+    /// A human-readable, shell-quoted rendering of a command, for display only. Commands are never run through a shell.
+    var shellQuoted: String {
+        map(\.shellQuotedArgument).joined(separator: " ")
+    }
+}
+
+public extension String {
+    /// The string as a single shell word: unchanged if it only contains safe characters, single-quoted otherwise.
+    var shellQuotedArgument: String {
+        let safeCharacters = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@%+=:,./_-")
+        if !isEmpty, unicodeScalars.allSatisfy({ safeCharacters.contains($0) }) {
+            return self
+        }
+        return "'" + replacingOccurrences(of: "'", with: "'\\''") + "'"
     }
 }
