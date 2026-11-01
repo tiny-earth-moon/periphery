@@ -12,6 +12,7 @@ public enum ScanResultBuilder {
         let redundantPublicAccessibility = graph.redundantPublicAccessibility.filter { !removableDeclarations.contains($0.0) }
         let redundantOpenAccessibility = graph.redundantOpenAccessibility.filter { !removableDeclarations.contains($0.0) }
         let missingFinalDeclarations = graph.missingFinalDeclarations.subtracting(removableDeclarations)
+        let redundantAccessLevel = graph.redundantAccessLevel.filter { !removableDeclarations.contains($0.key) }
 
         let annotatedRemovableDeclarations: [ScanResult] = removableDeclarations.flatMap { removableDeclaration in
             var extensionResults = [ScanResult]()
@@ -56,6 +57,9 @@ public enum ScanResultBuilder {
         let annotatedMissingFinal: [ScanResult] = missingFinalDeclarations.map {
             .init(declaration: $0, annotation: .missingFinal)
         }
+        let annotatedRedundantAccessLevel: [ScanResult] = redundantAccessLevel.map {
+            .init(declaration: $0.key, annotation: .redundantAccessLevel($0.value))
+        }
 
         let annotatedSuperfluousIgnoreCommands: [ScanResult] = {
             guard configuration.superfluousIgnoreComments else { return [] }
@@ -84,6 +88,7 @@ public enum ScanResultBuilder {
             annotatedRedundantPublicAccessibility +
             annotatedRedundantOpenAccessibility +
             annotatedMissingFinal +
+            annotatedRedundantAccessLevel +
             annotatedSuperfluousIgnoreCommands
 
         return allAnnotatedDeclarations

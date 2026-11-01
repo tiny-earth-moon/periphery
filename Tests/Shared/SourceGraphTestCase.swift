@@ -240,6 +240,22 @@ open class SourceGraphTestCase: XCTestCase {
         scopeStack.removeLast()
     }
 
+    func assertRedundantAccessLevel(_ description: DeclarationDescription, file: StaticString = #file, line: UInt = #line) {
+        guard let declaration = materialize(description, in: Self.allIndexedDeclarations, file: file, line: line) else { return }
+
+        if !Self.results.redundantAccessLevelDeclarations.contains(declaration) {
+            XCTFail("Expected declaration to have a redundant access level: \(declaration)", file: file, line: line)
+        }
+    }
+
+    func assertNotRedundantAccessLevel(_ description: DeclarationDescription, file: StaticString = #file, line: UInt = #line) {
+        guard let declaration = materialize(description, in: Self.allIndexedDeclarations, file: file, line: line) else { return }
+
+        if Self.results.redundantAccessLevelDeclarations.contains(declaration) {
+            XCTFail("Expected declaration to not have a redundant access level: \(declaration)", file: file, line: line)
+        }
+    }
+
     func assertUsedParameter(_ name: String, file: StaticString = #file, line: UInt = #line) {
         let declaration = materialize(.varParameter(name), fail: false, file: file, line: line)
 
@@ -443,6 +459,16 @@ private extension [ScanResult] {
     var redundantOpenAccessibilityDeclarations: Set<Declaration> {
         compactMapSet {
             if case .redundantOpenAccessibility = $0.annotation {
+                return $0.declaration
+            }
+
+            return nil
+        }
+    }
+
+    var redundantAccessLevelDeclarations: Set<Declaration> {
+        compactMapSet {
+            if case .redundantAccessLevel = $0.annotation {
                 return $0.declaration
             }
 

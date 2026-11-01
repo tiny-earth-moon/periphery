@@ -10,6 +10,7 @@ public struct ScanResult {
         case redundantPublicAccessibility(modules: Set<String>)
         case redundantOpenAccessibility(modules: Set<String>)
         case missingFinal
+        case redundantAccessLevel(RedundantAccessLevel)
         case superfluousIgnoreCommand
         case unusedAssetCatalogSymbol(AssetCatalogSymbol)
     }

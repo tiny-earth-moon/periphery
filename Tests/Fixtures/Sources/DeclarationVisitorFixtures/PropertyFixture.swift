@@ -26,4 +26,6 @@ class PropertyVisitorTestFixture {
     var genericOptionalProperty: Optional<Int> = nil
     var qualifiedOptionalProperty: Swift.Optional<Int> = 1
     var (optionalTupleElementA, optionalTupleElementB): (Int?, Int?) = (nil, 1)
+    private(set) var privateSetterProperty = 1
+    internal(set) public var publicPropertyWithInternalSetter = 1
 }

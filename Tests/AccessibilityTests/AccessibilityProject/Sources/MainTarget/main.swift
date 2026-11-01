@@ -115,3 +115,4 @@ PublicMemberInNonPublicExtensionOfPublicType().publicFuncInNonPublicExtensionOfP
 PublicMemberInNonPublicExtensionOfPublicType().publicFuncInNonPublicExtensionOfPublicProtocol()
 _ = "".publicFuncInExternalTypeExtension()
 openFinalRetain()
+redundantAccessLevelRetain()

@@ -39,6 +39,8 @@ extension OutputFormatter {
             "redundantOpenAccessibility"
         case .missingFinal:
             "missingFinal"
+        case .redundantAccessLevel:
+            "redundantAccessLevel"
         case .superfluousIgnoreCommand:
             "superfluousIgnoreCommand"
         case let .unusedAssetCatalogSymbol(symbol):
@@ -81,6 +83,13 @@ extension OutputFormatter {
         case .missingFinal:
             let capitalizedKind = kindDisplayName.prefix(1).uppercased() + kindDisplayName.dropFirst()
             description += "\(capitalizedKind) '\(name)' could be final"
+        case let .redundantAccessLevel(redundancy):
+            description += "Redundant \(redundancy.accessibility.rawValue) access level for \(kindDisplayName) '\(name)' "
+            if let context = redundancy.context, let parent = result.declaration.parent {
+                description += "(already the default inside its \(context.rawValue) \(declarationKindDisplayName(from: parent)))"
+            } else {
+                description += "(already the default at the top level)"
+            }
         case .superfluousIgnoreCommand:
             description += "Superfluous ignore comment for \(kindDisplayName) '\(name)' (declaration is referenced and should not be ignored)"
         case let .unusedAssetCatalogSymbol(symbol):
