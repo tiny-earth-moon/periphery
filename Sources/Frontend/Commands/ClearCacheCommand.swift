@@ -1,7 +1,5 @@
 import ArgumentParser
-import Configuration
 import Foundation
-import Logger
 import Shared
 
 struct ClearCacheCommand: ParsableCommand {
@@ -11,9 +9,6 @@ struct ClearCacheCommand: ParsableCommand {
     )
 
     func run() throws {
-        let configuration = Configuration()
-        let logger = Logger(configuration: configuration)
-        let shell = ShellImpl(logger: logger)
-        try shell.exec(["rm", "-rf", Constants.cachePath().string])
+        try CacheManager.clear(cacheDirectory: URL(fileURLWithPath: Constants.cachePath().string))
     }
 }
