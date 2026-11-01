@@ -27,6 +27,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         retainUnusedParametersWithoutDefault: Bool = false,
         retainAssignOnlyProperties: Bool = false,
         retainAssignOnlyPropertyTypes: [String] = [],
+        enableUnassignedOptionalAnalysis: Bool = false,
         externalCodableProtocols: [String] = [],
         additionalFilesToIndex: [FilePath] = [],
         xibPaths: Set<FilePath> = [],
@@ -55,6 +56,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         configuration.retainUnusedProtocolFuncParams = retainUnusedProtocolFuncParams
         configuration.retainUnusedParametersWithoutDefault = retainUnusedParametersWithoutDefault
         configuration.retainAssignOnlyPropertyTypes = retainAssignOnlyPropertyTypes
+        configuration.enableUnassignedOptionalAnalysis = enableUnassignedOptionalAnalysis
         configuration.externalTestCaseClasses = externalTestCaseClasses
         configuration.retainFiles = retainFiles
         configuration.disablePlatformConditionalRetention = disablePlatformConditionalRetention

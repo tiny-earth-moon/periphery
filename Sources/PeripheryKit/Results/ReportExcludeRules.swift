@@ -12,7 +12,7 @@ import SourceGraph
 /// the result identifier, so `unused.function` matches every unused function and method.
 public enum ResultKind {
     static let annotationNames: Set<String> = Set([
-        "unused", "assignOnlyProperty", "redundantProtocol", "redundantPublicAccessibility", "superfluousIgnoreCommand",
+        "unused", "assignOnlyProperty", "unassignedOptionalProperty", "redundantProtocol", "redundantPublicAccessibility", "superfluousIgnoreCommand",
     ]).union(AssetCatalogSymbolKind.allCases.map(\.annotationName))
 
     static let identifiers: Set<String> = annotationNames.union(annotationNames.flatMap { annotation in
@@ -36,6 +36,7 @@ public enum ResultKind {
         switch annotation {
         case .unused: "unused"
         case .assignOnlyProperty: "assignOnlyProperty"
+        case .unassignedOptionalProperty: "unassignedOptionalProperty"
         case .redundantProtocol: "redundantProtocol"
         case .redundantPublicAccessibility: "redundantPublicAccessibility"
         case .superfluousIgnoreCommand: "superfluousIgnoreCommand"

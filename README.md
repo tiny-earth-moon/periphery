@@ -70,6 +70,7 @@ Changes from other people taken in since 3.8.1, with the original author kept in
     - [Protocols](#protocols-1)
     - [Enumerations](#enumerations)
     - [Assign-only Properties](#assign-only-properties)
+    - [Unassigned Optional Analysis](#unassigned-optional-analysis)
     - [Redundant Public Accessibility](#redundant-public-accessibility)
     - [Unused Imports](#unused-imports)
     - [Platform Conditionals](#platform-conditionals)
@@ -330,6 +331,22 @@ In some cases this may be the intended behavior; therefore, you have a few optio
 - Retain individual properties using [Comment Commands](#comment-commands).
 - Retain all assign-only properties by their type with `--retain-assign-only-property-types`. Given types must match their exact usage in the property declaration (sans optional question mark), e.g. `String`, `[String]`, `Set<String>`. Periphery is unable to resolve inferred property types, therefore in some instances, you may need to add explicit type annotations to your properties.
 - Disable assign-only property analysis entirely with `--retain-assign-only-properties`.
+
+### Unassigned Optional Analysis
+
+The symmetric case, optional properties that are read but never assigned (and are therefore always `nil`), is reported when the opt-in `--enable-unassigned-optional-analysis` option (`enable_unassigned_optional_analysis: true`) is enabled, e.g.:
+
+```swift
+class MyClass {
+    var someVar: Int? // Optional property 'someVar' is never assigned (always nil)
+
+    func someFunc() {
+        print(someVar)
+    }
+}
+```
+
+Only stored `var` properties declared with an optional type (`T?`, `T!`, `Optional<T>`) and no initial value other than `nil` are considered. Writes are taken from the index (assignments, `self.x = …` in closures, `inout` arguments, writable key paths), so a property assigned anywhere is not reported. Properties that may be assigned in ways the index does not record are never reported: properties with an attribute (`@IBOutlet`, `@NSManaged`, `@objc`, property wrappers…), `weak`, `unowned`, `dynamic`, `lazy` or `override` properties, Objective-C accessible properties, properties of types conforming to `Codable`/`Decodable` or `NSCoding`, protocol requirements, and retained properties (including [Comment Commands](#comment-commands)). Properties of structs with a synthesized memberwise initializer are considered assigned by it. Results use the `unassignedOptionalProperty` kind in `report_exclude`.
 
 ### Redundant Public Accessibility
 
@@ -617,7 +634,7 @@ Both exclusion options described below accept a Bash v4-style path glob, either 
 
 To exclude the results from certain files, pass the `--report-exclude <globs>` option to the `scan` command.
 
-To exclude only some kinds of results, give `report_exclude` an object entry in the configuration file, or append the kinds to the glob with `<glob>:kind1,kind2`. A kind is the result annotation (`unused`, `assignOnlyProperty`, `redundantProtocol`, `redundantPublicAccessibility`, `superfluousIgnoreCommand`) optionally followed by the declaration kind reported in the JSON `kind` field, e.g. `unused.function` (every unused function and method) or `unused.var.parameter`. Entries without kinds exclude every result, and an unknown kind is a configuration error.
+To exclude only some kinds of results, give `report_exclude` an object entry in the configuration file, or append the kinds to the glob with `<glob>:kind1,kind2`. A kind is the result annotation (`unused`, `assignOnlyProperty`, `unassignedOptionalProperty`, `redundantProtocol`, `redundantPublicAccessibility`, `superfluousIgnoreCommand`) optionally followed by the declaration kind reported in the JSON `kind` field, e.g. `unused.function` (every unused function and method) or `unused.var.parameter`. Entries without kinds exclude every result, and an unknown kind is a configuration error.
 
 ```yaml
 report_exclude:

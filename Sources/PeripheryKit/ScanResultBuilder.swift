@@ -37,6 +37,9 @@ public enum ScanResultBuilder {
         let annotatedAssignOnlyProperties: [ScanResult] = assignOnlyProperties.map {
             .init(declaration: $0, annotation: .assignOnlyProperty)
         }
+        let annotatedUnassignedOptionalProperties: [ScanResult] = graph.unassignedOptionalProperties
+            .subtracting(removableDeclarations)
+            .map { .init(declaration: $0, annotation: .unassignedOptionalProperty) }
         let annotatedRedundantProtocols: [ScanResult] = redundantProtocols.map { decl, tuple in
             let (references, inherited) = tuple
             let inheritedNames = inherited.compactMapSet { $0.name }
@@ -68,6 +71,7 @@ public enum ScanResultBuilder {
 
         let allAnnotatedDeclarations = annotatedRemovableDeclarations +
             annotatedAssignOnlyProperties +
+            annotatedUnassignedOptionalProperties +
             annotatedRedundantProtocols +
             annotatedRedundantPublicAccessibility +
             annotatedSuperfluousIgnoreCommands

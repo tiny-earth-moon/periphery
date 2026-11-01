@@ -204,6 +204,22 @@ open class SourceGraphTestCase: XCTestCase {
         scopeStack.removeLast()
     }
 
+    func assertUnassignedOptionalProperty(_ description: DeclarationDescription, file: StaticString = #file, line: UInt = #line) {
+        guard let declaration = materialize(description, file: file, line: line) else { return }
+
+        if !Self.results.unassignedOptionalPropertyDeclarations.contains(declaration) {
+            XCTFail("Expected property to be an unassigned optional: \(declaration)", file: file, line: line)
+        }
+    }
+
+    func assertNotUnassignedOptionalProperty(_ description: DeclarationDescription, file: StaticString = #file, line: UInt = #line) {
+        guard let declaration = materialize(description, file: file, line: line) else { return }
+
+        if Self.results.unassignedOptionalPropertyDeclarations.contains(declaration) {
+            XCTFail("Expected property to not be an unassigned optional: \(declaration)", file: file, line: line)
+        }
+    }
+
     func assertNotAssignOnlyProperty(_ description: DeclarationDescription, scopedAssertions: (() -> Void)? = nil, file: StaticString = #file, line: UInt = #line) {
         guard let declaration = materialize(description, file: file, line: line) else { return }
 
@@ -333,6 +349,16 @@ private extension [ScanResult] {
     var assignOnlyPropertyDeclarations: Set<Declaration> {
         compactMapSet {
             if case .assignOnlyProperty = $0.annotation {
+                return $0.declaration
+            }
+
+            return nil
+        }
+    }
+
+    var unassignedOptionalPropertyDeclarations: Set<Declaration> {
+        compactMapSet {
+            if case .unassignedOptionalProperty = $0.annotation {
                 return $0.declaration
             }
 
