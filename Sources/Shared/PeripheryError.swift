@@ -4,6 +4,7 @@ import SystemPackage
 public enum PeripheryError: Error, LocalizedError, CustomStringConvertible {
     case shellCommandFailed(cmd: [String], status: Int32, output: String)
     case shellOutputEncodingFailed(cmd: [String], encoding: String.Encoding)
+    case executableNotFound(name: String, searchPath: [String])
     case usageError(String)
     case underlyingError(Error)
     case invalidScheme(name: String, project: String)
@@ -26,11 +27,16 @@ public enum PeripheryError: Error, LocalizedError, CustomStringConvertible {
     public var errorDescription: String? {
         switch self {
         case let .shellCommandFailed(cmd, status, output):
-            let joinedCmd = cmd.joined(separator: " ")
+            let joinedCmd = cmd.shellQuoted
             return "Shell command '\(joinedCmd)' returned exit status '\(status)':\n\(output)"
         case let .shellOutputEncodingFailed(cmd, encoding):
-            let joinedCmd = cmd.joined(separator: " ")
+            let joinedCmd = cmd.shellQuoted
             return "Shell command '\(joinedCmd)' output encoding to \(encoding) failed."
+        case let .executableNotFound(name, searchPath):
+            if name.isEmpty {
+                return "Cannot run an empty command."
+            }
+            return "Executable '\(name)' not found in PATH: \(searchPath.joined(separator: ":"))"
         case let .usageError(message):
             return message
         case let .underlyingError(error):

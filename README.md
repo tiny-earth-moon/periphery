@@ -1,7 +1,6 @@
 <h1 align="center">Periphery</h1>
 
 <h4 align="center">A tool to identify unused code in Swift projects.</h4>
-<p align="center"><q><i>Now I am become Delete, the destroyer of codes.</i></q></p>
 
 <p align="center">
 <a href="https://github.com/tiny-earth-moon/periphery/releases/latest">
@@ -36,6 +35,7 @@
     - [Assign-only Properties](#assign-only-properties)
     - [Unassigned Optional Analysis](#unassigned-optional-analysis)
     - [Redundant Public Accessibility](#redundant-public-accessibility)
+    - [Open / Final Analysis](#open--final-analysis)
     - [Unused Imports](#unused-imports)
     - [Platform Conditionals](#platform-conditionals)
     - [Objective-C](#objective-c)
@@ -337,6 +337,17 @@ Declarations that are marked `public` yet are not referenced from outside their 
 - In [Whole Module Compilation](https://github.com/apple/swift/blob/main/docs/OptimizationTips.rst#whole-module-optimizations-wmo) mode, Swift can infer `final` by [automatically discovering](https://github.com/apple/swift/blob/main/docs/OptimizationTips.rst#advice-if-wmo-is-enabled-use-internal-when-a-declaration-does-not-need-to-be-accessed-outside-of-module) all potentially overriding declarations. `final` classes are [better optimized](https://github.com/apple/swift/blob/main/docs/OptimizationTips.rst#advice-use-final-when-you-know-the-declaration-does-not-need-to-be-overridden) by the compiler.
 
 This analysis can be disabled with `--disable-redundant-public-analysis`.
+
+### Open / Final Analysis
+
+This opt-in analysis, enabled with `--enable-open-final-analysis` (`enable_open_final_analysis: true`), reports two kinds of results:
+
+- `redundantOpenAccessibility`: a class or member marked `open` that is never subclassed or overridden outside its home module, so it could be `public`. An `open` member of a class that is not itself `open` is always reported, as it cannot be overridden outside the module.
+- `missingFinal`: a `public` or `internal` class that is never subclassed, or a member that is never overridden, so it could be `final`. Members of a class reported as a whole are not reported again, and constants, initializers, static members, actors and declarations already `final` are ignored. Objective-C accessible declarations are ignored with `--retain-objc-accessible`, as are `dynamic` members.
+
+Subclasses and overrides are read from the index store, which only describes the scanned modules. A subclass or override declared by an unscanned client module cannot be observed, therefore `redundantOpenAccessibility` is only reliable when every module that uses the `open` declarations is scanned, and it is skipped entirely with `--retain-public`. Subclasses and overrides declared in files that `@testable import` the home module do not count as being outside of it, as they only need `public` accessibility.
+
+Either kind can be excluded with `report_exclude`, e.g. `**/Generated/**:missingFinal`.
 
 ### Unused Imports
 

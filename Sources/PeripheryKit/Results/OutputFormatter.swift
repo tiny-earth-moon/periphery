@@ -35,6 +35,10 @@ extension OutputFormatter {
             "redundantProtocol"
         case .redundantPublicAccessibility:
             "redundantPublicAccessibility"
+        case .redundantOpenAccessibility:
+            "redundantOpenAccessibility"
+        case .missingFinal:
+            "missingFinal"
         case .superfluousIgnoreCommand:
             "superfluousIgnoreCommand"
         case let .unusedAssetCatalogSymbol(symbol):
@@ -70,6 +74,13 @@ extension OutputFormatter {
         case let .redundantPublicAccessibility(modules):
             let modulesJoined = modules.sorted().joined(separator: ", ")
             description += "Redundant public accessibility for \(kindDisplayName) '\(name)' (not used outside of \(modulesJoined))"
+        case .redundantOpenAccessibility:
+            let capitalizedKind = kindDisplayName.prefix(1).uppercased() + kindDisplayName.dropFirst()
+            let verb = result.declaration.kind == .class ? "subclassed" : "overridden"
+            description += "\(capitalizedKind) '\(name)' is open but never \(verb) outside its module"
+        case .missingFinal:
+            let capitalizedKind = kindDisplayName.prefix(1).uppercased() + kindDisplayName.dropFirst()
+            description += "\(capitalizedKind) '\(name)' could be final"
         case .superfluousIgnoreCommand:
             description += "Superfluous ignore comment for \(kindDisplayName) '\(name)' (declaration is referenced and should not be ignored)"
         case let .unusedAssetCatalogSymbol(symbol):

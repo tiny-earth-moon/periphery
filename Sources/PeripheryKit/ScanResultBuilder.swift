@@ -10,6 +10,8 @@ public enum ScanResultBuilder {
             .union(graph.unusedModuleImports)
         let redundantProtocols = graph.redundantProtocols.filter { !removableDeclarations.contains($0.0) }
         let redundantPublicAccessibility = graph.redundantPublicAccessibility.filter { !removableDeclarations.contains($0.0) }
+        let redundantOpenAccessibility = graph.redundantOpenAccessibility.filter { !removableDeclarations.contains($0.0) }
+        let missingFinalDeclarations = graph.missingFinalDeclarations.subtracting(removableDeclarations)
 
         let annotatedRemovableDeclarations: [ScanResult] = removableDeclarations.flatMap { removableDeclaration in
             var extensionResults = [ScanResult]()
@@ -48,6 +50,12 @@ public enum ScanResultBuilder {
         let annotatedRedundantPublicAccessibility: [ScanResult] = redundantPublicAccessibility.map {
             .init(declaration: $0.0, annotation: .redundantPublicAccessibility(modules: $0.1))
         }
+        let annotatedRedundantOpenAccessibility: [ScanResult] = redundantOpenAccessibility.map {
+            .init(declaration: $0.0, annotation: .redundantOpenAccessibility(modules: $0.1))
+        }
+        let annotatedMissingFinal: [ScanResult] = missingFinalDeclarations.map {
+            .init(declaration: $0, annotation: .missingFinal)
+        }
 
         let annotatedSuperfluousIgnoreCommands: [ScanResult] = {
             guard configuration.superfluousIgnoreComments else { return [] }
@@ -74,6 +82,8 @@ public enum ScanResultBuilder {
             annotatedUnassignedOptionalProperties +
             annotatedRedundantProtocols +
             annotatedRedundantPublicAccessibility +
+            annotatedRedundantOpenAccessibility +
+            annotatedMissingFinal +
             annotatedSuperfluousIgnoreCommands
 
         return allAnnotatedDeclarations

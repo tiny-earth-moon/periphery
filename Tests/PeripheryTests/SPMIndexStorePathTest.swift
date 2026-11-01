@@ -48,6 +48,23 @@ final class SPMIndexStorePathTest: XCTestCase {
         return (package, shell)
     }
 
+    func testBuildPassesAdditionalArgumentsAsLiteralArguments() throws {
+        let (package, shell) = makePackage(binPath: "/unused")
+        let arguments = ["-Xswiftc", "-DFLAG $(touch x)", "--scratch-path", "/tmp/it's here"]
+
+        try package.build(additionalArguments: arguments)
+
+        XCTAssertEqual(shell.commands.last, ["swift", "build", "--build-tests"] + arguments)
+    }
+
+    func testBinPathPassesLocationArgumentsAsLiteralArguments() throws {
+        let (package, shell) = makePackage(binPath: "/tmp/bin")
+
+        _ = try package.binPath(additionalArguments: ["--scratch-path", "/tmp/a b $(x)", "-v"])
+
+        XCTAssertEqual(shell.commands.last, ["swift", "build", "--show-bin-path", "--scratch-path", "/tmp/a b $(x)"])
+    }
+
     func testSwiftBuildBackendStore() throws {
         let bin = try makeDirectory(".build/out/Products/Debug")
         _ = try makeDirectory(".build/out/v5/units")

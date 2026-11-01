@@ -44,7 +44,8 @@ final class XcodebuildListDerivedDataTest: XCTestCase {
 
         let command = try listCommand(in: shell)
         let cachePath = try Constants.cachePath().string
-        XCTAssertTrue(command.contains("-IDECustomDerivedDataLocation='\(cachePath)/DerivedData-"), command)
+        XCTAssertTrue(command.contains("-IDECustomDerivedDataLocation=\(cachePath)/DerivedData-"), command)
+        XCTAssertFalse(command.contains("'"), command)
         XCTAssertTrue(cachePath.hasSuffix("/Library/Caches/com.github.tiny-earth-moon.periphery"), cachePath)
     }
 
@@ -53,10 +54,13 @@ final class XcodebuildListDerivedDataTest: XCTestCase {
         let (xcodebuild, project) = try makeProject(shell: shell)
 
         _ = try project.schemes(additionalArguments: [])
+        let listCommand = try listCommand(in: shell)
+        let derivedDataPath = try xcodebuild.derivedDataPath(for: project, schemes: [])
+        XCTAssertTrue(listCommand.contains("-IDECustomDerivedDataLocation=\(derivedDataPath.string)"), "\(derivedDataPath) not used by \(listCommand)")
+
+        try FileManager.default.createDirectory(atPath: derivedDataPath.string, withIntermediateDirectories: true)
         try xcodebuild.removeDerivedData(for: project, allSchemes: [])
 
-        let listCommand = try listCommand(in: shell)
-        let removed = try XCTUnwrap(shell.commands.last { $0.first == "rm" }?.last)
-        XCTAssertTrue(listCommand.contains("-IDECustomDerivedDataLocation='\(removed)'"), "\(removed) not used by \(listCommand)")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: derivedDataPath.string))
     }
 }
