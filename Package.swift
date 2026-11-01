@@ -134,6 +134,16 @@ var targets: [PackageDescription.Target] = [
         ]
     ),
     .testTarget(
+        name: "FrontendTests",
+        dependencies: [
+            .target(name: "Frontend"),
+            .target(name: "Configuration"),
+            .target(name: "Shared"),
+            .target(name: "Logger"),
+            .product(name: "ArgumentParser", package: "swift-argument-parser"),
+        ]
+    ),
+    .testTarget(
         name: "SPMTests",
         dependencies: [
             .target(name: "TestShared"),
