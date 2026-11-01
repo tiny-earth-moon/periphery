@@ -30,3 +30,13 @@ Conventional Commits with a scope, in English: `fix(indexer): ...`, `build: ...`
 - Release steps: merge, tag `X.Y.Z`, `gh release create`, update the formula in the `tiny-earth-moon/homebrew-tap` tap (tag tarball url + sha256), then update the HomeBank and Blendies Brewfiles.
 - External contributions: cherry-pick keeping the original author, add a `Co-authored-by` trailer, and thank the contributor on the original PR.
 - CI (`.github/workflows/test.yml`): macOS job (build, full tests, swiftformat, swiftlint) and a Bazel build job; both must be green before merging.
+
+## Importing changes from other forks
+
+- Use `git merge` or `git cherry-pick -x` so the original author and commit stay in the history; never rewrite an author.
+- Add a row to [README § Credits](README.md#credits): fix, author, original commit.
+- The MIT license applies: keep the original copyright notice ([LICENSE.md](LICENSE.md)) on imported code.
+
+## Reporting issues
+
+Use the [bug report template](.github/ISSUE_TEMPLATE/bug.md). Labels: `imported` (copied from another tracker, original reference and reporter kept), `needs-repro` (waiting for a minimal project), `P1` to `P3` (priority, P1 first).
