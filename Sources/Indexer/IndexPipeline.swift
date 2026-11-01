@@ -22,12 +22,12 @@ public struct IndexPipeline {
         self.swiftVersion = swiftVersion
     }
 
-    public func perform() throws -> Int {
+    public func perform() throws {
         try IndexCoverage(plan: plan, logger: logger, configuration: configuration).verify()
 
         // Generated String Catalog symbols are mapped to their keys rather than indexed as source.
         let generatedStringSymbolFiles = plan.sourceFiles.filter { configuration.isAnalyzedGeneratedStringSymbolsFile($0.key.path) }
-        let scannedLOC = try SwiftIndexer(
+        try SwiftIndexer(
             sourceFiles: plan.sourceFiles.filter { generatedStringSymbolFiles[$0.key] == nil },
             graph: graph,
             logger: logger,
@@ -88,6 +88,5 @@ public struct IndexPipeline {
         }
 
         graph.withLock { $0.indexingComplete() }
-        return scannedLOC
     }
 }
