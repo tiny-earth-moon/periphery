@@ -1,13 +1,35 @@
 {
   "sourceLanguage": "en",
-  "version": "1.0",
   "strings": {
-    "swiftui_used_key": {
+    "generated.count %lld": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "SwiftUI Used String"
+            "value": "generated.count %lld"
+          }
+        }
+      }
+    },
+    "generated.unused": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "generated.unused"
+          }
+        }
+      }
+    },
+    "generated.used": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "generated.used"
           }
         }
       }
@@ -31,7 +53,17 @@
           }
         }
       }
+    },
+    "swiftui_used_key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SwiftUI Used String"
+          }
+        }
+      }
     }
-  }
+  },
+  "version": "1.0"
 }
-

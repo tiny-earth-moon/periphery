@@ -58,4 +58,10 @@ final class SwiftUIProjectTest: XcodeSourceGraphTestCase {
         assertReferenced(.localizedString("swiftui_text_key"))
         assertNotReferenced(.localizedString("swiftui_unused_key"))
     }
+
+    func testRetainsKeysReferencedThroughGeneratedStringSymbols() {
+        assertReferenced(.localizedString("generated.used"))
+        assertReferenced(.localizedString("generated.count %lld"))
+        assertNotReferenced(.localizedString("generated.unused"))
+    }
 }

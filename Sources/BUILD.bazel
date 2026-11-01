@@ -26,6 +26,7 @@ swift_library(
     srcs = [
         "SyntaxAnalysis/CommentCommand.swift",
         "SyntaxAnalysis/DeclarationSyntaxVisitor.swift",
+        "SyntaxAnalysis/GeneratedStringSymbols.swift",
         "SyntaxAnalysis/ImportSyntaxVisitor.swift",
         "SyntaxAnalysis/LocalizedStringCallSite.swift",
         "SyntaxAnalysis/LocalizedStringSyntaxVisitor.swift",
@@ -217,6 +218,7 @@ swift_library(
 swift_library(
     name = "Indexer",
     srcs = [
+        "Indexer/GeneratedStringSymbolsIndexer.swift",
         "Indexer/IndexCoverage.swift",
         "Indexer/IndexPipeline.swift",
         "Indexer/IndexPlan.swift",
