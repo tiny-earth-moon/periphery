@@ -6,15 +6,15 @@ import Shared
 /// to declaration kinds with `Attribute:kind1,kind2`.
 final class AttributeRetainer: SourceGraphMutator {
     private let graph: SourceGraph
-    private let rules: [AttributeRetentionRule]
+    private let configuration: Configuration
 
     required init(graph: SourceGraph, configuration: Configuration, swiftVersion _: SwiftVersion) {
         self.graph = graph
-        // Entries are validated by `AttributeRetentionRule.resolve` before the scan, malformed ones are never retained.
-        rules = (try? AttributeRetentionRule.resolve(configuration)) ?? []
+        self.configuration = configuration
     }
 
-    func mutate() {
+    func mutate() throws {
+        let rules = try AttributeRetentionRule.resolve(configuration)
         guard !rules.isEmpty else { return }
 
         for declaration in graph.allDeclarations where !declaration.attributes.isEmpty {
