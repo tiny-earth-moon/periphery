@@ -35,6 +35,10 @@ public struct IndexPipeline {
             swiftVersion: swiftVersion
         ).perform()
 
+        if configuration.enableUnusedSystemImports, !configuration.disableUnusedImportAnalysis {
+            try SystemModuleIndexer(indexStorePaths: plan.indexStorePaths, graph: graph, logger: logger).perform()
+        }
+
         if !plan.plistPaths.isEmpty {
             try InfoPlistIndexer(
                 infoPlistFiles: plan.plistPaths,
