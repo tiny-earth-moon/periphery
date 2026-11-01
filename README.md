@@ -380,6 +380,17 @@ A member of a `private` extension marked `private` is reported although, strictl
 
 Periphery can only detect unused imports of targets it has scanned. It cannot detect unused imports of other targets because the Swift source files are unavailable and uses of `@_exported` cannot be observed. `@_exported` is problematic because it changes the public interface of a target such that the declarations exported by the target are no longer necessarily declared by the imported target. For example, the `Foundation` target exports `Dispatch`, among other targets. If any given source file imports `Foundation` and references `DispatchQueue` but no other declarations from `Foundation`, then the `Foundation` import cannot be removed as it would also make the `DispatchQueue` type unavailable. To avoid false positives, therefore, Periphery only detects unused imports of targets it has scanned.
 
+#### System Framework Imports
+
+By default, imports of system frameworks (`Foundation`, `UIKit`, `SwiftUI`, `Combine`, …) are not analysed. The opt-in `--enable-unused-system-imports` (`enable_unused_system_imports: true`) extends the analysis to them, using the system modules that the compiler indexes alongside your code (the `isSystem` units of the index store):
+
+- The module declaring each referenced system declaration is read from the index store records of the system modules, and from the module name mangled into Swift USRs (`s:10Foundation3URLV`).
+- Every module a system module depends on in the index store is treated as possibly re-exported by it, along with a short list of known re-exports (`Foundation` exports `Dispatch`, `Darwin`, `CoreFoundation` and `ObjectiveC`; `UIKit` and `AppKit` export `Foundation`; `SwiftUI` exports `SwiftUICore`; `Cocoa` exports `AppKit`, `Foundation` and `CoreData`). An import is therefore not reported when another imported framework may provide it, nor when the file uses a module the import may re-export: importing both `UIKit` and `Foundation` and using only `URL` reports neither.
+- A file referencing any declaration whose module cannot be determined has none of its system imports analysed.
+- System imports are only analysed when the index store contains the system modules. A store built without them (for example with `-index-ignore-system-modules`) reports no system import.
+
+Limitations: uses that leave no reference in the index store are invisible, such as `@objc` or `dynamic` without any other Objective-C runtime reference, so a file whose only use of `Foundation` is an `@objc` attribute is reported. Use `// periphery:ignore` on the import, or `retain_unused_imported_modules`, for such cases.
+
 Periphery will likely produce false positives for targets with mixed Swift and Objective-C, as Periphery cannot scan the Objective-C files. It is recommended, therefore, to disable unused import detection for projects with a significant amount of Objective-C or manually exclude the mixed language targets from the results.
 
 ### Platform Conditionals

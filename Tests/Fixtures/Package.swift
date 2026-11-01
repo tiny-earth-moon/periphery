@@ -45,6 +45,9 @@ var targets: [PackageDescription.Target] = [
         path: "Sources/UnusedImportFixtures/D"
     ),
     .target(
+        name: "UnusedSystemImportFixtures"
+    ),
+    .target(
         name: "RetentionFixtures",
         dependencies: [
             .target(name: "ExternalModuleFixtures"),

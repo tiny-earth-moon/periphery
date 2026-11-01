@@ -101,6 +101,9 @@ public final class Configuration {
     @Setting(key: "disable_unused_import_analysis", defaultValue: false)
     public var disableUnusedImportAnalysis: Bool
 
+    @Setting(key: "enable_unused_system_imports", defaultValue: false)
+    public var enableUnusedSystemImports: Bool
+
     @Setting(key: "disable_unused_localized_string_analysis", defaultValue: false)
     public var disableUnusedLocalizedStringAnalysis: Bool
 
@@ -306,7 +309,7 @@ public final class Configuration {
         $project, $schemes, $excludeTargets, $excludeTests, $indexExclude, $reportExclude, $reportInclude, $outputFormat,
         $retainPublic, $noRetainSPI, $retainFiles, $retainAssignOnlyProperties, $retainAssignOnlyPropertyTypes, $enableUnassignedOptionalAnalysis, $retainObjcAccessible,
         $retainJsAccessible, $retainObjcAnnotated, $retainUnusedProtocolFuncParams, $retainUnusedParametersWithoutDefault, $retainSwiftUIPreviews, $disableRedundantPublicAnalysis, $enableOpenFinalAnalysis, $enableRedundantAccessLevelAnalysis,
-        $disablePlatformConditionalRetention, $disableUnusedImportAnalysis, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $retainRuntimeLocalizedKeys, $superfluousIgnoreComments, $retainUnusedImportedModules,
+        $disablePlatformConditionalRetention, $disableUnusedImportAnalysis, $enableUnusedSystemImports, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $retainRuntimeLocalizedKeys, $superfluousIgnoreComments, $retainUnusedImportedModules,
         $externalEncodableProtocols, $externalCodableProtocols, $externalTestCaseClasses, $verbose, $quiet, $color,
         $disableUpdateCheck, $strict, $indexStorePath,
         $skipBuild, $skipSchemesValidation, $cleanBuild, $cacheMaxAgeDays, $buildArguments, $xcodeListArguments, $relativeResults,

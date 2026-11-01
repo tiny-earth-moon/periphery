@@ -10,11 +10,13 @@ final class UnusedImportMarker: SourceGraphMutator {
     private let graph: SourceGraph
     private let configuration: Configuration
     private let retainedModules: Set<String>
+    private let analysesSystemImports: Bool
 
     required init(graph: SourceGraph, configuration: Configuration, swiftVersion _: SwiftVersion) {
         self.graph = graph
         self.configuration = configuration
         retainedModules = Set(configuration.retainUnusedImportedModules)
+        analysesSystemImports = configuration.enableUnusedSystemImports
     }
 
     func mutate() throws {
@@ -24,24 +26,43 @@ final class UnusedImportMarker: SourceGraphMutator {
             result[file] = []
         }
         var moduleCache: [String: Set<String>] = [:]
+        // References whose declaring module is unknown, with system import analysis enabled.
+        var unresolvedUsrs: Set<String> = []
+        // Files referencing a declaration of unknown module, whose system imports are not analysed.
+        var filesWithUnresolvedReferences: Set<SourceFile> = []
 
         // Build a mapping of source files and the modules they reference.
         for ref in graph.allReferences {
             if let modules = moduleCache[ref.usr] {
                 referencedModulesByFile[ref.location.file, default: []].formUnion(modules)
+                if unresolvedUsrs.contains(ref.usr) {
+                    filesWithUnresolvedReferences.insert(ref.location.file)
+                }
                 continue
             }
 
             var directModules: Set<String> = []
             var indirectModules: Set<String> = []
+            var isUnresolved = false
 
             if let decl = graph.declaration(withUsr: ref.usr) {
                 directModules = decl.location.file.modules
                 let indirectRefs = referencedTypes(from: decl)
 
                 indirectModules = indirectRefs
-                    .compactMap { graph.declaration(withUsr: $0.usr) }
-                    .flatMapSet(\.location.file.modules)
+                    .flatMapSet { indirectRef -> Set<String> in
+                        if let indirectDecl = graph.declaration(withUsr: indirectRef.usr) {
+                            return indirectDecl.location.file.modules
+                        }
+
+                        guard analysesSystemImports else { return [] }
+                        guard let systemModules = graph.systemModules(forUsr: indirectRef.usr) else {
+                            isUnresolved = true
+                            return []
+                        }
+
+                        return systemModules
+                    }
                     .union(indirectRefs.flatMapSet { modulesExtending($0) })
 
                 if decl.isOverride {
@@ -49,6 +70,17 @@ final class UnusedImportMarker: SourceGraphMutator {
                         .flatMapSet(\.location.file.modules)
                     indirectModules.formUnion(overrideModules)
                 }
+            } else if analysesSystemImports, ref.declarationKind != .module {
+                if let systemModules = graph.systemModules(forUsr: ref.usr) {
+                    directModules = systemModules
+                } else {
+                    isUnresolved = true
+                }
+            }
+
+            if isUnresolved {
+                unresolvedUsrs.insert(ref.usr)
+                filesWithUnresolvedReferences.insert(ref.location.file)
             }
 
             let referencedModules = directModules
@@ -56,6 +88,12 @@ final class UnusedImportMarker: SourceGraphMutator {
                 .union(modulesExtending(ref))
             moduleCache[ref.usr] = referencedModules
             referencedModulesByFile[ref.location.file, default: []].formUnion(referencedModules)
+        }
+
+        func analysesSystemModule(_ module: String, in file: SourceFile) -> Bool {
+            analysesSystemImports &&
+                graph.isSystemModuleIndexed(module) &&
+                !filesWithUnresolvedReferences.contains(file)
         }
 
         // For each source file, determine whether its imports are unused.
@@ -80,8 +118,9 @@ final class UnusedImportMarker: SourceGraphMutator {
                         // Exclude explicitly retained modules.
                         !retainedModules.contains($0.module) &&
                         // Only Consider modules that have been indexed as we need to see which modules
-                        // they export.
-                        graph.isModuleIndexed($0.module) &&
+                        // they export. System modules are only considered when every referenced declaration
+                        // of the file has a known module.
+                        (graph.isModuleIndexed($0.module) || analysesSystemModule($0.module, in: file)) &&
                         !referencedModules.contains($0.module) &&
                         !graph.moduleExportsUnindexedModules($0.module)
                 }

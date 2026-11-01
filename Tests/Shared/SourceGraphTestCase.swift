@@ -53,7 +53,8 @@ open class SourceGraphTestCase: XCTestCase {
                 xibPaths: plan.xibPaths.union(xibPaths),
                 xcDataModelPaths: plan.xcDataModelPaths,
                 xcMappingModelPaths: plan.xcMappingModelPaths,
-                xcStringsPaths: plan.xcStringsPaths
+                xcStringsPaths: plan.xcStringsPaths,
+                indexStorePaths: plan.indexStorePaths
             )
         }
 
@@ -75,6 +76,13 @@ open class SourceGraphTestCase: XCTestCase {
             swiftVersion: swiftVersion
         ).perform()
         results = ScanResultBuilder.build(for: graph, configuration: configuration)
+    }
+
+    /// The modules whose import is reported unused in the source file with the given name.
+    func unusedImportedModules(inFileNamed fileName: String) -> Set<String> {
+        Set(Self.graph.unusedModuleImports
+            .filter { $0.location.file.path.lastComponent?.string == fileName }
+            .map(\.name))
     }
 
     func assertReferenced(_ description: DeclarationDescription, scopedAssertions: (() -> Void)? = nil, file: StaticString = #file, line: UInt = #line) {
