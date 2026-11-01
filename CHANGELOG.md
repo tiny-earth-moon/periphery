@@ -12,6 +12,20 @@
 
 - None.
 
+## 3.12.6 (2026-11-01)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- `report_exclude` entries may carry `kinds` (`{path: "**/SharedKit/**", kinds: [unused.function, unused.var.parameter]}` or the compact `"**/SharedKit/**:unused.function,unused.var.parameter"`) so that only those result kinds are excluded under the matched paths; plain strings keep excluding everything. Unknown kinds raise a usage error before the scan. `--report-exclude` accepts the compact form. [#86](https://github.com/tiny-earth-moon/periphery/issues/86)
+
+##### Bug Fixes
+
+- None.
+
 ## 3.12.5 (2026-11-01)
 
 ##### Breaking
