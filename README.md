@@ -706,7 +706,29 @@ You have a few options to work around this:
 
 - Use [Comment Commands](#comment-commands) to explicitly ignore `releaseName`.
 - Filter the results to remove known instances.
-- Run Periphery once for each build configuration and merge the results. You can pass arguments to the underlying build by specifying them after `--`, e.g., `periphery scan ... -- -configuration release`.
+- Run Periphery once for each build configuration and keep only the results common to all of them (see below). You can pass arguments to the underlying build by specifying them after `--`, e.g., `periphery scan ... -- -configuration release`.
+
+#### Merging the results of several build configurations
+
+"Merge" means **intersection**, not union. A declaration used only under `#if DEBUG` is reported as unused in the Release run, yet it is not dead code: it is used in Debug. In the example above, Debug reports `releaseName` and Release reports `debugName`, and neither is dead. A declaration is only truly unused if **every** configuration reports it, so keep only the results present in all of them.
+
+Run one scan per configuration and save each report as JSON:
+
+```sh
+periphery scan --format json ... -- -configuration Debug > results-debug.json
+periphery scan --format json ... -- -configuration Release > results-release.json
+```
+
+Then compute the intersection with [jq](https://jqlang.github.io/jq/). A result is identified by its `location`, `kind`, `name` and `hints`; add more `results-*.json` files to intersect more configurations.
+
+```sh
+jq -s 'def id: "\(.location)|\(.kind)|\(.name)|\(.hints | join(","))";
+  map(map({key: id, value: .}) | from_entries) as $sets
+  | ($sets | map(keys) | add | group_by(.) | map(select(length == ($sets | length))[0])) as $common
+  | $sets[0] | with_entries(select(.key as $k | $common | index($k))) | [.[]]' results-*.json
+```
+
+The output is a JSON array of the results reported by every configuration. If a declaration's line or column differs between configurations (e.g. it sits inside a conditional block), use `\(.location | sub(":[0-9]+:[0-9]+$"; ""))` in `id` to compare on the file and name only.
 
 ### Swift package is platform-specific
 
