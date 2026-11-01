@@ -70,6 +70,9 @@ struct ScanCommand: ParsableCommand {
     @Flag(help: "Enable identification of redundant open accessibility and classes or members that could be final")
     var enableOpenFinalAnalysis: Bool = defaultConfiguration.$enableOpenFinalAnalysis.defaultValue
 
+    @Flag(help: "Enable identification of empty extensions, which declare no member and no conformance")
+    var enableEmptyExtensionAnalysis: Bool = defaultConfiguration.$enableEmptyExtensionAnalysis.defaultValue
+
     @Flag(help: "Enable identification of access modifiers identical to the default of their enclosing context")
     var enableRedundantAccessLevelAnalysis: Bool = defaultConfiguration.$enableRedundantAccessLevelAnalysis.defaultValue
 
@@ -254,6 +257,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$retainSwiftUIPreviews, retainSwiftUIPreviews)
         configuration.apply(\.$disableRedundantPublicAnalysis, disableRedundantPublicAnalysis)
         configuration.apply(\.$enableOpenFinalAnalysis, enableOpenFinalAnalysis)
+        configuration.apply(\.$enableEmptyExtensionAnalysis, enableEmptyExtensionAnalysis)
         configuration.apply(\.$enableRedundantAccessLevelAnalysis, enableRedundantAccessLevelAnalysis)
         configuration.apply(\.$disablePlatformConditionalRetention, disablePlatformConditionalRetention)
         configuration.apply(\.$disableUnusedImportAnalysis, disableUnusedImportAnalysis)

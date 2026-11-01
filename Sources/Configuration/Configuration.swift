@@ -92,6 +92,9 @@ public final class Configuration {
     @Setting(key: "enable_open_final_analysis", defaultValue: false)
     public var enableOpenFinalAnalysis: Bool
 
+    @Setting(key: "enable_empty_extension_analysis", defaultValue: false)
+    public var enableEmptyExtensionAnalysis: Bool
+
     @Setting(key: "enable_redundant_access_level_analysis", defaultValue: false)
     public var enableRedundantAccessLevelAnalysis: Bool
 
@@ -308,7 +311,7 @@ public final class Configuration {
     lazy var settings: [any AbstractSetting] = [
         $project, $schemes, $excludeTargets, $excludeTests, $indexExclude, $reportExclude, $reportInclude, $outputFormat,
         $retainPublic, $noRetainSPI, $retainFiles, $retainAssignOnlyProperties, $retainAssignOnlyPropertyTypes, $enableUnassignedOptionalAnalysis, $retainObjcAccessible,
-        $retainJsAccessible, $retainObjcAnnotated, $retainUnusedProtocolFuncParams, $retainUnusedParametersWithoutDefault, $retainSwiftUIPreviews, $disableRedundantPublicAnalysis, $enableOpenFinalAnalysis, $enableRedundantAccessLevelAnalysis,
+        $retainJsAccessible, $retainObjcAnnotated, $retainUnusedProtocolFuncParams, $retainUnusedParametersWithoutDefault, $retainSwiftUIPreviews, $disableRedundantPublicAnalysis, $enableOpenFinalAnalysis, $enableEmptyExtensionAnalysis, $enableRedundantAccessLevelAnalysis,
         $disablePlatformConditionalRetention, $disableUnusedImportAnalysis, $enableUnusedSystemImports, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $retainRuntimeLocalizedKeys, $superfluousIgnoreComments, $retainUnusedImportedModules,
         $externalEncodableProtocols, $externalCodableProtocols, $externalTestCaseClasses, $verbose, $quiet, $color,
         $disableUpdateCheck, $strict, $indexStorePath,
