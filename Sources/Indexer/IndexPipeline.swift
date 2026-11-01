@@ -20,6 +20,8 @@ public struct IndexPipeline {
     }
 
     public func perform() throws -> Int {
+        try IndexCoverage(plan: plan, logger: logger, configuration: configuration).verify()
+
         let scannedLOC = try SwiftIndexer(
             sourceFiles: plan.sourceFiles,
             graph: graph,

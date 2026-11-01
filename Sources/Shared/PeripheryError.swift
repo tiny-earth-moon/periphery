@@ -21,6 +21,7 @@ public enum PeripheryError: Error, LocalizedError, CustomStringConvertible {
     case indexStoreNotFoundAfterSkippedBuild(tried: [String])
     case spmIndexStoreNotFound(tried: [String])
     case changeCurrentDirectoryFailed(FilePath)
+    case noIndexedSourceFiles(fileCount: Int, indexStorePaths: [String])
 
     public var errorDescription: String? {
         switch self {
@@ -66,6 +67,9 @@ public enum PeripheryError: Error, LocalizedError, CustomStringConvertible {
             return "Failed to locate the SwiftPM index store. Looked for a 'v5' directory in:\(paths)\nBuild the package first (e.g. 'swift build --build-tests'), or pass the location of the index store with '--index-store-path'."
         case let .changeCurrentDirectoryFailed(path):
             return "Failed to change current directory to: \(path)"
+        case let .noIndexedSourceFiles(fileCount, indexStorePaths):
+            let paths = indexStorePaths.map { "\n  - \($0)" }.joined()
+            return "None of the \(fileCount) source file(s) of the scanned targets have index data, so no results can be reported. Index store(s):\(paths)\nThe index store is probably stale or was produced by a different build; rebuild the project and make sure '--index-store-path' points to its index store."
         }
     }
 

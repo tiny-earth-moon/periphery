@@ -209,6 +209,7 @@ swift_library(
 swift_library(
     name = "Indexer",
     srcs = [
+        "Indexer/IndexCoverage.swift",
         "Indexer/IndexPipeline.swift",
         "Indexer/IndexPlan.swift",
         "Indexer/Indexer.swift",
