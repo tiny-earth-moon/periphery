@@ -12,6 +12,26 @@
 
 - None.
 
+## 3.12.12 (2026-11-01)
+
+##### Breaking
+
+- Commands are run without a shell: each element of `build_arguments`, `xcode_list_arguments` and of the CLI arguments after `--` is passed as exactly one argument. An element such as `"-destination generic/platform=iOS"` is no longer split by the shell and must be written as two elements. [#143](https://github.com/tiny-earth-moon/periphery/issues/143)
+- The cache directory moves from `~/Library/Caches/com.github.peripheryapp` to `~/Library/Caches/com.github.tiny-earth-moon.periphery`; the cache is rebuilt on the next scan. [#149](https://github.com/tiny-earth-moon/periphery/issues/149)
+
+##### Enhancements
+
+- New opt-in `enable_open_final_analysis` / `--enable-open-final-analysis`: reports `open` declarations never subclassed or overridden outside their module and non-final classes and members with no subclass or override (`redundantOpenAccessibility`, `missingFinal`). [#72](https://github.com/tiny-earth-moon/periphery/issues/72)
+- Repository hardening: CI token restricted to read, actions pinned by commit, `SECURITY.md`, Dependabot, pinned Docker images; the upstream Bazel Central Registry publishing files are removed. [#141](https://github.com/tiny-earth-moon/periphery/issues/141)
+- The `swift-index-store` and `swift-filename-matcher` dependencies are fetched from forks under this account, at the same revision and tag. [#150](https://github.com/tiny-earth-moon/periphery/issues/150)
+
+##### Bug Fixes
+
+- Security: commands no longer run through `/bin/bash -c`; scheme names, paths, build arguments and Bazel queries are passed literally, so a crafted project or configuration can no longer execute code through the shell. The Bazel generated files move from the world-shared `/var/tmp/periphery_bazel` to a per-user directory under the cache. [#143](https://github.com/tiny-earth-moon/periphery/issues/143)
+- Periphery no longer contacts `api.periphery.pro` after a scan (project line count was sent, with a promotional message). [#140](https://github.com/tiny-earth-moon/periphery/issues/140)
+- The update check queries this repository's releases and no longer prints the upstream sponsor message. [#139](https://github.com/tiny-earth-moon/periphery/issues/139)
+- The guided setup error links to this repository's README. [#149](https://github.com/tiny-earth-moon/periphery/issues/149)
+
 ## 3.12.11 (2026-11-01)
 
 ##### Breaking
