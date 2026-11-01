@@ -45,5 +45,19 @@
             assertReferenced(.class("SPMDeclaredModelTransformer"))
             assertNotReferenced(.class("SPMUnusedModelTransformer"))
         }
+
+        func testStatePropertyReads() {
+            assertReferenced(.struct("StateMacroView")) {
+                self.assertReferenced(.varInstance("projected"))
+                self.assertReferenced(.varInstance("direct"))
+                self.assertReferenced(.varInstance("backing"))
+                self.assertReferenced(.varInstance("qualified"))
+                self.assertReferenced(.varInstance("crossFile"))
+                self.assertReferenced(.varInstance("rootRead"))
+                self.assertNotReferenced(.varInstance("unused"))
+                self.assertNotReferenced(.varInstance("deadBinding"))
+                self.assertNotReferenced(.functionMethodInstance("unusedBinding()"))
+            }
+        }
     }
 #endif
