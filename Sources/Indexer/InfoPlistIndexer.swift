@@ -12,11 +12,13 @@ final class InfoPlistIndexer: Indexer {
     private let infoPlistFiles: Set<FilePath>
     private let graph: SourceGraphMutex
     private let logger: ContextualLogger
+    private let collectsImageNames: Bool
 
     required init(infoPlistFiles: Set<FilePath>, graph: SourceGraphMutex, logger: ContextualLogger, configuration: Configuration) {
         self.infoPlistFiles = infoPlistFiles
         self.graph = graph
         self.logger = logger.contextualized(with: "infoplist")
+        collectsImageNames = configuration.detectUnusedAssetCatalogImages
         super.init(configuration: configuration)
     }
 
@@ -29,10 +31,12 @@ final class InfoPlistIndexer: Indexer {
 
             let elapsed = try Benchmark.measure {
                 do {
-                    let refs = try InfoPlistParser(path: path)
-                        .parse()
+                    let parser = InfoPlistParser(path: path)
+                    let refs = try parser.parse()
+                    let imageNames = try self.collectsImageNames ? parser.imageNames() : []
                     self.graph.withLock { graph in
                         refs.forEach { graph.add($0) }
+                        graph.addAssetCatalogNameReferences(imageNames)
                     }
                 } catch {
                     throw PlistError.failedToParse(path: path, underlyingError: error)

@@ -225,6 +225,9 @@ struct ScanCommand: ParsableCommand {
     @Flag(help: "Report unused colors of Xcode asset catalogs, analyzing the symbols Xcode generates for them in GeneratedAssetSymbols.swift (indexed despite '--index-exclude')")
     var detectUnusedAssetCatalogColors: Bool = defaultConfiguration.$detectUnusedAssetCatalogColors.defaultValue
 
+    @Flag(help: "Report unused images of Xcode asset catalogs, analyzing the symbols Xcode generates for them in GeneratedAssetSymbols.swift (indexed despite '--index-exclude')")
+    var detectUnusedAssetCatalogImages: Bool = defaultConfiguration.$detectUnusedAssetCatalogImages.defaultValue
+
     private static let defaultConfiguration = Configuration()
 
     func run() throws {
@@ -307,6 +310,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$retainSynthesizedUses, retainSynthesizedUses)
         configuration.apply(\.$retainAttributes, retainAttributes)
         configuration.apply(\.$detectUnusedAssetCatalogColors, detectUnusedAssetCatalogColors)
+        configuration.apply(\.$detectUnusedAssetCatalogImages, detectUnusedAssetCatalogImages)
 
         configuration.buildFilenameMatchers()
         _ = try ReportExcludeRule.resolve(configuration)

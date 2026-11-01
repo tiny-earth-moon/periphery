@@ -14,14 +14,14 @@ final class AssetCatalogLocator {
     }
 
     /// The asset directories of the given asset, e.g. `Assets.xcassets/Brand/Primary.colorset` for a
-    /// `Brand/Primary` color in a folder that provides a namespace. Empty when no catalog declares it.
+    /// `Brand/Primary` color in a folder that provides a namespace, or `Assets.xcassets/Logo.imageset` for an image. Empty when no catalog declares it.
     func assetPaths(named name: String, kind: AssetCatalogSymbolKind) -> [FilePath] {
         let components = name.split(separator: "/").map(String.init)
         guard let last = components.last else { return [] }
 
         let namespace = Array(components.dropLast())
 
-        return directories(withExtension: kind.assetDirectoryExtension).filter { path in
+        return kind.assetDirectoryExtensions.flatMap(directories(withExtension:)).filter { path in
             guard path.stem == last else { return false }
 
             let folders = path.removingLastComponent().components.map(\.string)

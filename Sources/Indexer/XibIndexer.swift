@@ -13,12 +13,14 @@ final class XibIndexer: Indexer {
     private let graph: SourceGraphMutex
     private let logger: ContextualLogger
     private let collectsNamedColors: Bool
+    private let collectsNamedImages: Bool
 
     required init(xibFiles: Set<FilePath>, graph: SourceGraphMutex, logger: ContextualLogger, configuration: Configuration) {
         self.xibFiles = xibFiles
         self.graph = graph
         self.logger = logger.contextualized(with: "xib")
-        collectsNamedColors = configuration.detectsUnusedAssetCatalogSymbols
+        collectsNamedColors = configuration.detectUnusedAssetCatalogColors
+        collectsNamedImages = configuration.detectUnusedAssetCatalogImages
         super.init(configuration: configuration)
     }
 
@@ -33,10 +35,12 @@ final class XibIndexer: Indexer {
                 do {
                     let parser = XibParser(path: xibPath)
                     let refs = try parser.parse()
-                    let colorNames = try self.collectsNamedColors ? parser.namedColors() : []
+                    let assetNames = self.collectsNamedColors || self.collectsNamedImages
+                        ? try parser.namedAssets(colors: self.collectsNamedColors, images: self.collectsNamedImages)
+                        : []
                     self.graph.withLock { graph in
                         refs.forEach { graph.add($0) }
-                        graph.addAssetCatalogNameReferences(colorNames)
+                        graph.addAssetCatalogNameReferences(assetNames)
                     }
                 } catch {
                     throw XibError.failedToParse(path: xibPath, underlyingError: error)

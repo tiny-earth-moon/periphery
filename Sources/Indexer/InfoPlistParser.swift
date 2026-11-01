@@ -4,10 +4,13 @@ import SourceGraph
 import SystemPackage
 
 final class InfoPlistParser {
-    private static let elements = [
+    private static let elements: Set<String> = [
         "UISceneClassName", "UISceneDelegateClassName", "NSPrincipalClass",
         "NSExtensionPrincipalClass", "CLKComplicationPrincipalClass", "WKExtensionDelegateClassName",
     ]
+    /// Keys whose value names an asset catalog image: the launch screen image, home screen quick action icons and
+    /// the app icon.
+    private static let imageNameKeys: Set<String> = ["UIImageName", "UIApplicationShortcutItemIconFile", "CFBundleIconName"]
     private let path: FilePath
 
     required init(path: FilePath) {
@@ -24,19 +27,28 @@ final class InfoPlistParser {
         }
     }
 
+    /// The asset catalog image names the file references, e.g. `<key>UIImageName</key><string>Launch</string>`
+    /// in `UILaunchScreen`.
+    func imageNames() throws -> Set<String> {
+        let data = try Data(contentsOf: URL(fileURLWithPath: path.string))
+        let structure = try AEXMLDocument(xml: data)
+
+        return Set(filter(structure.root, keys: Self.imageNameKeys).filter { $0.name == "string" }.map(\.string))
+    }
+
     // MARK: - Private
 
-    private func filter(_ parent: AEXMLElement) -> [AEXMLElement] {
+    private func filter(_ parent: AEXMLElement, keys: Set<String> = InfoPlistParser.elements) -> [AEXMLElement] {
         var elements: [AEXMLElement] = []
 
         for (i, child) in parent.children.enumerated() {
-            if child.name == "key", Self.elements.contains(child.string) {
+            if child.name == "key", keys.contains(child.string) {
                 if let nextElement = parent.children[safe: i + 1] {
                     elements.append(nextElement)
                 }
             }
 
-            elements += filter(child)
+            elements += filter(child, keys: keys)
         }
 
         return elements

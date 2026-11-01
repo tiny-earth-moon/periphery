@@ -37,21 +37,35 @@ final class XibParser {
     /// The asset catalog color names used by the file, e.g. `<color key="backgroundColor" name="Brand"/>` and
     /// `<namedColor name="Brand">`.
     func namedColors() throws -> Set<String> {
+        try namedAssets(colors: true, images: false)
+    }
+
+    /// The asset catalog names used by the file: colors (see `namedColors()`) and images, e.g.
+    /// `<imageView image="Logo">`, `<state key="normal" image="Logo"/>` and `<image name="Logo">`.
+    func namedAssets(colors: Bool, images: Bool) throws -> Set<String> {
         let data = try Data(contentsOf: URL(fileURLWithPath: path.string))
 
         var names: Set<String> = []
-        collectNamedColors(from: try AEXMLDocument(xml: data).root, into: &names)
+        collectNamedAssets(from: try AEXMLDocument(xml: data).root, colors: colors, images: images, into: &names)
         return names
     }
 
     // MARK: - Private
 
-    private func collectNamedColors(from element: AEXMLElement, into names: inout Set<String>) {
-        if ["color", "namedColor"].contains(element.name), let name = element.attributes["name"] {
+    private func collectNamedAssets(from element: AEXMLElement, colors: Bool, images: Bool, into names: inout Set<String>) {
+        if colors, ["color", "namedColor"].contains(element.name), let name = element.attributes["name"] {
             names.insert(name)
         }
+        if images {
+            if element.name == "image", let name = element.attributes["name"] {
+                names.insert(name)
+            }
+            for (key, value) in element.attributes where key == "image" || key.hasSuffix("Image") {
+                names.insert(value)
+            }
+        }
         for child in element.children {
-            collectNamedColors(from: child, into: &names)
+            collectNamedAssets(from: child, colors: colors, images: images, into: &names)
         }
     }
 
