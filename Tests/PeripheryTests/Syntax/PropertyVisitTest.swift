@@ -160,6 +160,15 @@ final class PropertyVisitTest: XCTestCase {
         XCTAssertTrue(tupleElementB.hasNonNilInitialValue)
     }
 
+    func testSetterAccessModifier_doesNotSetAccessibility() {
+        let privateSetter = results[fixtureLocation(line: 29, column: 22)]!
+        XCTAssertNil(privateSetter.accessibility)
+        XCTAssertTrue(privateSetter.modifiers.contains("private"))
+
+        let internalSetter = results[fixtureLocation(line: 30, column: 30)]!
+        XCTAssertEqual(internalSetter.accessibility, .public)
+    }
+
     // MARK: - Private
 
     private var fixturePath: SourceFile {

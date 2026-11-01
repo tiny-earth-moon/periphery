@@ -341,7 +341,8 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
         at position: AbsolutePosition
     ) {
         let modifierNames = modifiers?.map(\.name.text) ?? []
-        let accessibility = modifierNames.mapFirst { Accessibility(rawValue: $0) }
+        // Setter access modifiers such as `private(set)` do not set the access level of the declaration.
+        let accessibility = modifiers?.filter { $0.detail == nil }.mapFirst { Accessibility(rawValue: $0.name.text) }
 
         var parsedAttributes: Set<DeclarationAttribute> = []
 
