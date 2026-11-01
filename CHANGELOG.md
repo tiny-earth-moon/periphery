@@ -12,6 +12,21 @@
 
 - None.
 
+## 3.12.16 (2026-11-01)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- Bazel: Swift protobuf targets (`ProtobufAPIVersionCheckRetainer`), Apple embedded targets and resource buckets, storyboard and XIB resource groups, and Core Data model paths, ported from agoodkind/periphery with the original author kept; two verification workflows scan the Bazel fixtures in CI. [#122](https://github.com/tiny-earth-moon/periphery/issues/122)
+- String Catalog parse failures now carry a readable description with the catalog path. [#122](https://github.com/tiny-earth-moon/periphery/issues/122)
+
+##### Bug Fixes
+
+- Declarations that only appear inside a platform conditional block (`#if os`, `#if canImport`, …) no longer retain themselves: the extended type of an `extension`, declared functions, protocols and type aliases are not collected as references anymore, so unused declarations in such blocks can be reported. [#122](https://github.com/tiny-earth-moon/periphery/issues/122)
+
 ## 3.12.15 (2026-11-01)
 
 ##### Breaking
