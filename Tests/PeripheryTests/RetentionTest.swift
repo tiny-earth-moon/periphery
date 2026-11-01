@@ -1358,6 +1358,24 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    func testRetainsPropertyUsedAsDictionaryKey() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureStruct1200")) {
+                self.assertReferenced(.varInstance("path"))
+                self.assertNotAssignOnlyProperty(.varInstance("path"))
+                self.assertReferenced(.varInstance("name"))
+            }
+            assertReferenced(.class("FixtureClass1201")) {
+                self.assertReferenced(.varInstance("identifier"))
+                self.assertNotAssignOnlyProperty(.varInstance("identifier"))
+            }
+            assertReferenced(.class("FixtureClass1203")) {
+                self.assertReferenced(.varInstance("key"))
+                self.assertNotAssignOnlyProperty(.varInstance("key"))
+            }
+        }
+    }
+
     func testRetainsDynamicReplacement() {
         analyze(retainPublic: true) {
             assertReferenced(.struct("FixtureStruct8")) {
