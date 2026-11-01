@@ -15,15 +15,9 @@ public enum ResultKind {
         "unused", "assignOnlyProperty", "redundantProtocol", "redundantPublicAccessibility", "superfluousIgnoreCommand",
     ]
 
-    static let identifiers: Set<String> = {
-        let declarationKinds = Declaration.Kind.allCases.flatMap { kind -> [String] in
-            let components = kind.rawValue.split(separator: ".")
-            return (1 ... components.count).map { components.prefix($0).joined(separator: ".") }
-        }
-        return annotationNames.union(annotationNames.flatMap { annotation in
-            declarationKinds.map { "\(annotation).\($0)" }
-        })
-    }()
+    static let identifiers: Set<String> = annotationNames.union(annotationNames.flatMap { annotation in
+        Declaration.Kind.identifiers.map { "\(annotation).\($0)" }
+    })
 
     public static func isValid(_ identifier: String) -> Bool {
         identifiers.contains(identifier)
