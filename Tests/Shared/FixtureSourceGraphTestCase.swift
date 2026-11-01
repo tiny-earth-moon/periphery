@@ -15,6 +15,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         retainPublic: Bool = false,
         noRetainSPI: [String] = [],
         retainObjcAccessible: Bool = false,
+        retainJsAccessible: Bool = false,
         retainObjcAnnotated: Bool = false,
         disableRedundantPublicAnalysis: Bool = false,
         superfluousIgnoreComments: Bool = true,
@@ -42,6 +43,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         configuration.retainPublic = retainPublic
         configuration.noRetainSPI = noRetainSPI
         configuration.retainObjcAccessible = retainObjcAccessible
+        configuration.retainJsAccessible = retainJsAccessible
         configuration.retainObjcAnnotated = retainObjcAnnotated
         configuration.retainAssignOnlyProperties = retainAssignOnlyProperties
         configuration.disableRedundantPublicAnalysis = disableRedundantPublicAnalysis

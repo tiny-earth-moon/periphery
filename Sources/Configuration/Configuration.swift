@@ -59,6 +59,9 @@ public final class Configuration {
     @Setting(key: "retain_objc_accessible", defaultValue: false)
     public var retainObjcAccessible: Bool
 
+    @Setting(key: "retain_js_accessible", defaultValue: false)
+    public var retainJsAccessible: Bool
+
     @Setting(key: "retain_objc_annotated", defaultValue: false)
     public var retainObjcAnnotated: Bool
 
@@ -293,7 +296,7 @@ public final class Configuration {
     lazy var settings: [any AbstractSetting] = [
         $project, $schemes, $excludeTargets, $excludeTests, $indexExclude, $reportExclude, $reportInclude, $outputFormat,
         $retainPublic, $noRetainSPI, $retainFiles, $retainAssignOnlyProperties, $retainAssignOnlyPropertyTypes, $enableUnassignedOptionalAnalysis, $retainObjcAccessible,
-        $retainObjcAnnotated, $retainUnusedProtocolFuncParams, $retainUnusedParametersWithoutDefault, $retainSwiftUIPreviews, $disableRedundantPublicAnalysis,
+        $retainJsAccessible, $retainObjcAnnotated, $retainUnusedProtocolFuncParams, $retainUnusedParametersWithoutDefault, $retainSwiftUIPreviews, $disableRedundantPublicAnalysis,
         $disablePlatformConditionalRetention, $disableUnusedImportAnalysis, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $superfluousIgnoreComments, $retainUnusedImportedModules,
         $externalEncodableProtocols, $externalCodableProtocols, $externalTestCaseClasses, $verbose, $quiet, $color,
         $disableUpdateCheck, $strict, $indexStorePath,
