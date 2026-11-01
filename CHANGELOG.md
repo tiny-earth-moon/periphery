@@ -12,6 +12,20 @@
 
 - None.
 
+## 3.12.15 (2026-11-01)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- New opt-in `detect_unused_asset_catalog_images` / `--detect-unused-asset-catalog-images`: reports asset catalog images (`.imageset`, `.symbolset`) never referenced by their generated symbol, a string literal, a XIB/storyboard or Info.plist (`unusedAssetCatalogImage`); app icons are never reported. [#81](https://github.com/tiny-earth-moon/periphery/issues/81)
+
+##### Bug Fixes
+
+- None.
+
 ## 3.12.14 (2026-11-01)
 
 ##### Breaking
