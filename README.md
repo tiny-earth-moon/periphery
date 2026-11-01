@@ -491,6 +491,67 @@ Copy and paste your Periphery command into the script input.
 
 ![Step 4](assets/xcode-integration/4.png)
 
+#### Ready-to-paste script
+
+Instead of a bare `periphery scan` command, this script builds the project itself into a project-local DerivedData with the index store enabled, then scans that index store. Results appear as warnings in Xcode. Adjust `PROJECT` (or switch to `-workspace`) and `SCHEME` to match your project.
+
+```sh
+set -eu
+
+PROJECT="MyApp.xcodeproj"
+SCHEME="MyApp"
+DESTINATION=""   # e.g. "platform=iOS Simulator,name=iPhone 16"; empty = auto-detect
+DERIVED_DATA="$PROJECT_DIR/.build/periphery-derived-data"
+
+# Locate periphery (Homebrew: tiny-earth-moon/tap/periphery)
+PERIPHERY=""
+for candidate in "$(command -v periphery 2>/dev/null || true)" /opt/homebrew/bin/periphery /usr/local/bin/periphery; do
+  if [ -n "$candidate" ] && [ -x "$candidate" ]; then PERIPHERY="$candidate"; break; fi
+done
+if [ -z "$PERIPHERY" ]; then
+  echo "error: periphery not found. Install it with: brew install tiny-earth-moon/tap/periphery" >&2
+  exit 1
+fi
+
+# Pick the first available iOS simulator, else fall back to the generic destination
+if [ -z "$DESTINATION" ]; then
+  UDID=""
+  if command -v python3 >/dev/null 2>&1; then
+    UDID="$(xcrun simctl list devices available -j | python3 -c '
+import json, sys
+for runtime, devices in json.load(sys.stdin)["devices"].items():
+    if "iOS" in runtime:
+        for d in devices:
+            if d.get("isAvailable", True):
+                print(d["udid"]); sys.exit(0)
+' || true)"
+  fi
+  if [ -n "$UDID" ]; then DESTINATION="id=$UDID"; else DESTINATION="generic/platform=iOS Simulator"; fi
+fi
+
+# Build with the index store enabled
+cd "$PROJECT_DIR"
+xcodebuild build \
+  -project "$PROJECT" \
+  -scheme "$SCHEME" \
+  -destination "$DESTINATION" \
+  -derivedDataPath "$DERIVED_DATA" \
+  COMPILER_INDEX_STORE_ENABLE=YES \
+  CODE_SIGNING_ALLOWED=NO
+
+# Scan the index store; xcode format makes results show up as Xcode warnings
+"$PERIPHERY" scan \
+  --skip-build \
+  --index-store-path "$DERIVED_DATA/Index.noindex/DataStore" \
+  --format xcode
+```
+
+Since 3.12.2, `--skip-build` without `--index-store-path` finds the DataStore in DerivedData on its own (#91). If the project is built in the default DerivedData location, the last command can be shortened to:
+
+```sh
+"$PERIPHERY" scan --skip-build --format xcode
+```
+
 ### Step 3: Disable User Script Sandboxing
 
 You must disable **User Script Sandboxing** for the Run Script phase. Periphery requires access to your project's index store and source files, which are blocked by Xcode's default sandbox. To disable sandboxing, set the `ENABLE_USER_SCRIPT_SANDBOXING` option to `No` in the Build Settings for the Periphery aggregate target.
