@@ -63,6 +63,7 @@ final class ShellTest: XCTestCase {
             guard case let PeripheryError.executableNotFound(name, searchPath) = error else {
                 return XCTFail("Expected executableNotFound, received \(error)")
             }
+
             XCTAssertEqual(name, "periphery-no-such-tool")
             XCTAssertEqual(searchPath, ["/usr/bin"])
         }
