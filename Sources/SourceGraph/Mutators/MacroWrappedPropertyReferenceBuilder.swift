@@ -31,9 +31,12 @@ final class MacroWrappedPropertyReferenceBuilder: SourceGraphMutator {
             else { continue }
 
             for synthesizedRef in graph.references(to: synthesizedDecl) {
+                let referencer = synthesizedRef.parent
                 // Ignore compiler-synthesized users such as the implicit memberwise initializer, which
                 // references `_foo` regardless of whether `foo` is used.
-                guard let referencer = synthesizedRef.parent, !referencer.isImplicit else { continue }
+                if let referencer, referencer.isImplicit {
+                    continue
+                }
 
                 for usr in wrappedDecl.usrs {
                     let ref = Reference(
@@ -44,7 +47,13 @@ final class MacroWrappedPropertyReferenceBuilder: SourceGraphMutator {
                         location: synthesizedRef.location
                     )
                     ref.parent = referencer
-                    graph.add(ref, from: referencer)
+
+                    if let referencer {
+                        graph.add(ref, from: referencer)
+                    } else {
+                        // A top-level use (e.g. `_ = View().$foo` in main.swift) has no parent declaration.
+                        graph.addRootReference(ref)
+                    }
                 }
             }
         }
