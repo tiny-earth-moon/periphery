@@ -32,7 +32,7 @@ public final class PlatformConditionalNameCollector: SyntaxVisitor {
             guard let elements = clause.elements else { continue }
 
             for token in elements.tokens(viewMode: .sourceAccurate) {
-                if case .identifier = token.tokenKind {
+                if case .identifier = token.tokenKind, isReference(token) {
                     names.insert(token.identifier?.name ?? token.text)
                 }
             }
@@ -42,6 +42,26 @@ public final class PlatformConditionalNameCollector: SyntaxVisitor {
     }
 
     // MARK: - Private
+
+    /// Returns `true` when the token is the name in a `DeclReferenceExprSyntax`, `IdentifierTypeSyntax`,
+    /// `MemberTypeSyntax`, `MacroExpansionExprSyntax` or `MacroExpansionDeclSyntax`.
+    /// Declaration names, parameter names, argument labels and the type extended by an `extension` do not refer to a
+    /// declaration: writing them in a conditional block must not retain it.
+    private func isReference(_ token: TokenSyntax) -> Bool {
+        guard let parent = token.parent else { return false }
+
+        if let extensionDeclaration = parent.parent?.as(ExtensionDeclSyntax.self),
+           extensionDeclaration.extendedType.id == parent.id
+        {
+            return false
+        }
+
+        return parent.is(DeclReferenceExprSyntax.self)
+            || parent.is(IdentifierTypeSyntax.self)
+            || parent.is(MemberTypeSyntax.self)
+            || parent.is(MacroExpansionExprSyntax.self)
+            || parent.is(MacroExpansionDeclSyntax.self)
+    }
 
     private func isPlatformCondition(_ condition: ExprSyntax?) -> Bool {
         guard let condition else { return false }

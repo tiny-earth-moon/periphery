@@ -555,6 +555,18 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    func testDoesNotRetainDeclarationsOnlyNamedInPlatformConditionalBlocks() {
+        analyze(retainPublic: true) {
+            // A conformance extension, a declared function, protocol and typealias only write their own name.
+            assertNotReferenced(.struct("FixturePlatformExtendedStruct"))
+            assertNotReferenced(.functionFree("fixturePlatformDeclaredFunction()"))
+            assertNotReferenced(.protocol("FixturePlatformDeclaredProtocol"))
+            assertNotReferenced(.typealias("FixturePlatformDeclaredAlias"))
+            // A real use from a branch that was not compiled still retains the type.
+            assertReferenced(.struct("FixturePlatformUsedStruct"))
+        }
+    }
+
     func testRetainsPropertyWrapperReferencedInNegatedPlatformConditionalBlock() {
         analyze(retainPublic: true) {
             assertReferenced(.struct("FixtureStruct227")) {
