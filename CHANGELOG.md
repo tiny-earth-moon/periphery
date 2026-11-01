@@ -12,6 +12,23 @@
 
 - None.
 
+## 3.12.11 (2026-11-01)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- New opt-in `enable_unassigned_optional_analysis` / `--enable-unassigned-optional-analysis`: reports stored optional properties that are read but never assigned (always nil). [#76](https://github.com/tiny-earth-moon/periphery/issues/76)
+- New `retain_js_accessible` / `--retain-js-accessible`: retains protocols inheriting from JavaScriptCore's `JSExport`, their members and the conforming members. [#71](https://github.com/tiny-earth-moon/periphery/issues/71)
+- New `retain_runtime_localized_keys` / `--retain-runtime-localized-keys` (default false) to keep every String Catalog key when a runtime lookup has no literal prefix. [#135](https://github.com/tiny-earth-moon/periphery/issues/135)
+
+##### Bug Fixes
+
+- 3.12.10 regression: a `String(localized:)` lookup with a non-literal key retained every key of every String Catalog, hiding all unused keys. Such lookups now retain nothing and log one warning per call site; a missing generated string symbols file falls back to literal detection instead of retaining the module's catalogs. [#135](https://github.com/tiny-earth-moon/periphery/issues/135)
+- SwiftPM: hidden directories under a target are no longer picked up by the implicit xib / Core Data model discovery. Imported from agoodkind/periphery (author Alex Goodkind). [#121](https://github.com/tiny-earth-moon/periphery/issues/121)
+
 ## 3.12.10 (2026-11-01)
 
 ##### Breaking
