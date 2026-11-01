@@ -158,6 +158,9 @@ struct ScanCommand: ParsableCommand {
     @Option(help: "JSON package manifest path (obtained using `swift package describe --type json` or manually)")
     var jsonPackageManifestPath: FilePath?
 
+    @Option(help: "Maximum age in days of unused Xcode build caches before they are evicted at the end of a scan. 0 disables eviction.")
+    var cacheMaxAgeDays: Int = defaultConfiguration.$cacheMaxAgeDays.defaultValue
+
     @Option(help: "Baseline file path used to filter results")
     var baseline: FilePath?
 
@@ -241,6 +244,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$excludeTargets, excludeTargets)
         configuration.apply(\.$skipSchemesValidation, skipSchemesValidation)
         configuration.apply(\.$cleanBuild, cleanBuild)
+        configuration.apply(\.$cacheMaxAgeDays, cacheMaxAgeDays)
         configuration.apply(\.$buildArguments, buildArguments)
         configuration.apply(\.$relativeResults, relativeResults)
         configuration.apply(\.$retainCodableProperties, retainCodableProperties)

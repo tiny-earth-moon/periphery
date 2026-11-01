@@ -122,7 +122,19 @@
             let indexStorePaths: Set<FilePath> = if !configuration.indexStorePath.isEmpty {
                 Set(configuration.indexStorePath)
             } else {
-                try [xcodebuild.indexStorePath(project: project, schemes: Array(schemes))]
+                try [xcodebuild.indexStorePath(project: project, schemes: Array(schemes), skipBuild: configuration.skipBuild)]
+            }
+
+            if configuration.indexStorePath.isEmpty {
+                let evicted = try xcodebuild.refreshCache(
+                    project: project,
+                    schemes: Array(schemes),
+                    maxAgeDays: configuration.cacheMaxAgeDays
+                )
+                for entry in evicted {
+                    let size = ByteCountFormatter.string(fromByteCount: entry.size, countStyle: .file)
+                    self.logger.info("Evicted unused build cache \(entry.name) (\(size))")
+                }
             }
 
             let targets = project.targets
