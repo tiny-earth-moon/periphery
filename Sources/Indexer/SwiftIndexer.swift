@@ -296,11 +296,26 @@ final class SwiftIndexer: Indexer {
                 }
             }
 
-            if !configuration.disablePlatformConditionalRetention {
+            // The platform conditionals of generated asset symbols only name the generated symbols themselves,
+            // which would retain every asset.
+            if !configuration.disablePlatformConditionalRetention,
+               !configuration.isAnalyzedGeneratedAssetSymbolsFile(sourceFile.path)
+            {
                 let names = PlatformConditionalNameCollector.collect(from: multiplexingSyntaxVisitor.syntax)
 
                 if !names.isEmpty {
                     graph.withLock { $0.addPlatformConditionalNames(names) }
+                }
+            }
+
+            // Assets can be loaded by name, e.g. `Color("AccentColor")` or `UIColor(named: "AccentColor")`.
+            if configuration.detectsUnusedAssetCatalogSymbols,
+               !configuration.isAnalyzedGeneratedAssetSymbolsFile(sourceFile.path)
+            {
+                let literals = StringLiteralCollector.collect(from: multiplexingSyntaxVisitor.syntax)
+
+                if !literals.isEmpty {
+                    graph.withLock { $0.addAssetCatalogNameReferences(literals) }
                 }
             }
 

@@ -14,7 +14,7 @@ class Indexer {
     func filterIndexExcluded(from files: Set<FilePath>) -> (included: Set<FilePath>, excluded: Set<FilePath>) {
         guard !configuration.indexExclude.isEmpty else { return (files, []) }
 
-        let included = files.filter { !configuration.indexExcludeMatchers.anyMatch(filename: $0.string) }
+        let included = files.filter { !configuration.isIndexExcluded($0) }
         return (included, files.subtracting(included))
     }
 

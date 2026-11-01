@@ -28,6 +28,10 @@ public enum ScanResultBuilder {
                 }
             }
 
+            if let symbol = graph.unusedAssetCatalogSymbols[removableDeclaration] {
+                return [ScanResult(declaration: removableDeclaration, annotation: .unusedAssetCatalogSymbol(symbol))]
+            }
+
             return [ScanResult(declaration: removableDeclaration, annotation: .unused)] + extensionResults
         }
         let annotatedAssignOnlyProperties: [ScanResult] = assignOnlyProperties.map {

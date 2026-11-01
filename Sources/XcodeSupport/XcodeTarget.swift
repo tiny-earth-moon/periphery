@@ -39,6 +39,19 @@ public final class XcodeTarget {
         try identifyInfoPlistFiles()
     }
 
+    /// Values of the `ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME` build setting in the target configurations.
+    public var globalAccentColorNames: Set<String> {
+        let settings = target.buildConfigurationList?.buildConfigurations.map(\.buildSettings) ?? []
+
+        return settings.flatMapSet { buildSettings -> Set<String> in
+            switch buildSettings["ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME"] {
+            case let .string(value): [value]
+            case let .array(values): Set(values)
+            case nil: []
+            }
+        }
+    }
+
     public func files(kind: ProjectFileKind) -> Set<FilePath> {
         files[kind, default: []]
     }

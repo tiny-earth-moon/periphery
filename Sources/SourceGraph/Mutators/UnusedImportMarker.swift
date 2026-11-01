@@ -60,8 +60,10 @@ final class UnusedImportMarker: SourceGraphMutator {
 
         // For each source file, determine whether its imports are unused.
         for (file, referencedModules) in referencedModulesByFile {
-            // Ignore retained files.
-            if configuration.retainFilesMatchers.anyMatch(filename: file.path.string) {
+            // Ignore retained files and generated asset symbols.
+            if configuration.retainFilesMatchers.anyMatch(filename: file.path.string)
+                || configuration.isAnalyzedGeneratedAssetSymbolsFile(file.path)
+            {
                 continue
             }
 

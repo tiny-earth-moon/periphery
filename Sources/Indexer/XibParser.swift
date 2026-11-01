@@ -34,7 +34,26 @@ final class XibParser {
         }
     }
 
+    /// The asset catalog color names used by the file, e.g. `<color key="backgroundColor" name="Brand"/>` and
+    /// `<namedColor name="Brand">`.
+    func namedColors() throws -> Set<String> {
+        guard let data = FileManager.default.contents(atPath: path.string) else { return [] }
+
+        var names: Set<String> = []
+        collectNamedColors(from: try AEXMLDocument(xml: data).root, into: &names)
+        return names
+    }
+
     // MARK: - Private
+
+    private func collectNamedColors(from element: AEXMLElement, into names: inout Set<String>) {
+        if ["color", "namedColor"].contains(element.name), let name = element.attributes["name"] {
+            names.insert(name)
+        }
+        for child in element.children {
+            collectNamedColors(from: child, into: &names)
+        }
+    }
 
     /// Builds a map of element id to customClass for resolving action destinations.
     private func buildIdToCustomClassMap(from element: AEXMLElement, into map: inout [String: String]) {
