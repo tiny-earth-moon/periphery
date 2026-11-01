@@ -2,8 +2,7 @@ import Foundation
 import XCTest
 
 final class NoThirdPartyEndpointsTest: XCTestCase {
-    // TODO: add "api.github.com/repos/peripheryapp" once #139 is merged.
-    private static let forbiddenEndpoints = ["periphery.pro"]
+    private static let forbiddenEndpoints = ["periphery.pro", "github.com/repos/peripheryapp", "github.com/sponsors/peripheryapp"]
 
     func testNoThirdPartyEndpoints() throws {
         let sourcesURL = URL(fileURLWithPath: #filePath)
