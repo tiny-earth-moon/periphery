@@ -1,0 +1,17 @@
+# Scenario: framework or library whose public API is consumed by other code.
+# Run: periphery scan --config examples/library-public-api.periphery.yml
+# Expected: public declarations are never reported; internal and private code
+# unused inside the library still is. Declarations exposed to Objective-C or carrying
+# the listed attributes are kept, and so are unused parameters that have no default
+# value, since removing them would break callers.
+retain_public: true
+retain_objc_accessible: true
+# Attribute names without the `@`. Optionally limit them to kinds: "objc:function".
+retain_attributes:
+  - MainActor
+  - OptionGroup
+retain_unused_parameters_without_default: true
+# Also retain unused parameters of protocol requirements.
+retain_unused_protocol_func_params: true
+# Public declarations are retained, so a redundant `public` is not meaningful.
+disable_redundant_public_analysis: true

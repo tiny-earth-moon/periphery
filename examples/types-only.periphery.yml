@@ -1,0 +1,36 @@
+# Scenario: report only unused types (class, struct, enum, protocol...), hide unused
+# functions, properties and parameters (issue #79).
+# There is no single "types only" option. The fork offers two real mechanisms:
+#
+# 1. report_exclude with result kinds (3.12.6): exclude kinds for all files.
+#    "unused.function" covers every unused function and method, "unused.var" every
+#    unused property and parameter, other kinds are listed in the README
+#    (section "Excluding Results"). An unknown kind is a configuration error.
+#    These are cosmetic: everything is still indexed, so a type used only by an
+#    excluded member is still counted as used.
+# 2. Post-filtering the JSON report on its `kind` field (see the end of this file).
+#
+# Expected: unused classes, structs, enums, protocols and typealiases remain, along
+# with the other annotations not excluded below (assign-only properties, redundant
+# protocols, redundant public accessibility, superfluous ignore comments).
+# Add them to the list to hide them too.
+report_exclude:
+  - path: "**/*"
+    kinds:
+      - unused.function
+      - unused.var
+      - unused.extension
+      - assignOnlyProperty
+      - redundantProtocol
+      - redundantPublicAccessibility
+      - superfluousIgnoreCommand
+
+# Alternative, with a stable result list: keep the default output and filter JSON.
+# Remove the report_exclude block above, then:
+#
+#   periphery scan --config examples/types-only.periphery.yml --format json --quiet \
+#     | jq '[.[] | select(.kind | test("^(class|struct|enum|protocol|typealias)"))]'
+#
+# `kind` holds the declaration kind (class, struct, enum, protocol, typealias,
+# function.method.instance, var.instance...). Selecting `.kind == "class"` alone keeps
+# only classes.
