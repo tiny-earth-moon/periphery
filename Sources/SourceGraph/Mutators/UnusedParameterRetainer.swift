@@ -49,6 +49,13 @@ final class UnusedParameterRetainer: SourceGraphMutator {
                 }
             }
         }
+
+        if configuration.retainUnusedParametersWithoutDefault {
+            // Applied last so that it only adds to what the other rules retain.
+            for param in graph.declarations(ofKind: .varParameter) where !param.hasDefaultValue {
+                graph.markRetained(param)
+            }
+        }
     }
 
     // MARK: - Private

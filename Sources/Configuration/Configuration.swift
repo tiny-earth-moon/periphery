@@ -74,6 +74,9 @@ public final class Configuration {
     @Setting(key: "retain_unused_protocol_func_params", defaultValue: false)
     public var retainUnusedProtocolFuncParams: Bool
 
+    @Setting(key: "retain_unused_parameters_without_default", defaultValue: false)
+    public var retainUnusedParametersWithoutDefault: Bool
+
     @Setting(key: "retain_swift_ui_previews", defaultValue: false)
     public var retainSwiftUIPreviews: Bool
 
@@ -251,7 +254,7 @@ public final class Configuration {
     lazy var settings: [any AbstractSetting] = [
         $project, $schemes, $excludeTargets, $excludeTests, $indexExclude, $reportExclude, $reportInclude, $outputFormat,
         $retainPublic, $noRetainSPI, $retainFiles, $retainAssignOnlyProperties, $retainAssignOnlyPropertyTypes, $retainObjcAccessible,
-        $retainObjcAnnotated, $retainUnusedProtocolFuncParams, $retainSwiftUIPreviews, $disableRedundantPublicAnalysis,
+        $retainObjcAnnotated, $retainUnusedProtocolFuncParams, $retainUnusedParametersWithoutDefault, $retainSwiftUIPreviews, $disableRedundantPublicAnalysis,
         $disablePlatformConditionalRetention, $disableUnusedImportAnalysis, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $superfluousIgnoreComments, $retainUnusedImportedModules,
         $externalEncodableProtocols, $externalCodableProtocols, $externalTestCaseClasses, $verbose, $quiet, $color,
         $disableUpdateCheck, $strict, $indexStorePath,

@@ -57,6 +57,7 @@ public struct Parameter: Item, Hashable {
     let label: PartKind
     public let name: PartKind
     let metatype: String?
+    let hasDefaultValue: Bool
     let location: Location
 
     public let items: [Item] = []
@@ -70,6 +71,7 @@ public struct Parameter: Item, Hashable {
             usrs: [usr],
             location: location
         )
+        decl.hasDefaultValue = hasDefaultValue
         decl.parent = parent
         return decl
     }
@@ -250,6 +252,7 @@ struct UnusedParameterParser {
         return Parameter(label: label,
                          name: name,
                          metatype: metatype,
+                         hasDefaultValue: syntax.defaultValue != nil,
                          location: location)
     }
 

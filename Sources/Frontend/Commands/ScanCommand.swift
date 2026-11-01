@@ -111,6 +111,9 @@ struct ScanCommand: ParsableCommand {
     @Flag(help: "Retain unused protocol function parameters, even if the parameter is unused in all conforming functions")
     var retainUnusedProtocolFuncParams: Bool = defaultConfiguration.$retainUnusedProtocolFuncParams.defaultValue
 
+    @Flag(help: "Retain unused function parameters that have no default value, as removing them would break callers")
+    var retainUnusedParametersWithoutDefault: Bool = defaultConfiguration.$retainUnusedParametersWithoutDefault.defaultValue
+
     @Flag(help: "Retain SwiftUI previews")
     var retainSwiftUIPreviews: Bool = defaultConfiguration.$retainSwiftUIPreviews.defaultValue
 
@@ -224,6 +227,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$retainObjcAccessible, retainObjcAccessible)
         configuration.apply(\.$retainObjcAnnotated, retainObjcAnnotated)
         configuration.apply(\.$retainUnusedProtocolFuncParams, retainUnusedProtocolFuncParams)
+        configuration.apply(\.$retainUnusedParametersWithoutDefault, retainUnusedParametersWithoutDefault)
         configuration.apply(\.$retainSwiftUIPreviews, retainSwiftUIPreviews)
         configuration.apply(\.$disableRedundantPublicAnalysis, disableRedundantPublicAnalysis)
         configuration.apply(\.$disablePlatformConditionalRetention, disablePlatformConditionalRetention)
