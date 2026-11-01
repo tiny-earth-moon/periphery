@@ -107,6 +107,9 @@ public final class Configuration {
     @Setting(key: "localized_string_key_literal_match", defaultValue: false)
     public var localizedStringKeyLiteralMatch: Bool
 
+    @Setting(key: "retain_runtime_localized_keys", defaultValue: false)
+    public var retainRuntimeLocalizedKeys: Bool
+
     @Setting(key: "superfluous_ignore_comments", defaultValue: true)
     public var superfluousIgnoreComments: Bool
 
@@ -297,7 +300,7 @@ public final class Configuration {
         $project, $schemes, $excludeTargets, $excludeTests, $indexExclude, $reportExclude, $reportInclude, $outputFormat,
         $retainPublic, $noRetainSPI, $retainFiles, $retainAssignOnlyProperties, $retainAssignOnlyPropertyTypes, $enableUnassignedOptionalAnalysis, $retainObjcAccessible,
         $retainJsAccessible, $retainObjcAnnotated, $retainUnusedProtocolFuncParams, $retainUnusedParametersWithoutDefault, $retainSwiftUIPreviews, $disableRedundantPublicAnalysis,
-        $disablePlatformConditionalRetention, $disableUnusedImportAnalysis, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $superfluousIgnoreComments, $retainUnusedImportedModules,
+        $disablePlatformConditionalRetention, $disableUnusedImportAnalysis, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $retainRuntimeLocalizedKeys, $superfluousIgnoreComments, $retainUnusedImportedModules,
         $externalEncodableProtocols, $externalCodableProtocols, $externalTestCaseClasses, $verbose, $quiet, $color,
         $disableUpdateCheck, $strict, $indexStorePath,
         $skipBuild, $skipSchemesValidation, $cleanBuild, $cacheMaxAgeDays, $buildArguments, $xcodeListArguments, $relativeResults,

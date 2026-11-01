@@ -37,9 +37,33 @@ final class SPMProjectTest: SPMSourceGraphTestCase {
         assertReferenced(.localizedString("spm_interpolated.beta"))
         // Main bundle lookup: matched in every catalog.
         assertReferenced(.localizedString("spm_main_bundle.gamma"))
-        // Unprefixed runtime keys and a ternary mixing a literal and a runtime key, with `bundle: .module`: every key
-        // of the calling module's catalog is retained, other modules' catalogs are unaffected (`spm_unused_key`).
+        // The literal branch of a ternary mixing a literal and a runtime key is used.
+        assertReferenced(.localizedString("dyn_mixed_known_key"))
+    }
+
+    func testUnprefixedRuntimeLookup_doesNotRetainEveryKeyByDefault() {
+        // `NSLocalizedString(keyName, bundle: .module)` may look up any key: nothing is retained without
+        // `retain_runtime_localized_keys`.
+        assertNotReferenced(.localizedString("dyn_runtime_key"))
+        assertNotReferenced(.localizedString("spm_unused_key"))
+    }
+}
+
+final class SPMProjectRetainRuntimeLocalizedKeysTest: SPMSourceGraphTestCase {
+    override static func setUp() {
+        super.setUp()
+
+        let configuration = Configuration()
+        configuration.retainRuntimeLocalizedKeys = true
+        build(projectPath: SPMProjectPath)
+        index(configuration: configuration)
+    }
+
+    func testUnprefixedRuntimeLookup_retainsEveryKeyOfTheModuleCatalog() {
+        // With `bundle: .module`, every key of the calling module's catalog is retained, other modules' catalogs are
+        // unaffected (`spm_unused_key`).
         assertReferenced(.localizedString("dyn_runtime_key"))
         assertReferenced(.localizedString("dyn_mixed_known_key"))
+        assertNotReferenced(.localizedString("spm_unused_key"))
     }
 }

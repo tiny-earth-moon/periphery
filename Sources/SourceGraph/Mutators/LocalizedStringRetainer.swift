@@ -4,7 +4,8 @@ import Shared
 
 /// Retains localized string declarations from xcstrings files that are used in Swift source code.
 ///
-/// A key built at runtime retains the catalogue keys starting with its literal prefix (every key without a prefix):
+/// A key built at runtime retains the catalogue keys starting with its literal prefix (every key without a prefix, only
+/// with `retain_runtime_localized_keys`):
 /// in the catalogues of the calling module for a `bundle: .module` lookup, in every catalogue otherwise. A catalogue
 /// with an unknown owning module is matched against the runtime keys of every module.
 /// Based on agoodkind/periphery@544a77d and 5c5af4c by Alex Goodkind.

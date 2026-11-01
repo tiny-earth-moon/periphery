@@ -80,19 +80,29 @@ final class XCStringsIndexer: Indexer {
 
     // MARK: - Private
 
-    /// A key built at runtime without a literal prefix retains every key of the catalogues it may be looked up in.
+    /// A key built at runtime without a literal prefix may be any key. By default it retains nothing, and each call
+    /// site is reported so that its keys can be declared; with `retain_runtime_localized_keys`, it retains every key
+    /// of the catalogues it may be looked up in.
     private func warnAboutUnprefixedRuntimeKeys() {
-        let (isGlobal, modules) = graph.withLock { graph in
+        let (locations, isGlobal, modules) = graph.withLock { graph in
             (
+                graph.unprefixedRuntimeLocalizedStringKeyLocations.sorted(),
                 graph.runtimeLocalizedStringKeyPrefixes.contains(""),
                 graph.runtimeLocalizedStringKeyPrefixesByModule.filter { $0.value.contains("") }.keys.sorted()
             )
         }
 
+        guard configuration.retainRuntimeLocalizedKeys else {
+            for location in locations {
+                logger.warn("Localized string key built at runtime without a literal prefix at \(location): the String Catalog keys it looks up cannot be determined and are not retained. Declare them with localized_string_key_patterns, or set retain_runtime_localized_keys to retain every key.")
+            }
+            return
+        }
+
         if isGlobal {
-            logger.warn("A localized string key built at runtime, without a literal prefix and looked up in an unknown bundle, retains every String Catalog key. Run with --verbose to locate it.")
+            logger.warn("A localized string key built at runtime, without a literal prefix and looked up in an unknown bundle, retains every String Catalog key (retain_runtime_localized_keys). Run with --verbose to locate it.")
         } else if !modules.isEmpty {
-            logger.warn("Localized string keys built at runtime without a literal prefix retain every String Catalog key of: \(modules.joined(separator: ", ")). Run with --verbose to locate them.")
+            logger.warn("Localized string keys built at runtime without a literal prefix retain every String Catalog key of: \(modules.joined(separator: ", ")) (retain_runtime_localized_keys). Run with --verbose to locate them.")
         }
     }
 }

@@ -84,6 +84,9 @@ struct ScanCommand: ParsableCommand {
     @Flag(help: "Retain localized string keys equal to any string literal of the source, whatever its type or position")
     var localizedStringKeyLiteralMatch: Bool = defaultConfiguration.$localizedStringKeyLiteralMatch.defaultValue
 
+    @Flag(help: "Retain every String Catalog key that a localized string key built at runtime without a literal prefix may look up")
+    var retainRuntimeLocalizedKeys: Bool = defaultConfiguration.$retainRuntimeLocalizedKeys.defaultValue
+
     @Option(parsing: .upToNextOption, help: "Names of unused imported modules to retain")
     var retainUnusedImportedModules: [String] = defaultConfiguration.$retainUnusedImportedModules.defaultValue
 
@@ -248,6 +251,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$localizedStringCatalogExclude, localizedStringCatalogExclude)
         configuration.apply(\.$localizedStringKeyPatterns, localizedStringKeyPatterns)
         configuration.apply(\.$localizedStringKeyLiteralMatch, localizedStringKeyLiteralMatch)
+        configuration.apply(\.$retainRuntimeLocalizedKeys, retainRuntimeLocalizedKeys)
         configuration.apply(\.$retainUnusedImportedModules, retainUnusedImportedModules)
         configuration.apply(\.$externalEncodableProtocols, externalEncodableProtocols)
         configuration.apply(\.$externalCodableProtocols, externalCodableProtocols)

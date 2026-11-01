@@ -64,4 +64,12 @@ final class SwiftUIProjectTest: XcodeSourceGraphTestCase {
         assertReferenced(.localizedString("generated.count %lld"))
         assertNotReferenced(.localizedString("generated.unused"))
     }
+
+    func testRuntimeKeyWithoutLiteralPrefix_doesNotRetainEveryKey() {
+        // `runtimeString(_:)` looks up `String.LocalizationValue(key)`: the unreferenced keys stay reported.
+        assertNotReferenced(.localizedString("swiftui_unused_key"))
+        assertNotReferenced(.localizedString("generated.unused"))
+        assertReferenced(.localizedString("generated.used"))
+        assertReferenced(.localizedString("swiftui_used_key"))
+    }
 }

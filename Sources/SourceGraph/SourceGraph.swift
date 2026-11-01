@@ -30,6 +30,8 @@ public final class SourceGraph {
     public private(set) var runtimeLocalizedStringKeyPrefixesByModule: [String: Set<String>] = [:]
     /// Literal prefixes of keys built at runtime and looked up in an unknown bundle.
     public private(set) var runtimeLocalizedStringKeyPrefixes: Set<String> = []
+    /// Call sites of keys built at runtime without a literal prefix, whose catalogue keys cannot be determined.
+    public private(set) var unprefixedRuntimeLocalizedStringKeyLocations: Set<Location> = []
     public private(set) var synthesizedUses: Set<SynthesizedUse> = []
     public private(set) var unusedAssetCatalogSymbols: [Declaration: AssetCatalogSymbol] = [:]
     /// Strings that may name an asset catalog resource, from string literals, Interface Builder files and
@@ -263,6 +265,10 @@ public final class SourceGraph {
 
     public func addRuntimeLocalizedStringKeyPrefixes(_ prefixes: Set<String>) {
         runtimeLocalizedStringKeyPrefixes.formUnion(prefixes)
+    }
+
+    public func addUnprefixedRuntimeLocalizedStringKeyLocations(_ locations: Set<Location>) {
+        unprefixedRuntimeLocalizedStringKeyLocations.formUnion(locations)
     }
 
     public func addAssetCatalogNameReferences(_ names: Set<String>) {
