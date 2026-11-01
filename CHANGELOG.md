@@ -12,6 +12,23 @@
 
 - None.
 
+## 3.12.9 (2026-11-01)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- New opt-in `detect_unused_asset_catalog_colors` / `--detect-unused-asset-catalog-colors`: reports unused Xcode asset catalog colors from `GeneratedAssetSymbols.swift` (indexed through a precise exception to `index_exclude`), one result per color with its `.colorset` path; colors referenced by name (string literals, xib/storyboard, global accent color) count as used. [#80](https://github.com/tiny-earth-moon/periphery/issues/80)
+- `examples/` directory with commented `.periphery.yml` scenarios. [#79](https://github.com/tiny-earth-moon/periphery/issues/79)
+- README: ready-to-paste Xcode Run Script build phase ([#90](https://github.com/tiny-earth-moon/periphery/issues/90)); merging the results of several build configurations explained as an intersection, with a `jq` recipe ([#77](https://github.com/tiny-earth-moon/periphery/issues/77)); fork identity, Credits section and contribution rules for imports.
+
+##### Bug Fixes
+
+- Shell commands read stdout and stderr concurrently, no deadlock on large output. Imported from agoodkind/periphery (author Alex Goodkind). [#117](https://github.com/tiny-earth-moon/periphery/issues/117)
+- Fixture and test pinning `buildPartialBlock` retention in result builders. Imported from agoodkind/periphery (author Alex Goodkind). [#119](https://github.com/tiny-earth-moon/periphery/issues/119)
+
 ## 3.12.8 (2026-11-01)
 
 ##### Breaking
