@@ -335,8 +335,7 @@ struct ScanCommand: ParsableCommand {
         var baseline: Baseline?
 
         if let baselinePath = configuration.baseline {
-            let data = try Data(contentsOf: baselinePath.url)
-            baseline = try JSONDecoder().decode(Baseline.self, from: data)
+            baseline = try Baseline.load(from: baselinePath)
         }
 
         let filteredResults = try OutputDeclarationFilter(configuration: configuration, logger: logger).filter(results, with: baseline)

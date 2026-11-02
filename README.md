@@ -768,6 +768,8 @@ Periphery can analyze projects using other build systems, though it cannot drive
 }
 ```
 
+Only `indexstores` is required and it must list at least one index store; every other key may be left out. A file that cannot be used is reported as `Invalid generic project config <path>: <reason>`, e.g. `missing key 'indexstores'`.
+
 > [!TIP]
 > Relative paths are assumed to be relative to the current directory.
 
