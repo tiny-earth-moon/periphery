@@ -20,5 +20,26 @@
                 }
             }
         }
+
+        func testRetainsConformanceThroughLocalRefiningProtocol() {
+            analyze {
+                assertReferenced(.struct("RefinedIntent"))
+                assertReferenced(.protocol("BaseIntent"))
+                assertReferenced(.extensionProtocol("BaseIntent"))
+                assertReferenced(.struct("DeeplyRefinedIntent"))
+                assertReferenced(.protocol("DeepBaseIntent"))
+                assertNotReferenced(.struct("PlainConforming"))
+                assertNotReferenced(.protocol("PlainBase"))
+            }
+        }
+
+        func testRetainsLibraryContentProviderThroughLocalRefiningProtocol() {
+            analyze {
+                assertReferenced(.struct("RefinedLibraryProvider"))
+                assertReferenced(.protocol("BaseLibraryProvider"))
+                assertNotReferenced(.struct("PlainLibraryConforming"))
+                assertNotReferenced(.protocol("PlainLibraryBase"))
+            }
+        }
     }
 #endif

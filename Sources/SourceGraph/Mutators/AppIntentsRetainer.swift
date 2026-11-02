@@ -27,8 +27,8 @@ final class AppIntentsRetainer: SourceGraphMutator {
         let retainedDeclarations = graph
             .declarations(ofKinds: [.class, .struct, .enum])
             .filter {
-                $0.related.contains {
-                    self.graph.isExternal($0) &&
+                graph.inheritedTypeReferences(of: $0).contains {
+                    graph.isExternal($0) &&
                         $0.declarationKind == .protocol &&
                         $0.usr.hasPrefix(Self.appIntentsModuleUsrPrefix)
                 }
