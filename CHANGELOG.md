@@ -12,6 +12,29 @@
 
 - None.
 
+## 3.13.3 (2026-11-02)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- None.
+
+##### Bug Fixes
+
+- JSON and redundant-conformance output is now deterministic across runs: results, attributes and references are emitted in a stable order. [#174](https://github.com/tiny-earth-moon/periphery/issues/174)
+- Synthetic result ids no longer contain a line, a column or an absolute String Catalog path, so baselines survive line shifts and other checkouts. The ids of unused imports, empty extensions and String Catalog keys, and the matching CodeClimate and GitLab fingerprints, change once; baselines written by earlier versions still match, with a warning to rewrite them with `--write-baseline`. [#182](https://github.com/tiny-earth-moon/periphery/issues/182)
+- A `.periphery.yml` value of the wrong type or an invalid enum value now prints a warning naming the key, instead of being ignored silently. [#175](https://github.com/tiny-earth-moon/periphery/issues/175)
+- A generic project configuration may omit keys, and a malformed one, like a malformed baseline or JSON package manifest, fails with a readable message naming the key at fault. [#185](https://github.com/tiny-earth-moon/periphery/issues/185)
+- A command-line value now overrides `.periphery.yml` even when it equals the default; every boolean option also accepts `--no-<option>`. [#199](https://github.com/tiny-earth-moon/periphery/issues/199)
+- The `github-actions`, `gitlab-codequality` and `codeclimate` formats always use relative paths, and their prerequisites are checked before the scan. [#200](https://github.com/tiny-earth-moon/periphery/issues/200)
+- `--baseline`, `--write-baseline` and `--write-results` paths are validated before the scan starts. [#210](https://github.com/tiny-earth-moon/periphery/issues/210)
+- Ctrl-C (SIGINT) and SIGTERM now exit with a non-zero status (130 and 143). [#183](https://github.com/tiny-earth-moon/periphery/issues/183)
+- Verbose and debug logs go to stderr, so JSON, CSV and other machine-readable output on stdout stays valid. [#184](https://github.com/tiny-earth-moon/periphery/issues/184)
+- Invalid Swift versions, guided-setup answers and project paths fail with a readable error instead of crashing. [#180](https://github.com/tiny-earth-moon/periphery/issues/180)
+
 ## 3.13.2 (2026-11-02)
 
 ##### Breaking
