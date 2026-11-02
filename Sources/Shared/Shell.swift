@@ -4,11 +4,23 @@ import Synchronization
 
 final class ShellProcessStore: Sendable {
     private let processes = Mutex<Set<Process>>([])
+    private let stopping = Mutex<Bool>(false)
 
-    func interruptRunning() {
+    /// Whether the running processes have been told to stop, in which case the program is about to exit.
+    var isStopping: Bool {
+        stopping.withLock { $0 }
+    }
+
+    /// Interrupts (`SIGINT`) or terminates (`SIGTERM`) the running processes and waits for them to exit.
+    func stopRunning(signal: Int32) {
+        stopping.withLock { $0 = true }
         processes.withLock { processes in
             for process in processes {
-                process.interrupt()
+                if signal == SIGINT {
+                    process.interrupt()
+                } else {
+                    process.terminate()
+                }
                 process.waitUntilExit()
             }
         }
@@ -32,20 +44,25 @@ public protocol Shell: Sendable {
 public final class ShellImpl: Shell {
     private let logger: ContextualLogger
     private let store: ShellProcessStore
-    private let signalSource: DispatchSourceSignal
+    private let signalSources: [DispatchSourceSignal]
 
+    /// `sigintHandler` runs when `SIGINT` or `SIGTERM` is received, before the running processes are stopped. The
+    /// program then exits with the conventional status of the signal, 130 for `SIGINT` and 143 for `SIGTERM`.
     public required init(logger: Logger, sigintHandler: @escaping () -> Void = {}) {
         self.logger = logger.contextualized(with: "shell")
         store = ShellProcessStore()
 
-        signal(SIGINT, SIG_IGN)
-        signalSource = DispatchSource.makeSignalSource(signal: SIGINT, queue: .global())
-        signalSource.setEventHandler { [store] in
-            sigintHandler()
-            store.interruptRunning()
-            exit(0)
+        signalSources = [SIGINT, SIGTERM].map { [store] signalNumber in
+            signal(signalNumber, SIG_IGN)
+            let source = DispatchSource.makeSignalSource(signal: signalNumber, queue: .global())
+            source.setEventHandler {
+                sigintHandler()
+                store.stopRunning(signal: signalNumber)
+                exit(128 + signalNumber)
+            }
+            source.resume()
+            return source
         }
-        signalSource.resume()
     }
 
     @discardableResult
@@ -118,6 +135,11 @@ public final class ShellImpl: Shell {
 
         process.waitUntilExit()
 
+        if store.isStopping {
+            // The signal handler is about to exit with the status of the signal, don't race it with a failure.
+            Self.parkUntilExit()
+        }
+
         if let stdoutData = try results.withLock({ try $0[0].get() }) {
             guard let stdoutStr = String(data: stdoutData, encoding: .utf8)
             else {
@@ -143,6 +165,12 @@ public final class ShellImpl: Shell {
         }
 
         return (process.terminationStatus, standardOutput, standardError)
+    }
+
+    private static func parkUntilExit() -> Never {
+        while true {
+            sleep(60)
+        }
     }
 
     /// Resolves the executable of a command without a shell: a name containing a slash is used as a path,
