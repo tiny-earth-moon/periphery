@@ -101,6 +101,9 @@ var targets: [PackageDescription.Target] = [
     .target(
         name: "UnassignedOptionalKeyPathFixtures"
     ),
+    .target(
+        name: "EnumCaseRetentionFixtures"
+    ),
 ]
 
 #if os(macOS)
@@ -113,6 +116,12 @@ targets.append(contentsOf: [
     ),
     .target(
         name: "AppIntentsRetentionFixtures"
+    ),
+    .target(
+        name: "AppIntentsMetadataRetentionFixtures"
+    ),
+    .target(
+        name: "RetainedAncestorRetentionFixtures"
     ),
     .target(
         name: "UnusedAssetCatalogImageFixtures"
