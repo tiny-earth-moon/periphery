@@ -59,6 +59,7 @@ public struct Parameter: Item, Hashable {
     let metatype: String?
     let hasDefaultValue: Bool
     let isIsolated: Bool
+    let hasAttributes: Bool
     let location: Location
 
     public let items: [Item] = []
@@ -255,6 +256,7 @@ struct UnusedParameterParser {
                          metatype: metatype,
                          hasDefaultValue: syntax.defaultValue != nil,
                          isIsolated: isIsolated(parameter: syntax),
+                         hasAttributes: !syntax.attributes.isEmpty,
                          location: location)
     }
 

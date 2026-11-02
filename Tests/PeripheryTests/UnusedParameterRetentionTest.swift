@@ -28,4 +28,32 @@ final class UnusedParameterRetentionTest: FixtureSourceGraphTestCase {
             }
         }
     }
+
+    func testPropertyWrappedParameters() {
+        analyze(retainPublic: true) {
+            assertReferenced(.class("WrappedParameterHost")) {
+                self.assertReferenced(.functionMethodInstance("viaProjection(level:)")) {
+                    self.assertUsedParameter("level")
+                }
+                self.assertReferenced(.functionMethodInstance("viaStorage(level:)")) {
+                    self.assertUsedParameter("level")
+                }
+                self.assertReferenced(.functionMethodInstance("viaValue(level:)")) {
+                    self.assertUsedParameter("level")
+                }
+                self.assertReferenced(.functionMethodInstance("unusedWrapped(level:)")) {
+                    self.assertNotReferenced(.varParameter("level"))
+                }
+            }
+        }
+    }
+
+    func testWrapperInitializerRetention() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("Bounded")) {
+                self.assertReferenced(.functionConstructor("init(wrappedValue:_:)"))
+                self.assertNotReferenced(.functionConstructor("init(other:)"))
+            }
+        }
+    }
 }

@@ -129,7 +129,7 @@ public final class UnusedParameterAnalyzer {
                 return .used
             }
         case let item as Identifier:
-            return item.name == param.name.text ? .used : .unused
+            return isIdentifier(item, referencing: param) ? .used : .unused
         case let item as GenericItem where item.node.is(LabeledExprListSyntax.self): // function call arguments
             for item in item.items where isParam(param, usedIn: item) {
                 return .used
@@ -143,6 +143,17 @@ public final class UnusedParameterAnalyzer {
         }
 
         return .unused
+    }
+
+    private func isIdentifier(_ identifier: Identifier, referencing param: Parameter) -> Bool {
+        let name = param.name.text
+
+        if identifier.name == name {
+            return true
+        }
+
+        // A property wrapper applied to a parameter exposes its projected value as '$name' and its storage as '_name'.
+        return param.hasAttributes && (identifier.name == "$\(name)" || identifier.name == "_\(name)")
     }
 
     private func isParam(_ param: Parameter, usedForSpecializationIn function: Function) -> Bool {

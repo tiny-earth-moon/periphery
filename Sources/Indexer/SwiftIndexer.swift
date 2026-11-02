@@ -303,6 +303,12 @@ final class SwiftIndexer: Indexer {
                 }
             }
 
+            let parameterAttributeNames = ParameterAttributeNameCollector.collect(from: multiplexingSyntaxVisitor.syntax)
+
+            if !parameterAttributeNames.isEmpty {
+                graph.withLock { $0.addParameterAttributeNames(parameterAttributeNames) }
+            }
+
             // Assets can be loaded by name, e.g. `Color("AccentColor")` or `UIColor(named: "AccentColor")`.
             if configuration.detectsUnusedAssetCatalogSymbols,
                !configuration.isAnalyzedGeneratedAssetSymbolsFile(sourceFile.path)
