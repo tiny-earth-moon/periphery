@@ -454,6 +454,7 @@ Some attributes are retained without configuration, because they exist for calle
 - Functions and variables with `@used` or `@section` (and their underscored forms `@_used` and `@_section`), which are kept in the binary or placed in a named section for the linker or a section reader.
 - Functions with a body and `@_silgen_name`, which define the symbol they are linked under. A bodyless `@_silgen_name` or `@_extern(c)` declaration imports a symbol instead, so it is reported when unused, but its parameters are never reported: nothing could use them.
 - Types and extensions with `@implementation` or `@_objcImplementation`, together with their members.
+- The `dynamicallyCall(withArguments:)` and `dynamicallyCall(withKeywordArguments:)` methods that calls to a `@dynamicCallable` value are lowered to, in addition to the `subscript(dynamicMember:)` of `@dynamicMemberLookup` types.
 
 ### Unused Parameters Without a Default Value
 
