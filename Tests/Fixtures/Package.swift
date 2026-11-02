@@ -118,6 +118,9 @@ targets.append(contentsOf: [
         name: "AppIntentsRetentionFixtures"
     ),
     .target(
+        name: "SwiftUIWidgetRetentionFixtures"
+    ),
+    .target(
         name: "AppIntentsMetadataRetentionFixtures"
     ),
     .target(
