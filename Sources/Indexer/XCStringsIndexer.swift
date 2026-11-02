@@ -70,7 +70,7 @@ final class XCStringsIndexer: Indexer {
                         Declaration(
                             name: key,
                             kind: .localizedString,
-                            usrs: ["xcstrings:\(path.string):\(key)"],
+                            usrs: [SyntheticUsr.localizedString(key, in: path, projectRoot: self.configuration.projectRoot)],
                             location: location
                         )
                     }

@@ -23,7 +23,11 @@ open class SourceGraphTestCase: XCTestCase {
         super.setUp()
         logger = Logger(quiet: true, verbose: false, colorMode: .never)
         shell = ShellImpl(logger: logger)
-        swiftVersion = SwiftVersion(shell: shell)
+        do {
+            swiftVersion = try SwiftVersion(shell: shell)
+        } catch {
+            fatalError("Failed to determine the Swift version: \(error.localizedDescription)")
+        }
         let configuration = Configuration()
         configuration.quiet = true
         graph = SourceGraph(configuration: configuration, logger: logger)

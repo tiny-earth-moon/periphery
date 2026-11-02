@@ -46,7 +46,7 @@ final class GuidedSetup: SetupGuideHelpers {
         }
 
         guard let projectGuide = projectGuide_ else {
-            fatalError("Failed to identify project type.")
+            throw PeripheryError.usageError("No Swift package or Xcode project found in '\(FileManager.default.currentDirectoryPath)'. For Xcode projects use the '--project' option, for SPM projects change to the directory containing the Package.swift, and for other build systems use '--generic-project-config'.")
         }
 
         print(logger.colorize("*", .boldGreen) + " Inspecting project...")
