@@ -12,6 +12,20 @@
 
 - None.
 
+## 3.14.0 (2026-11-02)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- Unused generic parameters of structs, classes, enums and actors (phantom types such as `Tagged<UserTag>`) are no longer reported by default; the new `report_unused_type_parameters` option (`--report-unused-type-parameters`) restores these results. [#190](https://github.com/tiny-earth-moon/periphery/issues/190)
+
+##### Bug Fixes
+
+- None.
+
 ## 3.13.4 (2026-11-02)
 
 ##### Breaking
