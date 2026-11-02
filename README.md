@@ -731,6 +731,10 @@ Therefore, if you intend to run Periphery directly after calling `swift test`, y
 
 ## Build Systems
 
+### Bazel
+
+The Bazel mode (`--bazel` and every `--bazel-*` option) was removed in 3.13.0 ([#165](https://github.com/tiny-earth-moon/periphery/issues/165)). The `periphery` module on the Bazel Central Registry belongs to the archived upstream project and is frozen at 3.8.0, this fork is distributed through its Homebrew tap only, and the Bazel build files and CI jobs had to be updated with every change. [agoodkind/periphery](https://github.com/agoodkind/periphery) maintains a Bazel mode. With this fork, a Bazel project can still be scanned from the index stores its build produces, through the configuration file described in [Other](#other).
+
 ### Other
 
 Periphery can analyze projects using other build systems, though it cannot drive them automatically like SPM and Xcode. Instead, you need to create a configuration file that specifies the location of indexstore and other resource files. The format is as follows:
