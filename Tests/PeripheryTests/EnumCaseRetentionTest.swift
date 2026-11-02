@@ -81,4 +81,21 @@ final class EnumCaseRetentionTest: FixtureSourceGraphTestCase {
             }
         }
     }
+
+    func testRetainsEnumCasesWitnessingStaticRequirements() {
+        analyze(retainPublic: true) {
+            assertReferenced(.enum("FixtureThemeEnum")) {
+                self.assertReferenced(.enumelement("fallback"))
+                self.assertReferenced(.enumelement("dark"))
+            }
+            assertReferenced(.enum("FixtureBoxEnum")) {
+                self.assertReferenced(.enumelement("make(_:)"))
+                self.assertReferenced(.enumelement("other"))
+            }
+            assertReferenced(.enum("FixtureUnusedRequirementEnum")) {
+                self.assertNotReferenced(.enumelement("fallback"))
+                self.assertReferenced(.enumelement("dark"))
+            }
+        }
+    }
 }
