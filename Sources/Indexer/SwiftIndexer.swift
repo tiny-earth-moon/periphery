@@ -338,6 +338,18 @@ final class SwiftIndexer: Indexer {
                 }
             }
 
+            if configuration.enableUnassignedOptionalAnalysis {
+                let locations = KeyPathComponentCollector.collect(
+                    from: multiplexingSyntaxVisitor.syntax,
+                    file: sourceFile,
+                    locationConverter: multiplexingSyntaxVisitor.locationConverter
+                )
+
+                if !locations.isEmpty {
+                    graph.withLock { $0.addKeyPathComponentLocations(locations) }
+                }
+            }
+
             if let emptyExtensionSyntaxVisitor {
                 markEmptyExtensions(using: emptyExtensionSyntaxVisitor, fileCommands: multiplexingSyntaxVisitor.parseComments())
             }

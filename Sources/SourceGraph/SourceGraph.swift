@@ -37,6 +37,8 @@ public final class SourceGraph {
     /// Call sites of keys built at runtime without a literal prefix, whose catalogue keys cannot be determined.
     public private(set) var unprefixedRuntimeLocalizedStringKeyLocations: Set<Location> = []
     public private(set) var synthesizedUses: Set<SynthesizedUse> = []
+    /// Locations of the property components of key paths that are not the argument of a `keyPath:` subscript.
+    public private(set) var keyPathComponentLocations: Set<Location> = []
     public private(set) var unusedAssetCatalogSymbols: [Declaration: AssetCatalogSymbol] = [:]
     /// Strings that may name an asset catalog resource, from string literals, Interface Builder files and
     /// build settings.
@@ -298,6 +300,10 @@ public final class SourceGraph {
 
     public func addSynthesizedUses(_ uses: Set<SynthesizedUse>) {
         synthesizedUses.formUnion(uses)
+    }
+
+    public func addKeyPathComponentLocations(_ locations: Set<Location>) {
+        keyPathComponentLocations.formUnion(locations)
     }
 
     func markUsed(_ declaration: Declaration) {

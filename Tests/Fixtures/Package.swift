@@ -69,6 +69,9 @@ var targets: [PackageDescription.Target] = [
     .target(
         name: "UnassignedOptionalFixtures"
     ),
+    .target(
+        name: "UnassignedOptionalKeyPathFixtures"
+    ),
 ]
 
 #if os(macOS)
