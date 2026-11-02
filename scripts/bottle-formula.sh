@@ -39,8 +39,8 @@ class Periphery < Formula
   sha256 "${sha256}"
   license "MIT"
 
-  depends_on xcode: "26.0"
   depends_on :macos
+  depends_on xcode: "26.0"
 
   def install
     args = %w[--disable-sandbox -c release --product periphery]
