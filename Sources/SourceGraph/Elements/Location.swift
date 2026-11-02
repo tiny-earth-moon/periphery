@@ -19,6 +19,7 @@ public final class Location {
         let newPath = file.path.relativeTo(path)
         let newFile = SourceFile(path: newPath, modules: file.modules)
         newFile.importStatements = file.importStatements
+        newFile.usesDistributedModifier = file.usesDistributedModifier
         return Location(file: newFile, line: line, column: column)
     }
 
