@@ -85,6 +85,7 @@ final class CsvFormatter: OutputFormatter {
         guard field.contains(",") || field.contains("\"") || field.contains("\n") || field.contains("\r") else {
             return field
         }
+
         return "\"\(field.replacingOccurrences(of: "\"", with: "\"\""))\""
     }
 }
