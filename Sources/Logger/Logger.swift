@@ -32,6 +32,7 @@ public struct Logger: Sendable {
     let quiet: Bool
     let verbose: Bool
     let colorMode: LoggerColorMode
+    let messagesToStderr: Bool
 
     #if canImport(os)
         let signposter = OSSignposter()
@@ -48,14 +49,18 @@ public struct Logger: Sendable {
         }
     }
 
+    /// - Parameter messagesToStderr: Sends `info` and `debug` messages to stderr instead of stdout, so that stdout
+    ///   only carries what is written with ``output(_:)``.
     public init(
         quiet: Bool,
         verbose: Bool,
-        colorMode: LoggerColorMode
+        colorMode: LoggerColorMode,
+        messagesToStderr: Bool = false
     ) {
         self.quiet = quiet
         self.verbose = verbose
         self.colorMode = colorMode
+        self.messagesToStderr = messagesToStderr
         outputQueue = DispatchQueue(label: "Logger.outputQueue")
     }
 
@@ -72,12 +77,18 @@ public struct Logger: Sendable {
     public func info(_ text: String, canQuiet: Bool = true) {
         guard !(quiet && canQuiet) else { return }
 
-        log(text, output: stdout)
+        log(text, output: messageStream)
     }
 
     public func debug(_ text: String) {
         guard verbose else { return }
 
+        log(text, output: messageStream)
+    }
+
+    /// Writes the primary output of the program, e.g. the formatted results, to stdout. It is neither silenced by
+    /// `quiet` nor redirected by `messagesToStderr`.
+    public func output(_ text: String) {
         log(text, output: stdout)
     }
 
@@ -114,6 +125,10 @@ public struct Logger: Sendable {
     }
 
     // MARK: - Private
+
+    private var messageStream: UnsafeMutablePointer<FILE> {
+        messagesToStderr ? stderr : stdout
+    }
 
     func log(_ line: String, output: UnsafeMutablePointer<FILE>) {
         _ = outputQueue.sync { fputs(line + "\n", output) }

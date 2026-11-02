@@ -188,6 +188,9 @@ public final class Configuration {
     @Setting(key: "write_results", defaultValue: nil, setter: filePathSetter)
     public var writeResults: FilePath?
 
+    @Setting(key: "skip_stdout_results", defaultValue: false)
+    public var skipStdoutResults: Bool
+
     @Setting(key: "generic_project_config", defaultValue: nil, setter: filePathSetter)
     public var genericProjectConfig: FilePath?
 
@@ -318,7 +321,7 @@ public final class Configuration {
         $skipBuild, $skipSchemesValidation, $cleanBuild, $cacheMaxAgeDays, $buildArguments, $xcodeListArguments, $relativeResults,
         $jsonPackageManifestPath, $retainCodableProperties, $retainEncodableProperties, $retainEquatableProperties,
         $retainHashableProperties, $baseline, $writeBaseline,
-        $writeResults, $genericProjectConfig,
+        $writeResults, $skipStdoutResults, $genericProjectConfig,
         $retainSynthesizedUses, $retainAttributes, $detectUnusedAssetCatalogColors, $detectUnusedAssetCatalogImages,
     ]
 

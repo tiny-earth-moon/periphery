@@ -50,6 +50,7 @@ public final class SourceGraph {
     private var allDeclarationsByKind: [Declaration.Kind: Set<Declaration>] = [:]
     private var allDeclarationsByUsr: [String: Declaration] = [:]
     private var moduleToExportingModules: [String: Set<String>] = [:]
+    private var syntheticUsrLocations: [String: [Location]] = [:]
 
     private let configuration: Configuration
     private let logger: Logger
@@ -393,18 +394,33 @@ public final class SourceGraph {
     }
 
     func markUnusedModuleImport(_ statement: ImportStatement) {
-        let location = statement.location.relativeTo(configuration.projectRoot)
-        let usr = "import-\(statement.module)-\(location)"
+        let file = statement.location.file.path
+        let id = SyntheticUsr.moduleImport(statement.module, in: file, projectRoot: configuration.projectRoot)
+        guard let usr = numberedSyntheticUsr(id, at: statement.location) else { return }
+
         let decl = Declaration(name: statement.module, kind: .module, usrs: [usr], location: statement.location)
         unusedModuleImports.insert(decl)
     }
 
     /// Empty extensions are absent from the index store, so they are recorded from the syntax tree.
     public func markEmptyExtension(extendedTypeName: String, location: Location) {
-        let relativeLocation = location.relativeTo(configuration.projectRoot)
-        let usr = "empty-extension-\(extendedTypeName)-\(relativeLocation)"
+        let id = SyntheticUsr.emptyExtension(of: extendedTypeName, in: location.file.path, projectRoot: configuration.projectRoot)
+        guard let usr = numberedSyntheticUsr(id, at: location) else { return }
+
         let decl = Declaration(name: extendedTypeName, kind: .extension, usrs: [usr], location: location)
         emptyExtensions.insert(decl)
+    }
+
+    /// Results of one kind that share a file, such as two empty extensions of one type, share their base id. They are
+    /// numbered in the order they are marked, which is source order within a file. A location that is already marked,
+    /// as when a file belongs to several targets, yields `nil`.
+    private func numberedSyntheticUsr(_ id: String, at location: Location) -> String? {
+        var locations = syntheticUsrLocations[id, default: []]
+        guard !locations.contains(location) else { return nil }
+
+        locations.append(location)
+        syntheticUsrLocations[id] = locations
+        return SyntheticUsr.numbered(id, occurrence: locations.count)
     }
 
     func markExtension(_ extensionDecl: Declaration, extending extendedDecl: Declaration) {
