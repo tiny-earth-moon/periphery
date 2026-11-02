@@ -83,6 +83,9 @@ targets.append(contentsOf: [
         name: "AppIntentsRetentionFixtures"
     ),
     .target(
+        name: "AppIntentsMetadataRetentionFixtures"
+    ),
+    .target(
         name: "UnusedAssetCatalogImageFixtures"
     )
 ])

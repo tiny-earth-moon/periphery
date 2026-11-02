@@ -18,10 +18,14 @@ final class AppIntentsRetainer: SourceGraphMutator {
         self.graph = graph
     }
 
+    /// Static properties that the App Intents metadata processor reads by name at build time. The
+    /// `description` requirement is optional, so a property with an inferred non-optional type does not witness
+    /// it and the index records no relation to the protocol.
+    private static let metadataPropertyNames: Set<String> = ["description"]
+
     func mutate() {
-        graph
+        let retainedDeclarations = graph
             .declarations(ofKinds: [.class, .struct, .enum])
-            .lazy
             .filter {
                 $0.related.contains {
                     self.graph.isExternal($0) &&
@@ -29,6 +33,13 @@ final class AppIntentsRetainer: SourceGraphMutator {
                         $0.usr.hasPrefix(Self.appIntentsModuleUsrPrefix)
                 }
             }
-            .forEach { graph.markRetained($0) }
+
+        for declaration in retainedDeclarations {
+            graph.markRetained(declaration)
+
+            declaration.declarations
+                .filter { $0.kind == .varStatic && Self.metadataPropertyNames.contains($0.name) }
+                .forEach { graph.markRetained($0) }
+        }
     }
 }
