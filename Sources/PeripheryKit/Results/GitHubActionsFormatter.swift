@@ -21,7 +21,7 @@ final class GitHubActionsFormatter: OutputFormatter {
 
         return results.flatMap { result in
             describe(result, colored: colored).map { location, description in
-                prefix(for: location, result: result) + description
+                prefix(for: location, result: result) + escapeData(description)
             }
         }
         .joined(separator: "\n")
@@ -35,6 +35,21 @@ final class GitHubActionsFormatter: OutputFormatter {
         let column = location.column
         let title = describe(result.annotation)
 
-        return "::warning file=\(path),line=\(lineNum),col=\(column),title=\(title)::"
+        return "::warning file=\(escapeProperty(path.string)),line=\(lineNum),col=\(column),title=\(escapeProperty(title))::"
+    }
+
+    /// Escapes the message part of a workflow command.
+    private func escapeData(_ value: String) -> String {
+        value
+            .replacingOccurrences(of: "%", with: "%25")
+            .replacingOccurrences(of: "\r", with: "%0D")
+            .replacingOccurrences(of: "\n", with: "%0A")
+    }
+
+    /// Escapes a property value of a workflow command, which additionally treats `,` and `:` as delimiters.
+    private func escapeProperty(_ value: String) -> String {
+        escapeData(value)
+            .replacingOccurrences(of: ":", with: "%3A")
+            .replacingOccurrences(of: ",", with: "%2C")
     }
 }
