@@ -15,9 +15,7 @@ final class GitHubActionsFormatterTest: XCTestCase {
     }
 
     private func format(_ results: [ScanResult]) throws -> String {
-        let configuration = Configuration()
-        configuration.relativeResults = true
-        return try XCTUnwrap(GitHubActionsFormatter(configuration: configuration, logger: logger).format(results, colored: false))
+        try XCTUnwrap(GitHubActionsFormatter(configuration: Configuration(), logger: logger).format(results, colored: false))
     }
 
     func testOutput_leavesPlainResultsUntouched() throws {

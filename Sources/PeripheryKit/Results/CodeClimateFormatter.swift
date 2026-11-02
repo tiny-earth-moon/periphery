@@ -4,6 +4,8 @@ import Logger
 import SystemPackage
 
 final class CodeClimateFormatter: OutputFormatter {
+    static let requiresRelativePaths = true
+
     let configuration: Configuration
     let logger: Logger
     lazy var currentFilePath: FilePath = .current
@@ -43,7 +45,6 @@ final class CodeClimateFormatter: OutputFormatter {
             jsonObject.append(object)
         }
 
-        let data = try JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted, .withoutEscapingSlashes])
-        return String(bytes: data, encoding: .utf8)
+        return try serializeJSON(jsonObject)
     }
 }

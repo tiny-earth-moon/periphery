@@ -41,9 +41,10 @@ final class JsonFormatter: OutputFormatter {
 
             switch result.annotation {
             case let .redundantProtocol(references, inherited):
-                for ref in references {
+                for ref in sortedReferences(references) {
                     let object: [AnyHashable: Any] = [
                         "kind": ref.declarationKind.rawValue,
+                        "modules": ref.location.file.modules.sorted(),
                         "name": ref.name,
                         "modifiers": [String](),
                         "attributes": [String](),
@@ -59,7 +60,6 @@ final class JsonFormatter: OutputFormatter {
             }
         }
 
-        let data = try JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted, .withoutEscapingSlashes])
-        return String(bytes: data, encoding: .utf8)
+        return try serializeJSON(jsonObject)
     }
 }

@@ -86,7 +86,7 @@ final class AppIntentsLocalizedStringSyntaxVisitorTest: XCTestCase {
         let sourceFile = SourceFile(path: path, modules: ["Test"])
 
         let shell = ShellImpl(logger: Logger(quiet: true, verbose: false, colorMode: .never))
-        let swiftVersion = SwiftVersion(shell: shell)
+        let swiftVersion = try SwiftVersion(shell: shell)
         let multiplexingVisitor = try MultiplexingSyntaxVisitor(file: sourceFile, swiftVersion: swiftVersion)
         let visitor = multiplexingVisitor.add(LocalizedStringSyntaxVisitor.self)
         multiplexingVisitor.visit()

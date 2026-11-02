@@ -31,17 +31,17 @@ struct ScanCommand: ParsableCommand {
     @Option(parsing: .upToNextOption, help: "Schemes to build. All targets built by these schemes will be scanned")
     var schemes: [String] = defaultConfiguration.$schemes.defaultValue
 
-    @Option(help: "Output format")
-    var format: OutputFormat = defaultConfiguration.$outputFormat.defaultValue
+    @Option(help: "Output format (default: xcode)")
+    var format: OutputFormat?
 
-    @Flag(help: "Exclude test targets from indexing")
-    var excludeTests: Bool = defaultConfiguration.$excludeTests.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Exclude test targets from indexing")
+    var excludeTests: Bool?
 
     @Option(parsing: .upToNextOption, help: "Targets to exclude from indexing")
     var excludeTargets: [String] = defaultConfiguration.$excludeTargets.defaultValue
 
-    @Option(parsing: .upToNextOption, help: "Source file globs to exclude from indexing")
-    var indexExclude: [String] = defaultConfiguration.$indexExclude.defaultValue
+    @Option(parsing: .upToNextOption, help: "Source file globs to exclude from indexing, in addition to the default ones (default: **/*?.build/**/*, **/SourcePackages/checkouts/**)")
+    var indexExclude: [String] = []
 
     @Option(parsing: .upToNextOption, help: "Source file globs to exclude from the results, optionally limited to result kinds with '<glob>:kind1,kind2'. Note that this option is purely cosmetic, these files will still be indexed")
     var reportExclude: [String] = []
@@ -55,64 +55,65 @@ struct ScanCommand: ParsableCommand {
     @Option(parsing: .upToNextOption, help: "Index store paths. Implies '--skip-build'")
     var indexStorePath: [FilePath] = defaultConfiguration.$indexStorePath.defaultValue
 
-    @Flag(help: "Retain all public declarations, recommended for framework/library projects")
-    var retainPublic: Bool = defaultConfiguration.$retainPublic.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Retain all public declarations, recommended for framework/library projects")
+    var retainPublic: Bool?
 
     @Option(parsing: .upToNextOption, help: "Public SPIs (System Programming Interfaces) to check for unused code even when '--retain-public' is enabled")
     var noRetainSPI: [String] = defaultConfiguration.$noRetainSPI.defaultValue
 
-    @Flag(help: "Disable retention of declarations that are unavailable on a platform, or referenced from platform conditional compilation blocks")
-    var disablePlatformConditionalRetention: Bool = defaultConfiguration.$disablePlatformConditionalRetention.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Disable retention of declarations that are unavailable on a platform, or referenced from platform conditional compilation blocks")
+    var disablePlatformConditionalRetention: Bool?
 
-    @Flag(help: "Disable identification of redundant public accessibility")
-    var disableRedundantPublicAnalysis: Bool = defaultConfiguration.$disableRedundantPublicAnalysis.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Disable identification of redundant public accessibility")
+    var disableRedundantPublicAnalysis: Bool?
 
-    @Flag(help: "Enable identification of redundant public accessibility on the members of public types and extensions")
-    var enableRedundantPublicMembers: Bool = defaultConfiguration.$enableRedundantPublicMembers.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Enable identification of redundant public accessibility on the members of public types and extensions")
+    var enableRedundantPublicMembers: Bool?
 
-    @Flag(help: "Enable identification of redundant open accessibility and classes or members that could be final")
-    var enableOpenFinalAnalysis: Bool = defaultConfiguration.$enableOpenFinalAnalysis.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Enable identification of redundant open accessibility and classes or members that could be final")
+    var enableOpenFinalAnalysis: Bool?
 
-    @Flag(help: "Enable identification of empty extensions, which declare no member and no conformance")
-    var enableEmptyExtensionAnalysis: Bool = defaultConfiguration.$enableEmptyExtensionAnalysis.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Enable identification of empty extensions, which declare no member and no conformance")
+    var enableEmptyExtensionAnalysis: Bool?
 
-    @Flag(help: "Enable identification of access modifiers identical to the default of their enclosing context")
-    var enableRedundantAccessLevelAnalysis: Bool = defaultConfiguration.$enableRedundantAccessLevelAnalysis.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Enable identification of access modifiers identical to the default of their enclosing context")
+    var enableRedundantAccessLevelAnalysis: Bool?
 
-    @Flag(help: "Disable identification of unused imports")
-    var disableUnusedImportAnalysis: Bool = defaultConfiguration.$disableUnusedImportAnalysis.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Disable identification of unused imports")
+    var disableUnusedImportAnalysis: Bool?
 
-    @Flag(help: "Enable identification of unused imports of system frameworks (experimental)")
-    var enableUnusedSystemImports: Bool = defaultConfiguration.$enableUnusedSystemImports.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Enable identification of unused imports of system frameworks (experimental)")
+    var enableUnusedSystemImports: Bool?
 
-    @Flag(inversion: .prefixedNo, help: "Report superfluous ignore comments")
-    var superfluousIgnoreComments: Bool = defaultConfiguration.$superfluousIgnoreComments.defaultValue
-    @Flag(help: "Disable identification of unused localized strings from String Catalogs (xcstrings)")
-    var disableUnusedLocalizedStringAnalysis: Bool = defaultConfiguration.$disableUnusedLocalizedStringAnalysis.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Report superfluous ignore comments (default: enabled)")
+    var superfluousIgnoreComments: Bool?
 
-    @Option(parsing: .upToNextOption, help: "String Catalog (xcstrings) file globs to exclude from unused localized string analysis")
-    var localizedStringCatalogExclude: [String] = defaultConfiguration.$localizedStringCatalogExclude.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Disable identification of unused localized strings from String Catalogs (xcstrings)")
+    var disableUnusedLocalizedStringAnalysis: Bool?
+
+    @Option(parsing: .upToNextOption, help: "String Catalog (xcstrings) file globs to exclude from unused localized string analysis (default: **/InfoPlist.xcstrings, **/AppShortcuts.xcstrings)")
+    var localizedStringCatalogExclude: [String] = []
 
     @Option(parsing: .upToNextOption, help: "Localized string key patterns (globs, or regular expressions between slashes) of keys used dynamically, retained from String Catalogs (xcstrings)")
     var localizedStringKeyPatterns: [String] = defaultConfiguration.$localizedStringKeyPatterns.defaultValue
 
-    @Flag(help: "Retain localized string keys equal to any string literal of the source, whatever its type or position")
-    var localizedStringKeyLiteralMatch: Bool = defaultConfiguration.$localizedStringKeyLiteralMatch.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Retain localized string keys equal to any string literal of the source, whatever its type or position")
+    var localizedStringKeyLiteralMatch: Bool?
 
-    @Flag(help: "Retain every String Catalog key that a localized string key built at runtime without a literal prefix may look up")
-    var retainRuntimeLocalizedKeys: Bool = defaultConfiguration.$retainRuntimeLocalizedKeys.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Retain every String Catalog key that a localized string key built at runtime without a literal prefix may look up")
+    var retainRuntimeLocalizedKeys: Bool?
 
     @Option(parsing: .upToNextOption, help: "Names of unused imported modules to retain")
     var retainUnusedImportedModules: [String] = defaultConfiguration.$retainUnusedImportedModules.defaultValue
 
-    @Flag(help: "Retain properties that are assigned, but never used")
-    var retainAssignOnlyProperties: Bool = defaultConfiguration.$retainAssignOnlyProperties.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Retain properties that are assigned, but never used")
+    var retainAssignOnlyProperties: Bool?
 
     @Option(parsing: .upToNextOption, help: "Property types to retain if the property is assigned, but never read")
     var retainAssignOnlyPropertyTypes: [String] = defaultConfiguration.$retainAssignOnlyPropertyTypes.defaultValue
 
-    @Flag(help: "Report optional properties that are read, but never assigned (always nil)")
-    var enableUnassignedOptionalAnalysis: Bool = defaultConfiguration.$enableUnassignedOptionalAnalysis.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Report optional properties that are read, but never assigned (always nil)")
+    var enableUnassignedOptionalAnalysis: Bool?
 
     @Option(parsing: .upToNextOption, help: "Names of external protocols that inherit Encodable. Properties and CodingKey enums of types conforming to these protocols will be retained")
     var externalEncodableProtocols: [String] = defaultConfiguration.$externalEncodableProtocols.defaultValue
@@ -123,62 +124,62 @@ struct ScanCommand: ParsableCommand {
     @Option(parsing: .upToNextOption, help: "Names of XCTestCase subclasses that reside in external targets")
     var externalTestCaseClasses: [String] = defaultConfiguration.$externalTestCaseClasses.defaultValue
 
-    @Flag(help: "Retain declarations that are exposed to Objective-C implicitly by inheriting NSObject classes, or explicitly with the @objc and @objcMembers attributes")
-    var retainObjcAccessible: Bool = defaultConfiguration.$retainObjcAccessible.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Retain declarations that are exposed to Objective-C implicitly by inheriting NSObject classes, or explicitly with the @objc and @objcMembers attributes")
+    var retainObjcAccessible: Bool?
 
-    @Flag(help: "Retain protocols that inherit JSExport, their members, and the members of conforming types that satisfy them")
-    var retainJsAccessible: Bool = defaultConfiguration.$retainJsAccessible.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Retain protocols that inherit JSExport, their members, and the members of conforming types that satisfy them")
+    var retainJsAccessible: Bool?
 
-    @Flag(help: "Retain declarations that are exposed to Objective-C explicitly with the @objc and @objcMembers attributes")
-    var retainObjcAnnotated: Bool = defaultConfiguration.$retainObjcAnnotated.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Retain declarations that are exposed to Objective-C explicitly with the @objc and @objcMembers attributes")
+    var retainObjcAnnotated: Bool?
 
-    @Flag(help: "Retain unused protocol function parameters, even if the parameter is unused in all conforming functions")
-    var retainUnusedProtocolFuncParams: Bool = defaultConfiguration.$retainUnusedProtocolFuncParams.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Retain unused protocol function parameters, even if the parameter is unused in all conforming functions")
+    var retainUnusedProtocolFuncParams: Bool?
 
-    @Flag(help: "Retain unused function parameters that have no default value, as removing them would break callers")
-    var retainUnusedParametersWithoutDefault: Bool = defaultConfiguration.$retainUnusedParametersWithoutDefault.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Retain unused function parameters that have no default value, as removing them would break callers")
+    var retainUnusedParametersWithoutDefault: Bool?
 
-    @Flag(help: "Retain SwiftUI previews")
-    var retainSwiftUIPreviews: Bool = defaultConfiguration.$retainSwiftUIPreviews.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Retain SwiftUI previews")
+    var retainSwiftUIPreviews: Bool?
 
-    @Flag(help: "Retain properties on Codable types (including Encodable and Decodable)")
-    var retainCodableProperties: Bool = defaultConfiguration.$retainCodableProperties.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Retain properties on Codable types (including Encodable and Decodable)")
+    var retainCodableProperties: Bool?
 
-    @Flag(help: "Retain properties on Encodable types only")
-    var retainEncodableProperties: Bool = defaultConfiguration.$retainEncodableProperties.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Retain properties on Encodable types only")
+    var retainEncodableProperties: Bool?
 
-    @Flag(help: "Retain properties on Equatable types, including Hashable types")
-    var retainEquatableProperties: Bool = defaultConfiguration.$retainEquatableProperties.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Retain properties on Equatable types, including Hashable types")
+    var retainEquatableProperties: Bool?
 
-    @Flag(help: "Retain properties on Hashable types")
-    var retainHashableProperties: Bool = defaultConfiguration.$retainHashableProperties.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Retain properties on Hashable types")
+    var retainHashableProperties: Bool?
 
-    @Flag(help: "Clean existing build artifacts before building")
-    var cleanBuild: Bool = defaultConfiguration.$cleanBuild.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Clean existing build artifacts before building")
+    var cleanBuild: Bool?
 
-    @Flag(help: "Skip the project build step")
-    var skipBuild: Bool = defaultConfiguration.$skipBuild.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Skip the project build step")
+    var skipBuild: Bool?
 
-    @Flag(help: "Skip schemes validation")
-    var skipSchemesValidation: Bool = defaultConfiguration.$skipSchemesValidation.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Skip schemes validation")
+    var skipSchemesValidation: Bool?
 
-    @Flag(help: "Output result paths relative to the current directory")
-    var relativeResults: Bool = defaultConfiguration.$relativeResults.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Output result paths relative to the current directory")
+    var relativeResults: Bool?
 
-    @Flag(help: "Exit with non-zero status if any unused code is found")
-    var strict: Bool = defaultConfiguration.$strict.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Exit with non-zero status if any unused code is found")
+    var strict: Bool?
 
-    @Flag(help: "Disable checking for updates")
-    var disableUpdateCheck: Bool = defaultConfiguration.$disableUpdateCheck.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Disable checking for updates")
+    var disableUpdateCheck: Bool?
 
-    @Flag(help: "Enable verbose logging")
-    var verbose: Bool = defaultConfiguration.$verbose.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Enable verbose logging")
+    var verbose: Bool?
 
-    @Flag(help: "Only output results")
-    var quiet: Bool = defaultConfiguration.$quiet.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Only output results")
+    var quiet: Bool?
 
-    @Option(help: "Colored output mode")
-    var color: ColorOption = defaultConfiguration.$color.defaultValue
+    @Option(help: "Colored output mode (default: auto)")
+    var color: ColorOption?
 
     @Flag(name: .customLong("no-color"), help: .hidden)
     var noColor: Bool = false
@@ -186,8 +187,8 @@ struct ScanCommand: ParsableCommand {
     @Option(help: "JSON package manifest path (obtained using `swift package describe --type json` or manually)")
     var jsonPackageManifestPath: FilePath?
 
-    @Option(help: "Maximum age in days of unused Xcode build caches before they are evicted at the end of a scan. 0 disables eviction.")
-    var cacheMaxAgeDays: Int = defaultConfiguration.$cacheMaxAgeDays.defaultValue
+    @Option(help: "Maximum age in days of unused Xcode build caches before they are evicted at the end of a scan. 0 disables eviction (default: 14)")
+    var cacheMaxAgeDays: Int?
 
     @Option(help: "Baseline file path used to filter results")
     var baseline: FilePath?
@@ -198,20 +199,23 @@ struct ScanCommand: ParsableCommand {
     @Option(help: "File path where formatted results are written.")
     var writeResults: FilePath?
 
+    @Flag(help: "Do not print the results to stdout. Requires '--write-results'")
+    var skipStdoutResults: Bool = defaultConfiguration.$skipStdoutResults.defaultValue
+
     @Option(help: "Project configuration for non-Apple build systems")
     var genericProjectConfig: FilePath?
 
-    @Flag(help: "Retain stored properties of types whose values are described through reflection, e.g. passed to print, dump, String(describing:) or string interpolation")
-    var retainSynthesizedUses: Bool = defaultConfiguration.$retainSynthesizedUses.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Retain stored properties of types whose values are described through reflection, e.g. passed to print, dump, String(describing:) or string interpolation")
+    var retainSynthesizedUses: Bool?
 
     @Option(parsing: .upToNextOption, help: "Retain declarations that have any of the given attributes (without the '@'), optionally limited to declaration kinds with '<attribute>:kind1,kind2', e.g. 'OptionGroup' or 'objc:function.method.instance'")
     var retainAttributes: [String] = defaultConfiguration.$retainAttributes.defaultValue
 
-    @Flag(help: "Report unused colors of Xcode asset catalogs, analyzing the symbols Xcode generates for them in GeneratedAssetSymbols.swift (indexed despite '--index-exclude')")
-    var detectUnusedAssetCatalogColors: Bool = defaultConfiguration.$detectUnusedAssetCatalogColors.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Report unused colors of Xcode asset catalogs, analyzing the symbols Xcode generates for them in GeneratedAssetSymbols.swift (indexed despite '--index-exclude')")
+    var detectUnusedAssetCatalogColors: Bool?
 
-    @Flag(help: "Report unused images of Xcode asset catalogs, analyzing the symbols Xcode generates for them in GeneratedAssetSymbols.swift (indexed despite '--index-exclude')")
-    var detectUnusedAssetCatalogImages: Bool = defaultConfiguration.$detectUnusedAssetCatalogImages.defaultValue
+    @Flag(inversion: .prefixedNo, help: "Report unused images of Xcode asset catalogs, analyzing the symbols Xcode generates for them in GeneratedAssetSymbols.swift (indexed despite '--index-exclude')")
+    var detectUnusedAssetCatalogImages: Bool?
 
     @OptionGroup(visibility: .hidden)
     var removedBazelOptions: RemovedBazelOptions
@@ -222,30 +226,19 @@ struct ScanCommand: ParsableCommand {
         try removedBazelOptions.rejectUse()
     }
 
-    func run() throws {
-        if !FileManager.default.changeCurrentDirectoryPath(projectRoot.string) {
-            throw PeripheryError.changeCurrentDirectoryFailed(projectRoot)
-        }
-
-        let configuration = Configuration()
-
-        if !setup {
-            try configuration.load(from: config)
-        }
-
-        configuration.guidedSetup = setup
-        configuration.projectRoot = projectRoot
+    /// Applies the options given on the command line to a configuration that holds the values of the configuration file.
+    func apply(to configuration: Configuration) {
         configuration.apply(\.$project, project)
-        configuration.apply(\.$schemes, schemes)
-        configuration.apply(\.$indexExclude, indexExclude)
-        configuration.apply(\.$reportExclude, reportExclude.map { .pattern($0) })
-        configuration.apply(\.$reportInclude, reportInclude)
+        configuration.apply(\.$schemes, given(schemes))
+        configuration.apply(\.$indexExclude, given(indexExclude))
+        configuration.apply(\.$reportExclude, given(reportExclude).map { $0.map { .pattern($0) } })
+        configuration.apply(\.$reportInclude, given(reportInclude))
         configuration.apply(\.$outputFormat, format)
-        configuration.apply(\.$retainFiles, retainFiles)
+        configuration.apply(\.$retainFiles, given(retainFiles))
         configuration.apply(\.$retainPublic, retainPublic)
-        configuration.apply(\.$noRetainSPI, noRetainSPI)
+        configuration.apply(\.$noRetainSPI, given(noRetainSPI))
         configuration.apply(\.$retainAssignOnlyProperties, retainAssignOnlyProperties)
-        configuration.apply(\.$retainAssignOnlyPropertyTypes, retainAssignOnlyPropertyTypes)
+        configuration.apply(\.$retainAssignOnlyPropertyTypes, given(retainAssignOnlyPropertyTypes))
         configuration.apply(\.$enableUnassignedOptionalAnalysis, enableUnassignedOptionalAnalysis)
         configuration.apply(\.$retainObjcAccessible, retainObjcAccessible)
         configuration.apply(\.$retainJsAccessible, retainJsAccessible)
@@ -263,27 +256,27 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$enableUnusedSystemImports, enableUnusedSystemImports)
         configuration.apply(\.$superfluousIgnoreComments, superfluousIgnoreComments)
         configuration.apply(\.$disableUnusedLocalizedStringAnalysis, disableUnusedLocalizedStringAnalysis)
-        configuration.apply(\.$localizedStringCatalogExclude, localizedStringCatalogExclude)
-        configuration.apply(\.$localizedStringKeyPatterns, localizedStringKeyPatterns)
+        configuration.apply(\.$localizedStringCatalogExclude, given(localizedStringCatalogExclude))
+        configuration.apply(\.$localizedStringKeyPatterns, given(localizedStringKeyPatterns))
         configuration.apply(\.$localizedStringKeyLiteralMatch, localizedStringKeyLiteralMatch)
         configuration.apply(\.$retainRuntimeLocalizedKeys, retainRuntimeLocalizedKeys)
-        configuration.apply(\.$retainUnusedImportedModules, retainUnusedImportedModules)
-        configuration.apply(\.$externalEncodableProtocols, externalEncodableProtocols)
-        configuration.apply(\.$externalCodableProtocols, externalCodableProtocols)
-        configuration.apply(\.$externalTestCaseClasses, externalTestCaseClasses)
+        configuration.apply(\.$retainUnusedImportedModules, given(retainUnusedImportedModules))
+        configuration.apply(\.$externalEncodableProtocols, given(externalEncodableProtocols))
+        configuration.apply(\.$externalCodableProtocols, given(externalCodableProtocols))
+        configuration.apply(\.$externalTestCaseClasses, given(externalTestCaseClasses))
         configuration.apply(\.$verbose, verbose)
         configuration.apply(\.$quiet, quiet)
         configuration.apply(\.$color, noColor ? .never : color)
         configuration.apply(\.$disableUpdateCheck, disableUpdateCheck)
         configuration.apply(\.$strict, strict)
-        configuration.apply(\.$indexStorePath, indexStorePath)
+        configuration.apply(\.$indexStorePath, given(indexStorePath))
         configuration.apply(\.$skipBuild, skipBuild)
         configuration.apply(\.$excludeTests, excludeTests)
-        configuration.apply(\.$excludeTargets, excludeTargets)
+        configuration.apply(\.$excludeTargets, given(excludeTargets))
         configuration.apply(\.$skipSchemesValidation, skipSchemesValidation)
         configuration.apply(\.$cleanBuild, cleanBuild)
         configuration.apply(\.$cacheMaxAgeDays, cacheMaxAgeDays)
-        configuration.apply(\.$buildArguments, buildArguments)
+        configuration.apply(\.$buildArguments, given(buildArguments))
         configuration.apply(\.$relativeResults, relativeResults)
         configuration.apply(\.$retainCodableProperties, retainCodableProperties)
         configuration.apply(\.$retainEncodableProperties, retainEncodableProperties)
@@ -293,17 +286,40 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$baseline, baseline)
         configuration.apply(\.$writeBaseline, writeBaseline)
         configuration.apply(\.$writeResults, writeResults)
+        configuration.apply(\.$skipStdoutResults, skipStdoutResults)
         configuration.apply(\.$genericProjectConfig, genericProjectConfig)
         configuration.apply(\.$retainSynthesizedUses, retainSynthesizedUses)
-        configuration.apply(\.$retainAttributes, retainAttributes)
+        configuration.apply(\.$retainAttributes, given(retainAttributes))
         configuration.apply(\.$detectUnusedAssetCatalogColors, detectUnusedAssetCatalogColors)
         configuration.apply(\.$detectUnusedAssetCatalogImages, detectUnusedAssetCatalogImages)
+    }
+
+    func run() throws {
+        if !FileManager.default.changeCurrentDirectoryPath(projectRoot.string) {
+            throw PeripheryError.changeCurrentDirectoryFailed(projectRoot)
+        }
+
+        let configuration = Configuration()
+
+        if !setup {
+            try configuration.load(from: config)
+        }
+
+        configuration.guidedSetup = setup
+        configuration.projectRoot = projectRoot
+        apply(to: configuration)
+
+        if configuration.skipStdoutResults, configuration.writeResults == nil {
+            throw PeripheryError.usageError("The '--skip-stdout-results' option requires '--write-results', otherwise the results would not be output anywhere.")
+        }
 
         configuration.buildFilenameMatchers()
         _ = try ReportExcludeRule.resolve(configuration)
         _ = try AttributeRetentionRule.resolve(configuration)
+        let baseline = try ScanPreflight.validatePaths(of: configuration)
 
         let logger = Logger(configuration: configuration)
+        ScanPreflight.applyOutputFormatRequirements(to: configuration, logger: logger)
         logger.contextualized(with: "version").debug(PeripheryVersion)
         let shell = ShellImpl(logger: logger) {
             logger.warn(
@@ -311,7 +327,7 @@ struct ScanCommand: ParsableCommand {
                 newlinePrefix: true // Print a newline after ^C
             )
         }
-        let swiftVersion = SwiftVersion(shell: shell)
+        let swiftVersion = try SwiftVersion(shell: shell)
         logger.debug(swiftVersion.fullVersion)
         try swiftVersion.validateVersion()
 
@@ -332,12 +348,6 @@ struct ScanCommand: ParsableCommand {
 
         let results = scanOutput.results
         let interval = logger.beginInterval("result:output")
-        var baseline: Baseline?
-
-        if let baselinePath = configuration.baseline {
-            let data = try Data(contentsOf: baselinePath.url)
-            baseline = try JSONDecoder().decode(Baseline.self, from: data)
-        }
 
         let filteredResults = try OutputDeclarationFilter(configuration: configuration, logger: logger).filter(results, with: baseline)
 
@@ -345,9 +355,7 @@ struct ScanCommand: ParsableCommand {
             let usrs = filteredResults
                 .flatMapSet { $0.usrs }
                 .union(baseline?.usrs ?? [])
-            let baseline = Baseline.v1(usrs: usrs.sorted())
-            let data = try JSONEncoder().encode(baseline)
-            try data.write(to: baselinePath.url)
+            try Self.writeBaseline(.v1(usrs: usrs.sorted()), to: baselinePath)
         }
 
         let outputFormat = configuration.outputFormat
@@ -356,12 +364,12 @@ struct ScanCommand: ParsableCommand {
 
         let formattedOutput = try formatter.format(filteredResults, colored: colored)
 
-        if let output = formattedOutput {
+        if let output = formattedOutput, !configuration.skipStdoutResults {
             if outputFormat.supportsAuxiliaryOutput {
                 logger.info("", canQuiet: true)
             }
 
-            logger.info(output, canQuiet: false)
+            logger.output(output)
         }
 
         if let resultsPath = configuration.writeResults {
@@ -385,7 +393,16 @@ struct ScanCommand: ParsableCommand {
         }
     }
 
+    static func writeBaseline(_ baseline: Baseline, to path: FilePath) throws {
+        try JSONEncoder().encode(baseline).write(to: path.url, options: .atomic)
+    }
+
     // MARK: - Private
+
+    /// The values of a list option, or nil when the option was not passed: ArgumentParser reports an option that is not passed as an empty list.
+    private func given<T>(_ values: [T]) -> [T]? {
+        values.isEmpty ? nil : values
+    }
 
     private static var projectRootDefault: FilePath {
         FilePath(FileManager.default.currentDirectoryPath)
