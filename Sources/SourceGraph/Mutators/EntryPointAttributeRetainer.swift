@@ -10,6 +10,13 @@ final class EntryPointAttributeRetainer: SourceGraphMutator {
     }
 
     func mutate() {
+        retainAttributedTypes()
+        retainTypesWithAttributedExtensions()
+    }
+
+    // MARK: - Private
+
+    private func retainAttributedTypes() {
         graph
             .declarations(ofKinds: [.class, .struct, .enum])
             .lazy
@@ -19,19 +26,45 @@ final class EntryPointAttributeRetainer: SourceGraphMutator {
                     $0.attributes.contains(where: { $0.name == "main" })
             }
             .forEach {
-                graph.markRetained($0)
-                graph.markMainAttributed($0)
-
-                for ancestralDeclaration in $0.ancestralDeclarations {
-                    graph.markRetained(ancestralDeclaration)
-                }
+                retainEntryPoint($0)
 
                 if $0.attributes.contains(where: { $0.name == "main" }) {
-                    // @main requires a static main() function.
-                    $0.declarations
-                        .filter { $0.kind == .functionMethodStatic && $0.name == "main()" }
-                        .forEach { graph.markRetained($0) }
+                    retainMainFunction(in: $0)
                 }
             }
+    }
+
+    /// `@main` can be applied to an extension of the entry point type. Extensions are folded into the extended type,
+    /// and only remain reachable through the graph's extension index.
+    private func retainTypesWithAttributedExtensions() {
+        for (extendedDeclaration, extensions) in graph.extensions {
+            for extensionDeclaration in extensions
+                where extensionDeclaration.attributes.contains(where: { $0.name == "main" })
+            {
+                retainEntryPoint(extendedDeclaration)
+                graph.markRetained(extensionDeclaration)
+                retainMainFunction(in: extensionDeclaration)
+
+                for ancestralDeclaration in extensionDeclaration.ancestralDeclarations {
+                    graph.markRetained(ancestralDeclaration)
+                }
+            }
+        }
+    }
+
+    private func retainEntryPoint(_ declaration: Declaration) {
+        graph.markRetained(declaration)
+        graph.markMainAttributed(declaration)
+
+        for ancestralDeclaration in declaration.ancestralDeclarations {
+            graph.markRetained(ancestralDeclaration)
+        }
+    }
+
+    /// @main requires a static main() function.
+    private func retainMainFunction(in declaration: Declaration) {
+        declaration.declarations
+            .filter { $0.kind == .functionMethodStatic && $0.name == "main()" }
+            .forEach { graph.markRetained($0) }
     }
 }

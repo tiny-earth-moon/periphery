@@ -108,12 +108,27 @@ final class UsedDeclarationMarker: SourceGraphMutator {
             .contains { self.graph.isUsed($0) && self.isPreviewable($0) }
     }
 
+    /// Whether the type conforms to a previewable protocol (`View`, `Widget` or `ControlWidget`), directly, through a
+    /// protocol it conforms to that refines one, or through a superclass that conforms.
     private func isPreviewable(_ declaration: Declaration) -> Bool {
         guard [.struct, .class, .enum].contains(declaration.kind) else { return false }
 
-        return declaration.related.contains {
-            $0.declarationKind == .protocol && Self.previewableProtocolUsrs.contains($0.usr)
+        var visited: Set<Declaration> = [declaration]
+        var pending = [declaration]
+
+        while let current = pending.popLast() {
+            for related in current.related {
+                if related.declarationKind == .protocol, Self.previewableProtocolUsrs.contains(related.usr) {
+                    return true
+                }
+
+                if let inherited = graph.declaration(withUsr: related.usr), visited.insert(inherited).inserted {
+                    pending.append(inherited)
+                }
+            }
         }
+
+        return false
     }
 
     private func isPreviewProvider(_ declaration: Declaration) -> Bool {
