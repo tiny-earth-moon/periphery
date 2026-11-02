@@ -138,6 +138,7 @@ var targets: [PackageDescription.Target] = [
         dependencies: [
             .target(name: "Frontend"),
             .target(name: "Configuration"),
+            .target(name: "PeripheryKit"),
             .target(name: "Shared"),
             .target(name: "Logger"),
             .product(name: "ArgumentParser", package: "swift-argument-parser"),
