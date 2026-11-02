@@ -98,6 +98,9 @@ var targets: [PackageDescription.Target] = [
     .target(
         name: "UnassignedOptionalFixtures"
     ),
+    .target(
+        name: "EnumCaseRetentionFixtures"
+    ),
 ]
 
 #if os(macOS)
