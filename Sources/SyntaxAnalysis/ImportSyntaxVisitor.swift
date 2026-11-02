@@ -5,6 +5,9 @@ import SwiftSyntax
 
 public final class ImportSyntaxVisitor: PeripherySyntaxVisitor {
     public var importStatements: [ImportStatement] = []
+    /// Whether the file uses the `distributed` modifier, which requires `import Distributed` without leaving
+    /// a reference in the index store.
+    public private(set) var usesDistributedModifier = false
 
     private let sourceLocationBuilder: SourceLocationBuilder
 
@@ -24,6 +27,7 @@ public final class ImportSyntaxVisitor: PeripherySyntaxVisitor {
             }
         }
         let location = sourceLocationBuilder.location(at: node.positionAfterSkippingLeadingTrivia)
+        let endLocation = sourceLocationBuilder.location(at: node.endPositionBeforeTrailingTrivia)
         let isConditional = node.parent?.parent?.parent?.is(IfConfigClauseSyntax.self) ?? false
         let statement = ImportStatement(
             module: module,
@@ -31,8 +35,15 @@ public final class ImportSyntaxVisitor: PeripherySyntaxVisitor {
             isExported: attributes.contains("_exported") || node.modifiers.contains { $0.name.text == "public" },
             isConditional: isConditional,
             location: location,
+            endLocation: endLocation,
             commentCommands: CommentCommand.parseCommands(in: node.leadingTrivia.merging(node.trailingTrivia))
         )
         importStatements.append(statement)
+    }
+
+    public func visit(_ node: DeclModifierSyntax) {
+        if node.name.text == "distributed" {
+            usesDistributedModifier = true
+        }
     }
 }

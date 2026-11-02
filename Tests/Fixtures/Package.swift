@@ -48,6 +48,35 @@ var targets: [PackageDescription.Target] = [
         name: "UnusedSystemImportFixtures"
     ),
     .target(
+        name: "UnusedImportDistributedFixtures"
+    ),
+    .target(
+        name: "UnusedImportScopedSupportFixtures",
+        path: "Sources/UnusedImportScopedFixtures/Support"
+    ),
+    .target(
+        name: "UnusedImportScopedClientFixtures",
+        dependencies: [
+            .target(name: "UnusedImportScopedSupportFixtures")
+        ],
+        path: "Sources/UnusedImportScopedFixtures/Client"
+    ),
+    .target(
+        name: "UnusedImportPlatformSupportFixtures",
+        path: "Sources/UnusedImportPlatformFixtures/Support"
+    ),
+    .target(
+        name: "UnusedImportPlatformClientFixtures",
+        dependencies: [
+            .target(name: "UnusedImportPlatformSupportFixtures")
+        ],
+        path: "Sources/UnusedImportPlatformFixtures/Client"
+    ),
+    .target(
+        name: "UnusedImportPlatformSystemFixtures",
+        path: "Sources/UnusedImportPlatformFixtures/System"
+    ),
+    .target(
         name: "RetentionFixtures",
         dependencies: [
             .target(name: "ExternalModuleFixtures"),
@@ -72,6 +101,9 @@ var targets: [PackageDescription.Target] = [
     .target(
         name: "UnassignedOptionalFixtures"
     ),
+    .target(
+        name: "EnumCaseRetentionFixtures"
+    ),
 ]
 
 #if os(macOS)
@@ -84,6 +116,12 @@ targets.append(contentsOf: [
     ),
     .target(
         name: "AppIntentsRetentionFixtures"
+    ),
+    .target(
+        name: "AppIntentsMetadataRetentionFixtures"
+    ),
+    .target(
+        name: "RetainedAncestorRetentionFixtures"
     ),
     .target(
         name: "UnusedAssetCatalogImageFixtures"

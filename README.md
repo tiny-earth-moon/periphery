@@ -421,6 +421,7 @@ The index store only describes the platform Periphery built for, so code that is
 
 - Declarations marked `@available(<platform>, unavailable)` (e.g. `@available(tvOS, unavailable)`), along with their members. `@available(*, unavailable)`, `swift` and `*ApplicationExtension` platforms are not affected.
 - Declarations whose name is written inside an `#if` block conditioned on `os()`, `targetEnvironment()`, `arch()` or `canImport()`, including its `#else` branches. Matching is done by name on the syntax tree, so unrelated declarations that share the name are retained too.
+- Imports of the modules declaring a name written inside such a block, or named there. With `--enable-unused-system-imports`, a file whose blocks write a name that no scanned declaration accounts for keeps all its system imports.
 
 This can be disabled with `--disable-platform-conditional-retention`. Other conditions, such as `#if DEBUG`, are not covered, see [Code referenced within a preprocessor macro conditional branch is unused](#code-referenced-within-a-preprocessor-macro-conditional-branch-is-unused).
 
