@@ -1,0 +1,50 @@
+[
+  {
+    "check_name" : "unused",
+    "description" : "Unused class 'Widget'",
+    "fingerprint" : "s:3Lib6WidgetC",
+    "location" : {
+      "lines" : {
+        "begin" : 3
+      },
+      "path" : "Project/Sources/Lib/Widget.swift"
+    },
+    "severity" : "info"
+  },
+  {
+    "check_name" : "redundantProtocol",
+    "description" : "Redundant protocol 'Marker' (never used as an existential type), Redundant protocol conformance 'Marker' (replace with 'Base'), Redundant protocol conformance 'Marker' (replace with 'Base'), Redundant protocol conformance 'Marker' (replace with 'Base'), Redundant protocol conformance 'Marker' (replace with 'Base'), Redundant protocol conformance 'Marker' (replace with 'Base'), Redundant protocol conformance 'Marker' (replace with 'Base'), Redundant protocol conformance 'Marker' (replace with 'Base'), Redundant protocol conformance 'Marker' (replace with 'Base')",
+    "fingerprint" : "s:4Demo6MarkerP",
+    "location" : {
+      "lines" : {
+        "begin" : 1
+      },
+      "path" : "Project/Sources/Demo/Marker.swift"
+    },
+    "severity" : "info"
+  },
+  {
+    "check_name" : "redundantPublicAccessibility",
+    "description" : "Redundant public accessibility for function 'helper()' (not used outside of Alpha, Zeta)",
+    "fingerprint" : "s:3Lib6helperyyF",
+    "location" : {
+      "lines" : {
+        "begin" : 5
+      },
+      "path" : "Project/Sources/Lib/Helper.swift"
+    },
+    "severity" : "info"
+  },
+  {
+    "check_name" : "unusedAssetCatalogColor",
+    "description" : "Unused asset catalog color 'AccentColor' (Project/App/Assets.xcassets/AccentColor.colorset)",
+    "fingerprint" : "s:accent",
+    "location" : {
+      "lines" : {
+        "begin" : 3
+      },
+      "path" : "DerivedSources/GeneratedAssetSymbols.swift"
+    },
+    "severity" : "info"
+  }
+]
