@@ -6,8 +6,10 @@ import Shared
 ///
 /// Reads and writes are taken from the index: every direct access of a stored property is recorded as a reference
 /// to the property together with an implicit reference to its getter (read) or setter (write) at the same location.
-/// A property reference without an accompanying accessor reference (e.g. a key path) is an access whose kind cannot
-/// be determined, so such properties are never reported.
+/// A property reference without an accompanying accessor reference is an access whose kind cannot be determined, so
+/// such properties are never reported. So are properties referenced by a key path component, other than the direct
+/// argument of a `keyPath:` subscript: the index records such a component as a read, but a stored or forwarded
+/// writable key path may write the property.
 final class UnassignedOptionalPropertyMarker: SourceGraphMutator {
     private static let candidateKinds: Set<Declaration.Kind> = [.varInstance, .varStatic, .varClass, .varGlobal]
     /// Modifiers of properties that are assigned by the runtime, or whose accesses are not visible to the index.
@@ -63,9 +65,10 @@ final class UnassignedOptionalPropertyMarker: SourceGraphMutator {
 
     private func hasUnclassifiedAccess(_ property: Declaration, getter: Declaration, setter: Declaration) -> Bool {
         let accessorLocations = graph.references(to: getter).union(graph.references(to: setter)).mapSet(\.location)
+        let keyPathLocations = graph.keyPathComponentLocations
 
         return graph.references(to: property).contains {
-            $0.kind == .normal && !accessorLocations.contains($0.location)
+            $0.kind == .normal && (!accessorLocations.contains($0.location) || keyPathLocations.contains($0.location))
         }
     }
 

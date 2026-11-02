@@ -120,6 +120,9 @@ var targets: [PackageDescription.Target] = [
         ]
     ),
     .target(
+        name: "UnassignedOptionalKeyPathFixtures"
+    ),
+    .target(
         name: "EnumCaseRetentionFixtures"
     ),
 ]
