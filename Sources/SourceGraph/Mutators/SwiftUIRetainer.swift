@@ -7,6 +7,12 @@ final class SwiftUIRetainer: SourceGraphMutator {
     private let configuration: Configuration
     private static let specialProtocolNames = ["LibraryContentProvider"]
     private static let applicationDelegateAdaptorStructNames = ["UIApplicationDelegateAdaptor", "NSApplicationDelegateAdaptor"]
+    /// SDK protocols whose only requirements are underscored. The index store records no `overrideOf` relation for
+    /// them, so the witness is retained by name on every type conforming to the protocol.
+    private static let underscoredRequirementsByProtocolUsr = [
+        "s:7SwiftUI14TextFieldStyleP": ["_body(configuration:)"],
+        "s:7SwiftUI10ShapeStyleP": ["_apply(to:)"],
+    ]
     static let previewRegistryUsr = "s:21DeveloperToolsSupport15PreviewRegistryP"
 
     required init(graph: SourceGraph, configuration: Configuration, swiftVersion _: SwiftVersion) {
@@ -17,6 +23,7 @@ final class SwiftUIRetainer: SourceGraphMutator {
     func mutate() {
         retainSpecialProtocolConformances()
         retainApplicationDelegateAdaptors()
+        retainUnderscoredProtocolRequirements()
         unretainPreviewMacroExpansions()
     }
 
@@ -38,6 +45,23 @@ final class SwiftUIRetainer: SourceGraphMutator {
                 }
             }
             .forEach { graph.markRetained($0) }
+    }
+
+    private func retainUnderscoredProtocolRequirements() {
+        for decl in graph.declarations(ofKinds: [.class, .struct, .enum]) {
+            let witnessNames = decl.related
+                .lazy
+                .filter { $0.declarationKind == .protocol }
+                .compactMap { Self.underscoredRequirementsByProtocolUsr[$0.usr] }
+                .joined()
+
+            for name in witnessNames {
+                decl.declarations
+                    .lazy
+                    .filter { $0.kind == .functionMethodInstance && $0.name == name }
+                    .forEach { graph.markRetained($0) }
+            }
+        }
     }
 
     private func retainApplicationDelegateAdaptors() {
