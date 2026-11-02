@@ -4,6 +4,8 @@ import SourceGraph
 import SystemPackage
 
 final class XCDataModelParser {
+    private static let classNameAttributes = ["customClassName", "representedClassName", "valueTransformerName"]
+
     private let input: ModelInput
 
     required init(input: ModelInput) {
@@ -39,8 +41,12 @@ final class XCDataModelParser {
         var names: [String] = []
 
         for child in element.children {
-            if let name = child.attributes["customClassName"] {
-                names.append(name)
+            // Classes bound to the model by name: the managed object class, the attribute value class and the
+            // `ValueTransformer` subclass, all instantiated by the runtime.
+            for key in Self.classNameAttributes {
+                if let name = child.attributes[key], !name.isEmpty {
+                    names.append(name)
+                }
             }
 
             names += references(from: child)
