@@ -12,6 +12,7 @@ let package = Package(
             dependencies: ["TopLevelCodeLib"]
         ),
         .executableTarget(name: "TopLevelCodeScript"),
+        .executableTarget(name: "EntryPointExtension"),
     ],
     swiftLanguageVersions: [.v5]
 )
