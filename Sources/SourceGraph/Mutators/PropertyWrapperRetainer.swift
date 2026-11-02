@@ -15,6 +15,14 @@ final class PropertyWrapperRetainer: SourceGraphMutator {
             decl.declarations
                 .filter { $0.kind == .varInstance && specialProperties.contains($0.name) }
                 .forEach { graph.markRetained($0) }
+
+            // A wrapper applied to a parameter is initialized by the compiler at every call site, which the index
+            // store does not record as a reference to the initializer.
+            if graph.parameterAttributeNames.contains(decl.name) {
+                decl.declarations
+                    .filter { $0.kind == .functionConstructor && $0.name.hasPrefix("init(wrappedValue:") }
+                    .forEach { graph.markRetained($0) }
+            }
         }
     }
 }

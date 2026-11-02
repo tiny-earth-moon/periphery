@@ -29,6 +29,7 @@ public struct Function: Item, Hashable {
 public struct Attribute {
     let name: String
     let arguments: String?
+    let isUnavailableOnAllPlatforms: Bool
 }
 
 public struct Parameter: Item, Hashable {
@@ -58,6 +59,8 @@ public struct Parameter: Item, Hashable {
     public let name: PartKind
     let metatype: String?
     let hasDefaultValue: Bool
+    let isIsolated: Bool
+    let hasAttributes: Bool
     let location: Location
 
     public let items: [Item] = []
@@ -253,7 +256,26 @@ struct UnusedParameterParser {
                          name: name,
                          metatype: metatype,
                          hasDefaultValue: syntax.defaultValue != nil,
+                         isIsolated: isIsolated(parameter: syntax),
+                         hasAttributes: !syntax.attributes.isEmpty,
                          location: location)
+    }
+
+    private func isIsolated(parameter syntax: FunctionParameterSyntax) -> Bool {
+        // An isolated parameter selects or inherits the actor isolation, its body usage is irrelevant.
+        if let attributedType = syntax.type.as(AttributedTypeSyntax.self) {
+            let hasIsolatedSpecifier = attributedType.specifiers.contains {
+                guard case let .simpleTypeSpecifier(specifier) = $0 else { return false }
+
+                return specifier.specifier.tokenKind == .keyword(.isolated)
+            }
+
+            if hasIsolatedSpecifier {
+                return true
+            }
+        }
+
+        return syntax.defaultValue?.value.as(MacroExpansionExprSyntax.self)?.macroName.text == "isolation"
     }
 
     private func parse(closureExpr syntax: ClosureExprSyntax, _ collector: Collector<some Any>?) -> Closure? {
@@ -346,7 +368,8 @@ struct UnusedParameterParser {
                 if case let .attribute(attr) = $0 {
                     return Attribute(
                         name: attr.attributeName.trimmed.description,
-                        arguments: attr.arguments?.trimmed.description
+                        arguments: attr.arguments?.trimmed.description,
+                        isUnavailableOnAllPlatforms: isUnavailableOnAllPlatforms(attr)
                     )
                 }
 
@@ -362,6 +385,21 @@ struct UnusedParameterParser {
             genericParameters: genericParamNames,
             attributes: parsedAttributes
         )
+    }
+
+    private func isUnavailableOnAllPlatforms(_ attribute: AttributeSyntax) -> Bool {
+        guard attribute.attributeName.trimmed.description == "available",
+              case let .availability(arguments)? = attribute.arguments
+        else { return false }
+
+        let tokens = arguments.map { argument -> String? in
+            guard case let .token(token) = argument.argument else { return nil }
+
+            return token.text
+        }
+
+        // The platform is the first argument, '*' means every platform.
+        return tokens.first == "*" && tokens.contains("unavailable")
     }
 
     private func buildFullName(for function: String, with params: [Parameter]) -> String {
