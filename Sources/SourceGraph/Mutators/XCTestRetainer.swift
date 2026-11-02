@@ -22,7 +22,7 @@ final class XCTestRetainer: SourceGraphMutator {
         let testCaseClasses = subclasses.union(immediateTestCaseClasses)
 
         for testCaseClass in testCaseClasses {
-            graph.markRetained(testCaseClass)
+            graph.markRetainedWithAncestors(testCaseClass)
             let methods = testCaseClass.declarations.filter { $0.kind == .functionMethodInstance }
 
             for method in methods {

@@ -8,7 +8,7 @@ import Shared
 ///  - declarations whose name is written inside a platform conditional `#if` block, as the reference may live
 ///    in a branch that was not compiled.
 final class PlatformConditionalRetainer: SourceGraphMutator {
-    private static let nonReferenceableKinds: Set<Declaration.Kind> = [
+    static let nonReferenceableKinds: Set<Declaration.Kind> = [
         .module, .extension, .extensionClass, .extensionEnum, .extensionProtocol, .extensionStruct,
         .functionConstructor, .functionDestructor, .varParameter, .varLocal, .genericTypeParam,
         .functionAccessorAddress, .functionAccessorDidset, .functionAccessorGetter, .functionAccessorMutableaddress,
@@ -44,7 +44,7 @@ final class PlatformConditionalRetainer: SourceGraphMutator {
 
     // MARK: - Private
 
-    private static func baseName(of declarationName: String) -> String {
+    static func baseName(of declarationName: String) -> String {
         declarationName.prefix { $0 != "(" }.trimmingCharacters(in: CharacterSet(charactersIn: "`"))
     }
 
