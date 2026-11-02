@@ -1,0 +1,265 @@
+[
+  {
+    "accessibility" : "internal",
+    "attributes" : [
+      "MainActor",
+      "available(iOS 18, *)",
+      "available(macOS 15, *)"
+    ],
+    "hints" : [
+      "unused"
+    ],
+    "ids" : [
+      "s:3Lib6WidgetC"
+    ],
+    "kind" : "class",
+    "location" : "/Project/Sources/Lib/Widget.swift:3:14",
+    "modifiers" : [
+      "final",
+      "public"
+    ],
+    "modules" : [
+      "Lib"
+    ],
+    "name" : "Widget"
+  },
+  {
+    "accessibility" : "internal",
+    "attributes" : [
+
+    ],
+    "hints" : [
+      "redundantProtocol"
+    ],
+    "ids" : [
+      "s:4Demo6MarkerP"
+    ],
+    "kind" : "protocol",
+    "location" : "/Project/Sources/Demo/Marker.swift:1:10",
+    "modifiers" : [
+
+    ],
+    "modules" : [
+      "Demo"
+    ],
+    "name" : "Marker"
+  },
+  {
+    "accessibility" : "",
+    "attributes" : [
+
+    ],
+    "hints" : [
+      "redundantConformance(replace with: 'Base')"
+    ],
+    "ids" : [
+      "s:4Demo1FV"
+    ],
+    "kind" : "struct",
+    "location" : "/Project/Sources/Demo/Extras.swift:2:8",
+    "modifiers" : [
+
+    ],
+    "modules" : [
+      "Demo",
+      "Extras"
+    ],
+    "name" : "F"
+  },
+  {
+    "accessibility" : "",
+    "attributes" : [
+
+    ],
+    "hints" : [
+      "redundantConformance(replace with: 'Base')"
+    ],
+    "ids" : [
+      "s:4Demo1GV"
+    ],
+    "kind" : "struct",
+    "location" : "/Project/Sources/Demo/Extras.swift:4:8",
+    "modifiers" : [
+
+    ],
+    "modules" : [
+      "Demo",
+      "Extras"
+    ],
+    "name" : "G"
+  },
+  {
+    "accessibility" : "",
+    "attributes" : [
+
+    ],
+    "hints" : [
+      "redundantConformance(replace with: 'Base')"
+    ],
+    "ids" : [
+      "s:4Demo1AV"
+    ],
+    "kind" : "struct",
+    "location" : "/Project/Sources/Demo/main.swift:6:8",
+    "modifiers" : [
+
+    ],
+    "modules" : [
+      "Demo"
+    ],
+    "name" : "A"
+  },
+  {
+    "accessibility" : "",
+    "attributes" : [
+
+    ],
+    "hints" : [
+      "redundantConformance(replace with: 'Base')"
+    ],
+    "ids" : [
+      "s:4Demo1BV"
+    ],
+    "kind" : "struct",
+    "location" : "/Project/Sources/Demo/main.swift:7:8",
+    "modifiers" : [
+
+    ],
+    "modules" : [
+      "Demo"
+    ],
+    "name" : "B"
+  },
+  {
+    "accessibility" : "",
+    "attributes" : [
+
+    ],
+    "hints" : [
+      "redundantConformance(replace with: 'Base')"
+    ],
+    "ids" : [
+      "s:4Demo1CV"
+    ],
+    "kind" : "struct",
+    "location" : "/Project/Sources/Demo/main.swift:8:8",
+    "modifiers" : [
+
+    ],
+    "modules" : [
+      "Demo"
+    ],
+    "name" : "C"
+  },
+  {
+    "accessibility" : "",
+    "attributes" : [
+
+    ],
+    "hints" : [
+      "redundantConformance(replace with: 'Base')"
+    ],
+    "ids" : [
+      "s:4Demo1DV"
+    ],
+    "kind" : "struct",
+    "location" : "/Project/Sources/Demo/main.swift:9:8",
+    "modifiers" : [
+
+    ],
+    "modules" : [
+      "Demo"
+    ],
+    "name" : "D"
+  },
+  {
+    "accessibility" : "",
+    "attributes" : [
+
+    ],
+    "hints" : [
+      "redundantConformance(replace with: 'Base')"
+    ],
+    "ids" : [
+      "s:4Demo1EV"
+    ],
+    "kind" : "struct",
+    "location" : "/Project/Sources/Demo/main.swift:10:8",
+    "modifiers" : [
+
+    ],
+    "modules" : [
+      "Demo"
+    ],
+    "name" : "E"
+  },
+  {
+    "accessibility" : "",
+    "attributes" : [
+
+    ],
+    "hints" : [
+      "redundantConformance(replace with: 'Base')"
+    ],
+    "ids" : [
+      "s:4Demo1HV"
+    ],
+    "kind" : "struct",
+    "location" : "/Project/Sources/Demo/main.swift:13:8",
+    "modifiers" : [
+
+    ],
+    "modules" : [
+      "Demo"
+    ],
+    "name" : "H"
+  },
+  {
+    "accessibility" : "public",
+    "attributes" : [
+
+    ],
+    "hints" : [
+      "redundantPublicAccessibility"
+    ],
+    "ids" : [
+      "s:3Lib6helperyyF"
+    ],
+    "kind" : "function.free",
+    "location" : "/Project/Sources/Lib/Helper.swift:5:13",
+    "modifiers" : [
+
+    ],
+    "modules" : [
+      "Lib"
+    ],
+    "name" : "helper()"
+  },
+  {
+    "accessibility" : "internal",
+    "asset" : {
+      "name" : "AccentColor",
+      "paths" : [
+        "/Project/App/Assets.xcassets/AccentColor.colorset"
+      ]
+    },
+    "attributes" : [
+
+    ],
+    "hints" : [
+      "unusedAssetCatalogColor"
+    ],
+    "ids" : [
+      "s:accent"
+    ],
+    "kind" : "var.static",
+    "location" : "/DerivedSources/GeneratedAssetSymbols.swift:3:16",
+    "modifiers" : [
+
+    ],
+    "modules" : [
+      "App"
+    ],
+    "name" : "accent"
+  }
+]

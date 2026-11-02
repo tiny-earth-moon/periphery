@@ -23,6 +23,21 @@ extension OutputFormatter {
         return msg
     }
 
+    /// References are held in a set, whose order changes from one process to the next. Output must not depend on it.
+    func sortedReferences(_ references: Set<Reference>) -> [Reference] {
+        references.sorted {
+            ($0.location, $0.usr, $0.kind.rawValue, $0.name, $0.declarationKind.rawValue)
+                < ($1.location, $1.usr, $1.kind.rawValue, $1.name, $1.declarationKind.rawValue)
+        }
+    }
+
+    /// Serializes with sorted keys, as dictionaries are hashed per process and would otherwise change the key order
+    /// of every object from one run to the next.
+    func serializeJSON(_ object: [Any]) throws -> String? {
+        let data = try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
+        return String(bytes: data, encoding: .utf8)
+    }
+
     func describe(_ annotation: ScanResult.Annotation) -> String {
         switch annotation {
         case .unused:
@@ -66,7 +81,7 @@ extension OutputFormatter {
             description += "Optional property '\(name)' is never assigned (always nil)"
         case let .redundantProtocol(references, inherited):
             description += "Redundant protocol '\(name)' (never used as an existential type)"
-            secondaryResults = references.map {
+            secondaryResults = sortedReferences(references).map {
                 var msg = "Redundant protocol conformance '\(name)'"
 
                 if !inherited.isEmpty {
