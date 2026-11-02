@@ -553,6 +553,7 @@ final class SwiftIndexer: Indexer {
                 decl.hasGenericFunctionReturnedMetatypeParameters = result.hasGenericFunctionReturnedMetatypeParameters
                 decl.isActor = result.isActor
                 decl.isConstant = result.isConstant
+                decl.hasBody = result.hasBody
 
                 for ref in decl.references.union(decl.related) {
                     if result.inheritedTypeLocations.contains(ref.location) {

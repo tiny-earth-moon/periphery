@@ -26,7 +26,8 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
         isOptionalType: Bool,
         hasNonNilInitialValue: Bool,
         isActor: Bool,
-        isConstant: Bool
+        isConstant: Bool,
+        hasBody: Bool
     )
 
     private let sourceLocationBuilder: SourceLocationBuilder
@@ -156,6 +157,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             returnClause: node.signature.returnClause,
             genericParameterClause: node.genericParameterClause,
             genericWhereClause: node.genericWhereClause,
+            hasBody: node.body != nil,
             at: node.name.positionAfterSkippingLeadingTrivia
         )
     }
@@ -338,6 +340,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
         hasNonNilInitialValue: Bool = false,
         isActor: Bool = false,
         isConstant: Bool = false,
+        hasBody: Bool = true,
         at position: AbsolutePosition
     ) {
         let modifierNames = modifiers?.map(\.name.text) ?? []
@@ -396,7 +399,8 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             isOptionalType: variableType.map { typeSyntaxInspector.isOptional($0) } ?? false,
             hasNonNilInitialValue: hasNonNilInitialValue,
             isActor: isActor,
-            isConstant: isConstant
+            isConstant: isConstant,
+            hasBody: hasBody
         ))
     }
 

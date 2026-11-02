@@ -448,6 +448,13 @@ Properties can also be read implicitly through reflection, when a value is descr
 
 Use `--retain-attributes` (`retain_attributes` in the configuration file) to retain every declaration that has one of the given attributes, as if it had a `// periphery:ignore` comment. Give the attribute name without the `@`, e.g. `--retain-attributes OptionGroup MainActor`. Custom attributes such as property wrappers are supported. To limit an attribute to some declaration kinds, append them after a colon: `--retain-attributes objc:function.method.instance,var.instance`. A kind matches itself and its sub-kinds, so `function` matches every function and method, and an unknown kind is a configuration error.
 
+Some attributes are retained without configuration, because they exist for callers that the index cannot see:
+
+- Functions with `@c`, `@_cdecl` or `@_expose`, which are exported to C or C++.
+- Functions and variables with `@used` or `@section` (and their underscored forms `@_used` and `@_section`), which are kept in the binary or placed in a named section for the linker or a section reader.
+- Functions with a body and `@_silgen_name`, which define the symbol they are linked under. A bodyless `@_silgen_name` or `@_extern(c)` declaration imports a symbol instead, so it is reported when unused, but its parameters are never reported: nothing could use them.
+- Types and extensions with `@implementation` or `@_objcImplementation`, together with their members.
+
 ### Unused Parameters Without a Default Value
 
 Removing an unused parameter that has a default value rarely breaks callers, whereas removing one without a default does. Use `--retain-unused-parameters-without-default` (`retain_unused_parameters_without_default` in the configuration file) to retain unused parameters that have no default value, so that only the ones that are safe to remove are reported.

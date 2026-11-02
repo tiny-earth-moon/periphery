@@ -321,6 +321,26 @@ struct UnusedParameterParser {
               collector)
     }
 
+    private func isProtocolMember(_ syntax: SyntaxProtocol) -> Bool {
+        // The first enclosing declaration is the function itself, the second is its container.
+        var enclosingDecls = 0
+        var node = syntax.parent
+
+        while let current = node {
+            if current.isProtocol(DeclSyntaxProtocol.self) {
+                enclosingDecls += 1
+
+                if enclosingDecls == 2 {
+                    return current.is(ProtocolDeclSyntax.self)
+                }
+            }
+
+            node = current.parent
+        }
+
+        return false
+    }
+
     private func build(
         function syntax: SyntaxProtocol,
         attributes: AttributeListSyntax?,
@@ -330,8 +350,9 @@ struct UnusedParameterParser {
         position: AbsolutePosition,
         _ collector: Collector<some Any>?
     ) -> Function? {
-        if body == nil, !parseProtocols {
-            // Function has no body, must be a protocol declaration.
+        if body == nil, !parseProtocols || !isProtocolMember(syntax) {
+            // A function without a body is a protocol requirement, or an imported symbol such as a `@_silgen_name`
+            // or `@_extern(c)` declaration. Nothing can use the parameters of an import.
             return nil
         }
 
