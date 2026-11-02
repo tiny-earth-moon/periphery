@@ -12,3 +12,4 @@ disable_update_check: true
 relative_results: true  # paths relative to the current directory, stable across runners
 # Also write the report to a file, whatever the stdout format.
 write_results: periphery-report.json
+# skip_stdout_results: true  # also keep stdout empty, the report is only in the file

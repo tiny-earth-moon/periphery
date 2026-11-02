@@ -198,6 +198,9 @@ struct ScanCommand: ParsableCommand {
     @Option(help: "File path where formatted results are written.")
     var writeResults: FilePath?
 
+    @Flag(help: "Do not print the results to stdout. Requires '--write-results'")
+    var skipStdoutResults: Bool = defaultConfiguration.$skipStdoutResults.defaultValue
+
     @Option(help: "Project configuration for non-Apple build systems")
     var genericProjectConfig: FilePath?
 
@@ -293,11 +296,16 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$baseline, baseline)
         configuration.apply(\.$writeBaseline, writeBaseline)
         configuration.apply(\.$writeResults, writeResults)
+        configuration.apply(\.$skipStdoutResults, skipStdoutResults)
         configuration.apply(\.$genericProjectConfig, genericProjectConfig)
         configuration.apply(\.$retainSynthesizedUses, retainSynthesizedUses)
         configuration.apply(\.$retainAttributes, retainAttributes)
         configuration.apply(\.$detectUnusedAssetCatalogColors, detectUnusedAssetCatalogColors)
         configuration.apply(\.$detectUnusedAssetCatalogImages, detectUnusedAssetCatalogImages)
+
+        if configuration.skipStdoutResults, configuration.writeResults == nil {
+            throw PeripheryError.usageError("The '--skip-stdout-results' option requires '--write-results', otherwise the results would not be output anywhere.")
+        }
 
         configuration.buildFilenameMatchers()
         _ = try ReportExcludeRule.resolve(configuration)
@@ -356,12 +364,12 @@ struct ScanCommand: ParsableCommand {
 
         let formattedOutput = try formatter.format(filteredResults, colored: colored)
 
-        if let output = formattedOutput {
+        if let output = formattedOutput, !configuration.skipStdoutResults {
             if outputFormat.supportsAuxiliaryOutput {
                 logger.info("", canQuiet: true)
             }
 
-            logger.info(output, canQuiet: false)
+            logger.output(output)
         }
 
         if let resultsPath = configuration.writeResults {
