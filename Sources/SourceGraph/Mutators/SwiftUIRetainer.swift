@@ -40,11 +40,11 @@ final class SwiftUIRetainer: SourceGraphMutator {
             .declarations(ofKinds: [.class, .struct, .enum])
             .lazy
             .filter {
-                $0.related.contains {
+                self.graph.inheritedTypeReferences(of: $0).contains {
                     self.graph.isExternal($0) && $0.declarationKind == .protocol && names.contains($0.name)
                 }
             }
-            .forEach { graph.markRetained($0) }
+            .forEach { graph.markRetainedWithAncestors($0) }
     }
 
     private func retainUnderscoredProtocolRequirements() {
