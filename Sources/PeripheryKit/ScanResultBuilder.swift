@@ -3,6 +3,8 @@ import Foundation
 import SourceGraph
 
 public enum ScanResultBuilder {
+    private static let typeKindsWithPhantomGenericParameters: Set<Declaration.Kind> = [.struct, .class, .enum]
+
     public static func build(for graph: SourceGraph, configuration: Configuration) -> [ScanResult] {
         let assignOnlyProperties = graph.assignOnlyProperties
         let removableDeclarations = graph.unusedDeclarations
@@ -102,6 +104,16 @@ public enum ScanResultBuilder {
                       !result.declaration.kind.isAccessorKind,
                       !graph.ignoredDeclarations.contains(result.declaration)
                 else { return false }
+
+                // The generic parameter of a type may be a phantom type, which marks a specialization
+                // (`Tagged<UserTag>`) without appearing in any member. Removing it would break the specializations.
+                if !configuration.reportUnusedTypeParameters,
+                   result.declaration.kind == .genericTypeParam,
+                   let parent = result.declaration.parent,
+                   Self.typeKindsWithPhantomGenericParameters.contains(parent.kind)
+                {
+                    return false
+                }
 
                 // Superfluous ignore command results must bypass the retained filter below.
                 // Declarations with ignore comments are always in retainedDeclarations (that's

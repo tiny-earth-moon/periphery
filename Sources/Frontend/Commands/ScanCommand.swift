@@ -79,6 +79,9 @@ struct ScanCommand: ParsableCommand {
     @Flag(inversion: .prefixedNo, help: "Enable identification of access modifiers identical to the default of their enclosing context")
     var enableRedundantAccessLevelAnalysis: Bool?
 
+    @Flag(inversion: .prefixedNo, help: "Report unused generic parameters of types (structs, classes, enums and actors), which are ignored by default as they may be phantom types")
+    var reportUnusedTypeParameters: Bool?
+
     @Flag(inversion: .prefixedNo, help: "Disable identification of unused imports")
     var disableUnusedImportAnalysis: Bool?
 
@@ -251,6 +254,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$enableOpenFinalAnalysis, enableOpenFinalAnalysis)
         configuration.apply(\.$enableEmptyExtensionAnalysis, enableEmptyExtensionAnalysis)
         configuration.apply(\.$enableRedundantAccessLevelAnalysis, enableRedundantAccessLevelAnalysis)
+        configuration.apply(\.$reportUnusedTypeParameters, reportUnusedTypeParameters)
         configuration.apply(\.$disablePlatformConditionalRetention, disablePlatformConditionalRetention)
         configuration.apply(\.$disableUnusedImportAnalysis, disableUnusedImportAnalysis)
         configuration.apply(\.$enableUnusedSystemImports, enableUnusedSystemImports)
