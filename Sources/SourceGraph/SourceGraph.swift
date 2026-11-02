@@ -29,6 +29,7 @@ public final class SourceGraph {
     public private(set) var commandIgnoredDeclarations: [Declaration: CommandIgnoreKind] = [:]
     public private(set) var functionsWithIgnoredParameters: Set<Declaration> = []
     public private(set) var platformConditionalNames: Set<String> = []
+    public private(set) var platformConditionalNamesByFile: [SourceFile: Set<String>] = [:]
     public private(set) var usedLocalizedStringKeys: Set<String> = []
     /// Literal prefixes of keys built at runtime and looked up in the calling module's bundle, by module.
     public private(set) var runtimeLocalizedStringKeyPrefixesByModule: [String: Set<String>] = [:]
@@ -315,8 +316,9 @@ public final class SourceGraph {
         indexedSourceFiles.append(file)
     }
 
-    public func addPlatformConditionalNames(_ names: Set<String>) {
+    public func addPlatformConditionalNames(_ names: Set<String>, in file: SourceFile) {
         platformConditionalNames.formUnion(names)
+        platformConditionalNamesByFile[file, default: []].formUnion(names)
     }
 
     public func addIndexedModules(_ modules: Set<String>) {

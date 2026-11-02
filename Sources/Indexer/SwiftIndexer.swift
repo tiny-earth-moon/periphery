@@ -299,7 +299,7 @@ final class SwiftIndexer: Indexer {
                 let names = PlatformConditionalNameCollector.collect(from: multiplexingSyntaxVisitor.syntax)
 
                 if !names.isEmpty {
-                    graph.withLock { $0.addPlatformConditionalNames(names) }
+                    graph.withLock { $0.addPlatformConditionalNames(names, in: sourceFile) }
                 }
             }
 

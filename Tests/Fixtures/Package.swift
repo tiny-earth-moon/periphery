@@ -48,6 +48,21 @@ var targets: [PackageDescription.Target] = [
         name: "UnusedSystemImportFixtures"
     ),
     .target(
+        name: "UnusedImportPlatformSupportFixtures",
+        path: "Sources/UnusedImportPlatformFixtures/Support"
+    ),
+    .target(
+        name: "UnusedImportPlatformClientFixtures",
+        dependencies: [
+            .target(name: "UnusedImportPlatformSupportFixtures")
+        ],
+        path: "Sources/UnusedImportPlatformFixtures/Client"
+    ),
+    .target(
+        name: "UnusedImportPlatformSystemFixtures",
+        path: "Sources/UnusedImportPlatformFixtures/System"
+    ),
+    .target(
         name: "RetentionFixtures",
         dependencies: [
             .target(name: "ExternalModuleFixtures"),

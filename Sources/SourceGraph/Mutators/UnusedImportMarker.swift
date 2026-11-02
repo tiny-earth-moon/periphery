@@ -90,10 +90,32 @@ final class UnusedImportMarker: SourceGraphMutator {
             referencedModulesByFile[ref.location.file, default: []].formUnion(referencedModules)
         }
 
+        // The index store lacks the references made from the platform conditional branches that were not
+        // built. A name written there is attributed to the modules declaring it, and a name that no scanned
+        // declaration or import accounts for may come from any system module.
+        var filesWithUnresolvedPlatformNames: Set<SourceFile> = []
+
+        if !graph.platformConditionalNamesByFile.isEmpty {
+            let modulesByDeclarationName = modulesByDeclarationBaseName()
+
+            for (file, names) in graph.platformConditionalNamesByFile {
+                for name in names {
+                    if let modules = modulesByDeclarationName[name] {
+                        referencedModulesByFile[file, default: []].formUnion(modules)
+                    } else if file.importStatements.contains(where: { $0.module == name }) {
+                        referencedModulesByFile[file, default: []].insert(name)
+                    } else {
+                        filesWithUnresolvedPlatformNames.insert(file)
+                    }
+                }
+            }
+        }
+
         func analysesSystemModule(_ module: String, in file: SourceFile) -> Bool {
             analysesSystemImports &&
                 graph.isSystemModuleIndexed(module) &&
-                !filesWithUnresolvedReferences.contains(file)
+                !filesWithUnresolvedReferences.contains(file) &&
+                !filesWithUnresolvedPlatformNames.contains(file)
         }
 
         // For each source file, determine whether its imports are unused.
@@ -138,6 +160,16 @@ final class UnusedImportMarker: SourceGraphMutator {
     }
 
     // MARK: - Private
+
+    /// The modules declaring a referenceable declaration, by the base name of the declaration.
+    private func modulesByDeclarationBaseName() -> [String: Set<String>] {
+        graph.allDeclarations.reduce(into: [:]) { result, decl in
+            guard !PlatformConditionalRetainer.nonReferenceableKinds.contains(decl.kind) else { return }
+
+            result[PlatformConditionalRetainer.baseName(of: decl.name), default: []]
+                .formUnion(decl.location.file.modules)
+        }
+    }
 
     private var extendedDeclCache: [String: Set<String>] = [:]
 
