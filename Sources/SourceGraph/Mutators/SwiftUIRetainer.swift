@@ -37,7 +37,7 @@ final class SwiftUIRetainer: SourceGraphMutator {
                     self.graph.isExternal($0) && $0.declarationKind == .protocol && names.contains($0.name)
                 }
             }
-            .forEach { graph.markRetained($0) }
+            .forEach { graph.markRetainedWithAncestors($0) }
     }
 
     private func retainApplicationDelegateAdaptors() {

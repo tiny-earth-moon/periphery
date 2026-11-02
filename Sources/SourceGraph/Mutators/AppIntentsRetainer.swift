@@ -35,7 +35,7 @@ final class AppIntentsRetainer: SourceGraphMutator {
             }
 
         for declaration in retainedDeclarations {
-            graph.markRetained(declaration)
+            graph.markRetainedWithAncestors(declaration)
 
             declaration.declarations
                 .filter { $0.kind == .varStatic && Self.metadataPropertyNames.contains($0.name) }
