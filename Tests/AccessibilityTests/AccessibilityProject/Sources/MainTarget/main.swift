@@ -125,3 +125,6 @@ let _: RpmProtocol? = nil
 _ = RpmOpenClass()
 _ = RpmPublicStruct()
 let _: RpmPublicEnum? = nil
+
+// One-line declarations
+retainOneLineDeclarations()
