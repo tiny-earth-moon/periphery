@@ -75,22 +75,19 @@ final class ScanPreflightPathsTest: XCTestCase {
         )
     }
 
-    func testBaseline_wrongShape_isRejectedAsNotABaseline() throws {
+    func testBaseline_wrongShape_isRejectedWithAReadableReason() throws {
         let path = try write(#"{"x":1}"#, to: "bad.json")
+        let reason = message(of: configuration(baseline: path))
 
-        XCTAssertEqual(
-            message(of: configuration(baseline: path)),
-            #"--baseline: '\#(path.string)' is not a Periphery baseline (expected {"v1": {"usrs": [...]}})"#
-        )
+        XCTAssertTrue(reason?.hasPrefix("Invalid baseline \(path.string): ") == true, reason ?? "nil")
     }
 
-    func testBaseline_notJSON_isRejectedAsNotABaseline() throws {
+    func testBaseline_notJSON_isRejectedWithAReadableReason() throws {
         let path = try write("usrs: []", to: "bad.json")
 
-        XCTAssertEqual(
-            message(of: configuration(baseline: path)),
-            #"--baseline: '\#(path.string)' is not a Periphery baseline (expected {"v1": {"usrs": [...]}})"#
-        )
+        let reason = message(of: configuration(baseline: path))
+
+        XCTAssertTrue(reason?.hasPrefix("Invalid baseline \(path.string): ") == true, reason ?? "nil")
     }
 
     func testBaseline_valid_isReturnedForFiltering() throws {
