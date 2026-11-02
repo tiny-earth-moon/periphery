@@ -322,7 +322,7 @@ class MyClass {
 }
 ```
 
-Only stored `var` properties declared with an optional type (`T?`, `T!`, `Optional<T>`) and no initial value other than `nil` are considered. Writes are taken from the index (assignments, `self.x = …` in closures, `inout` arguments, writable key paths), so a property assigned anywhere is not reported. Properties that may be assigned in ways the index does not record are never reported: properties with an attribute (`@IBOutlet`, `@NSManaged`, `@objc`, property wrappers…), `weak`, `unowned`, `dynamic`, `lazy` or `override` properties, Objective-C accessible properties, properties of types conforming to `Codable`/`Decodable` or `NSCoding`, protocol requirements, and retained properties (including [Comment Commands](#comment-commands)). Properties of structs with a synthesized memberwise initializer are considered assigned by it. Results use the `unassignedOptionalProperty` kind in `report_exclude`.
+Only stored `var` properties declared with an optional type (`T?`, `T!`, `Optional<T>`) and no initial value other than `nil` are considered. Writes are taken from the index (assignments, `self.x = …` in closures, `inout` arguments, a writable key path used directly as `object[keyPath: \.name] = …`), so a property assigned anywhere is not reported. Properties that may be assigned in ways the index does not record are never reported: properties referenced by a key path that is stored or passed on (`\.name` as an argument or in a variable, e.g. `assign(to:on:)`), as it may be written through, properties with an attribute (`@IBOutlet`, `@NSManaged`, `@objc`, property wrappers…), `weak`, `unowned`, `dynamic`, `lazy` or `override` properties, Objective-C accessible properties, properties of types conforming to `Codable`/`Decodable` or `NSCoding`, protocol requirements, and retained properties (including [Comment Commands](#comment-commands)). Properties of structs with a synthesized memberwise initializer are considered assigned by it. Results use the `unassignedOptionalProperty` kind in `report_exclude`.
 
 ### Redundant Public Accessibility
 
@@ -452,6 +452,14 @@ Properties can also be read implicitly through reflection, when a value is descr
 ### Retaining by Attribute
 
 Use `--retain-attributes` (`retain_attributes` in the configuration file) to retain every declaration that has one of the given attributes, as if it had a `// periphery:ignore` comment. Give the attribute name without the `@`, e.g. `--retain-attributes OptionGroup MainActor`. Custom attributes such as property wrappers are supported. To limit an attribute to some declaration kinds, append them after a colon: `--retain-attributes objc:function.method.instance,var.instance`. A kind matches itself and its sub-kinds, so `function` matches every function and method, and an unknown kind is a configuration error.
+
+Some attributes are retained without configuration, because they exist for callers that the index cannot see:
+
+- Functions with `@c`, `@_cdecl` or `@_expose`, which are exported to C or C++.
+- Functions and variables with `@used` or `@section` (and their underscored forms `@_used` and `@_section`), which are kept in the binary or placed in a named section for the linker or a section reader.
+- Functions with a body and `@_silgen_name`, which define the symbol they are linked under. A bodyless `@_silgen_name` or `@_extern(c)` declaration imports a symbol instead, so it is reported when unused, but its parameters are never reported: nothing could use them.
+- Types and extensions with `@implementation` or `@_objcImplementation`, together with their members.
+- The `dynamicallyCall(withArguments:)` and `dynamicallyCall(withKeywordArguments:)` methods that calls to a `@dynamicCallable` value are lowered to, in addition to the `subscript(dynamicMember:)` of `@dynamicMemberLookup` types.
 
 ### Unused Parameters Without a Default Value
 
@@ -869,6 +877,8 @@ Due to some underlying bugs in Swift, Periphery may in some instances report inc
 | [56327](https://github.com/swiftlang/swift/issues/56327) | Index store does not relate objc optional protocol method implemented in subclass | Closed 2026-01, no fix confirmed |
 | [56189](https://github.com/swiftlang/swift/issues/56189) | Index store should relate appendInterpolation from string literals | Closed 2026-01, no fix confirmed |
 | [56165](https://github.com/swiftlang/swift/issues/56165) | Index store does not relate constructor via literal notation | Open |
+
+The index store also records no `overrideOf` relation for the underscored requirements of some SwiftUI protocols, namely `TextFieldStyle._body(configuration:)` and `ShapeStyle._apply(to:)`. Periphery retains these witnesses by name on conforming types, from a table in `SwiftUIRetainer`.
 
 ## Credits
 

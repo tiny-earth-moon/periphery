@@ -14,6 +14,7 @@
 		3C388876266D0CEF00E6F3AF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3C388874266D0CEF00E6F3AF /* LaunchScreen.storyboard */; };
 		3C38889C266D0D3700E6F3AF /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C38889B266D0D3700E6F3AF /* App.swift */; };
 		3CE348432F1CF49500EC7811 /* Previews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CE348422F1CF49500EC7811 /* Previews.swift */; };
+		3CE348452F1CF49500EC7811 /* RefinedViewPreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CE348442F1CF49500EC7811 /* RefinedViewPreviews.swift */; };
 		BBBB00012EAF000000000001 /* LocalizationUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB00012EAF000000000002 /* LocalizationUsage.swift */; };
 		BBBB00012EAF000000000003 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = BBBB00012EAF000000000004 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
@@ -28,6 +29,7 @@
 		3C388877266D0CEF00E6F3AF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3C38889B266D0D3700E6F3AF /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		3CE348422F1CF49500EC7811 /* Previews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Previews.swift; sourceTree = "<group>"; };
+		3CE348442F1CF49500EC7811 /* RefinedViewPreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefinedViewPreviews.swift; sourceTree = "<group>"; };
 		BBBB00012EAF000000000002 /* LocalizationUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationUsage.swift; sourceTree = "<group>"; };
 		BBBB00012EAF000000000004 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -64,6 +66,7 @@
 			children = (
 				3C23156A2F1CF8090043359B /* LibraryContent.swift */,
 				3CE348422F1CF49500EC7811 /* Previews.swift */,
+				3CE348442F1CF49500EC7811 /* RefinedViewPreviews.swift */,
 				3C38886D266D0CEE00E6F3AF /* ContentView.swift */,
 				3C38886F266D0CEF00E6F3AF /* Assets.xcassets */,
 				3C388874266D0CEF00E6F3AF /* LaunchScreen.storyboard */,
@@ -157,6 +160,7 @@
 			files = (
 				3C38889C266D0D3700E6F3AF /* App.swift in Sources */,
 				3CE348432F1CF49500EC7811 /* Previews.swift in Sources */,
+				3CE348452F1CF49500EC7811 /* RefinedViewPreviews.swift in Sources */,
 				3C38886E266D0CEE00E6F3AF /* ContentView.swift in Sources */,
 				3C23156B2F1CF80E0043359B /* LibraryContent.swift in Sources */,
 				BBBB00012EAF000000000001 /* LocalizationUsage.swift in Sources */,

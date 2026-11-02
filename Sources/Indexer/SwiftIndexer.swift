@@ -304,6 +304,12 @@ final class SwiftIndexer: Indexer {
                 }
             }
 
+            let parameterAttributeNames = ParameterAttributeNameCollector.collect(from: multiplexingSyntaxVisitor.syntax)
+
+            if !parameterAttributeNames.isEmpty {
+                graph.withLock { $0.addParameterAttributeNames(parameterAttributeNames) }
+            }
+
             // Assets can be loaded by name, e.g. `Color("AccentColor")` or `UIColor(named: "AccentColor")`.
             if configuration.detectsUnusedAssetCatalogSymbols,
                !configuration.isAnalyzedGeneratedAssetSymbolsFile(sourceFile.path)
@@ -339,12 +345,30 @@ final class SwiftIndexer: Indexer {
                 }
             }
 
+            if configuration.enableUnassignedOptionalAnalysis {
+                let locations = KeyPathComponentCollector.collect(
+                    from: multiplexingSyntaxVisitor.syntax,
+                    file: sourceFile,
+                    locationConverter: multiplexingSyntaxVisitor.locationConverter
+                )
+
+                if !locations.isEmpty {
+                    graph.withLock { $0.addKeyPathComponentLocations(locations) }
+                }
+            }
+
             if let emptyExtensionSyntaxVisitor {
                 markEmptyExtensions(using: emptyExtensionSyntaxVisitor, fileCommands: multiplexingSyntaxVisitor.parseComments())
             }
 
             associateLatentReferences()
-            associateDanglingReferences()
+            associateDanglingReferences(
+                using: declarationSyntaxVisitor,
+                excluding: TopLevelCodeCollector.collect(
+                    from: multiplexingSyntaxVisitor.syntax,
+                    locationConverter: multiplexingSyntaxVisitor.locationConverter
+                )
+            )
             visitDeclarations(using: declarationSyntaxVisitor)
             identifyUnusedParameters(using: multiplexingSyntaxVisitor)
             applyCommentCommands(using: multiplexingSyntaxVisitor)
@@ -453,8 +477,16 @@ final class SwiftIndexer: Indexer {
 
         /// Swift does not associate some type references with the containing declaration, resulting in references
         /// with no clear parent. Property references are one example: https://github.com/apple/swift/issues/56163
-        private func associateDanglingReferences() {
+        ///
+        /// References located in top-level code have no parent by nature and stay parentless, which makes them root
+        /// references: the code always runs.
+        private func associateDanglingReferences(
+            using declarationVisitor: DeclarationSyntaxVisitor,
+            excluding topLevelCode: TopLevelCodeRanges
+        ) {
             guard !danglingReferences.isEmpty else { return }
+
+            let syntaxResultsByLocation = declarationVisitor.resultsByLocation
 
             // Sort declarations to ensure deterministic candidate selection when
             // multiple declarations exist at the same location.
@@ -471,6 +503,10 @@ final class SwiftIndexer: Indexer {
             let sortedDeclLines = declsByLine.keys.sorted().reversed()
 
             for ref in danglingReferences {
+                if topLevelCode.contains(line: ref.location.line, column: ref.location.column) {
+                    continue
+                }
+
                 let sameLineCandidateDecls = declsByLocation[ref.location] ??
                     declsByLine[ref.location.line]
                 var candidateDecls = [Declaration]()
@@ -489,8 +525,17 @@ final class SwiftIndexer: Indexer {
 
                 // The vast majority of the time there will only be a single declaration for this location,
                 // however it is possible for there to be more than one. In that case, first attempt to associate with
-                // a decl without a parent, as the reference may be a related type of a class/struct/etc.
-                if let decl = candidateDecls.first(where: { $0.parent == nil }) {
+                // the decl whose syntax names the reference, so that the result does not depend on formatting, e.g.
+                // `enum E { case a(T) }` written on a single line.
+                if candidateDecls.count > 1,
+                   let decl = candidateDecls.first(where: {
+                       syntaxResultsByLocation[$0.location].map { Self.namesReference(at: ref.location, in: $0) } ?? false
+                   })
+                {
+                    associate(ref, with: decl)
+                } else if let decl = candidateDecls.first(where: { $0.parent == nil }) {
+                    // Otherwise attempt to associate with a decl without a parent, as the reference may be a related
+                    // type of a class/struct/etc.
                     associate(ref, with: decl)
                 } else if let decl = candidateDecls.min() {
                     // Fallback to using the first declaration.
@@ -500,6 +545,20 @@ final class SwiftIndexer: Indexer {
                     associate(ref, with: decl)
                 }
             }
+        }
+
+        private static func namesReference(at location: Location, in result: DeclarationSyntaxVisitor.Result) -> Bool {
+            result.variableTypeLocations.contains(location) ||
+                result.parameterTypeLocations.contains(location) ||
+                result.returnTypeLocations.contains(location) ||
+                result.throwTypeLocations.contains(location) ||
+                result.inheritedTypeLocations.contains(location) ||
+                result.genericParameterLocations.contains(location) ||
+                result.genericConformanceRequirementLocations.contains(location) ||
+                result.variableInitFunctionCallLocations.contains(location) ||
+                result.functionCallMetatypeArgumentLocations.contains(location) ||
+                result.typeInitializerLocations.contains(location) ||
+                result.variableInitExprLocations.contains(location)
         }
 
         private func markEmptyExtensions(using visitor: EmptyExtensionSyntaxVisitor, fileCommands: [CommentCommand]) {
@@ -554,6 +613,7 @@ final class SwiftIndexer: Indexer {
                 decl.hasGenericFunctionReturnedMetatypeParameters = result.hasGenericFunctionReturnedMetatypeParameters
                 decl.isActor = result.isActor
                 decl.isConstant = result.isConstant
+                decl.hasBody = result.hasBody
 
                 for ref in decl.references.union(decl.related) {
                     if result.inheritedTypeLocations.contains(ref.location) {

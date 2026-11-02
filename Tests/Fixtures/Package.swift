@@ -90,6 +90,9 @@ var targets: [PackageDescription.Target] = [
         ]
     ),
     .target(
+        name: "UnusedParameterRetentionFixtures"
+    ),
+    .target(
         name: "TypeSyntaxInspectorFixtures"
     ),
     .target(
@@ -97,6 +100,27 @@ var targets: [PackageDescription.Target] = [
     ),
     .target(
         name: "UnassignedOptionalFixtures"
+    ),
+    .target(
+        name: "LinkageRetentionFixtures",
+        swiftSettings: [
+            .unsafeFlags(["-enable-experimental-feature", "Extern"]) // For the @_extern(c) declarations.
+        ]
+    ),
+    .target(
+        name: "DynamicCallableRetentionFixtures"
+    ),
+    .target(
+        name: "DynamicCallableSupportFixtures"
+    ),
+    .target(
+        name: "DynamicCallableCrossModuleFixtures",
+        dependencies: [
+            .target(name: "DynamicCallableSupportFixtures")
+        ]
+    ),
+    .target(
+        name: "UnassignedOptionalKeyPathFixtures"
     ),
     .target(
         name: "EnumCaseRetentionFixtures"
@@ -113,6 +137,9 @@ targets.append(contentsOf: [
     ),
     .target(
         name: "AppIntentsRetentionFixtures"
+    ),
+    .target(
+        name: "SwiftUIWidgetRetentionFixtures"
     ),
     .target(
         name: "AppIntentsMetadataRetentionFixtures"

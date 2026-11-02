@@ -239,6 +239,8 @@ public final class Declaration {
     public var isActor: Bool = false
     /// Whether the variable is declared with `let`; constants cannot be overridden.
     public var isConstant: Bool = false
+    /// `false` for a function declared without a body: a protocol requirement or an imported symbol.
+    public var hasBody: Bool = true
     public var parent: Declaration?
     public var related: Set<Reference> = []
     public var isImplicit: Bool = false

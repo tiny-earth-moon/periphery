@@ -12,6 +12,8 @@ public final class SourceGraphMutatorRunner {
         AccessibilityCascader.self,
         ObjCAccessibleRetainer.self,
         JSExportRetainer.self,
+        // Must come before RedundantExplicitPublicAccessibilityMarker, which skips retained declarations.
+        LinkageAttributeRetainer.self,
         // Must come before ExtensionReferenceBuilder so that it can detect redundant accessibility on extensions.
         RedundantExplicitPublicAccessibilityMarker.self,
         // Must come before ProtocolConformanceReferenceBuilder, which rewrites related references.
@@ -31,6 +33,9 @@ public final class SourceGraphMutatorRunner {
         ProtocolExtensionReferenceBuilder.self,
         ProtocolConformanceReferenceBuilder.self,
         ExternalTypeProtocolConformanceReferenceRemover.self,
+        // Must come before ComplexPropertyAccessorReferenceBuilder, which treats accessors that hold references as
+        // explicit implementations.
+        ObservationMacroReferenceEliminator.self,
         ComplexPropertyAccessorReferenceBuilder.self,
         EnumCaseReferenceBuilder.self,
         DefaultConstructorReferenceBuilder.self,

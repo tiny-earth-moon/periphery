@@ -29,6 +29,7 @@ public final class SourceGraph {
     public private(set) var commandIgnoredDeclarations: [Declaration: CommandIgnoreKind] = [:]
     public private(set) var functionsWithIgnoredParameters: Set<Declaration> = []
     public private(set) var platformConditionalNames: Set<String> = []
+    public private(set) var parameterAttributeNames: Set<String> = []
     public private(set) var platformConditionalNamesByFile: [SourceFile: Set<String>] = [:]
     public private(set) var usedLocalizedStringKeys: Set<String> = []
     /// Literal prefixes of keys built at runtime and looked up in the calling module's bundle, by module.
@@ -38,6 +39,8 @@ public final class SourceGraph {
     /// Call sites of keys built at runtime without a literal prefix, whose catalogue keys cannot be determined.
     public private(set) var unprefixedRuntimeLocalizedStringKeyLocations: Set<Location> = []
     public private(set) var synthesizedUses: Set<SynthesizedUse> = []
+    /// Locations of the property components of key paths that are not the argument of a `keyPath:` subscript.
+    public private(set) var keyPathComponentLocations: Set<Location> = []
     public private(set) var unusedAssetCatalogSymbols: [Declaration: AssetCatalogSymbol] = [:]
     /// Strings that may name an asset catalog resource, from string literals, Interface Builder files and
     /// build settings.
@@ -301,6 +304,10 @@ public final class SourceGraph {
         synthesizedUses.formUnion(uses)
     }
 
+    public func addKeyPathComponentLocations(_ locations: Set<Location>) {
+        keyPathComponentLocations.formUnion(locations)
+    }
+
     func markUsed(_ declaration: Declaration) {
         _ = usedDeclarations.insert(declaration)
     }
@@ -320,6 +327,10 @@ public final class SourceGraph {
     public func addPlatformConditionalNames(_ names: Set<String>, in file: SourceFile) {
         platformConditionalNames.formUnion(names)
         platformConditionalNamesByFile[file, default: []].formUnion(names)
+    }
+
+    public func addParameterAttributeNames(_ names: Set<String>) {
+        parameterAttributeNames.formUnion(names)
     }
 
     public func addIndexedModules(_ modules: Set<String>) {
