@@ -30,6 +30,7 @@
     - [Configuration](#configuration)
 - [Analysis](#analysis)
     - [Function Parameters](#function-parameters)
+    - [Generic Type Parameters](#generic-type-parameters)
     - [Protocols](#protocols-1)
     - [Enumerations](#enumerations)
     - [Assign-only Properties](#assign-only-properties)
@@ -200,6 +201,16 @@ class Subclass: Base {
     required init(param: String) {
         fatalError("init(param:) has not been implemented")
     }
+}
+```
+
+### Generic Type Parameters
+
+An unused generic parameter of a function or method is reported. The generic parameters of a `struct`, `class`, `enum` or `actor` are not, because a parameter that appears in no member is often deliberate: a phantom type distinguishes specializations at compile time (`Tagged<UserTag>`, typed identifiers, units, state machines), and removing it breaks every specialization. The opt-in `--report-unused-type-parameters` (`report_unused_type_parameters: true`) reports them as well:
+
+```swift
+struct Tagged<Tag> { // 'Tag' is reported only with --report-unused-type-parameters
+    let raw: Int
 }
 ```
 
