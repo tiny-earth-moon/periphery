@@ -567,6 +567,578 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    func testRetainsSameNamedMembersCalledThroughUnknownReceiver() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureStruct234")) {
+                self.assertReferenced(.functionMethodInstance("method()"))
+            }
+            assertReferenced(.struct("FixtureStruct235")) {
+                self.assertReferenced(.functionMethodInstance("method()"))
+            }
+            assertReferenced(.class("FixtureClass234")) {
+                self.assertNotReferenced(.functionMethodInstance("uniqueUnusedFunction()"))
+            }
+        }
+    }
+
+    func testRetainsInheritedMemberCalledThroughSubclassInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.class("FixtureClass236")) {
+                self.assertReferenced(.functionMethodInstance("refresh()"))
+            }
+        }
+    }
+
+    func testRetainsProtocolExtensionMemberCalledThroughConformingTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionProtocol("FixtureProtocol237")) {
+                self.assertReferenced(.functionMethodInstance("describe()"))
+            }
+            // Through the inherited protocol FixtureProtocol239.
+            assertReferenced(.extensionProtocol("FixtureProtocol238")) {
+                self.assertReferenced(.functionMethodInstance("summarize()"))
+            }
+        }
+    }
+
+    func testRetainsNestedTypeMemberCalledThroughQualifiedReceiverInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureStruct240")) {
+                self.assertReferenced(.struct("Inner")) {
+                    self.assertReferenced(.functionMethodInstance("reload()"))
+                }
+            }
+        }
+    }
+
+    func testRetainsExtensionMemberOfReceiverTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureStruct242")) {
+                self.assertReferenced(.functionMethodInstance("prepare()"))
+            }
+        }
+    }
+
+    func testRetainsStaticMemberCalledThroughTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureStruct244")) {
+                self.assertReferenced(.varStatic("fallback"))
+                self.assertReferenced(.functionMethodStatic("makeFixture()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughAnnotatedValueInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureStruct246")) {
+                self.assertReferenced(.functionMethodInstance("apply()"))
+            }
+        }
+    }
+
+    /// Implicit members, unannotated values, type aliases, `self.`, bare calls and generic parameters do not name a
+    /// receiver type, so every member sharing the name is retained.
+    func testRetainsSameNamedMembersCalledWithoutReceiverTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            for structName in ["FixtureStruct250", "FixtureStruct251"] {
+                assertReferenced(.struct(structName)) {
+                    self.assertReferenced(.functionMethodStatic("make()"))
+                    self.assertReferenced(.functionMethodStatic("reset()"))
+                    self.assertReferenced(.functionMethodInstance("load()"))
+                    self.assertReferenced(.functionMethodInstance("store()"))
+                    self.assertReferenced(.functionMethodInstance("reload()"))
+                    self.assertReferenced(.functionMethodInstance("refresh()"))
+                }
+            }
+            assertReferenced(.class("FixtureClass250")) {
+                self.assertReferenced(.functionMethodClass("reset()"))
+                self.assertReferenced(.functionMethodInstance("reload()"))
+                self.assertReferenced(.functionMethodInstance("refresh()"))
+            }
+        }
+    }
+
+    /// The branch that was not compiled may add a conformance to the receiver, so every same-named member stays retained.
+    func testRetainsSameNamedMembersOfTypeExtendedInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionProtocol("FixtureProtocol252")) {
+                self.assertReferenced(.functionMethodInstance("prepare()"))
+            }
+            assertReferenced(.struct("FixtureStruct254")) {
+                self.assertReferenced(.functionMethodInstance("prepare()"))
+            }
+        }
+    }
+
+    /// The members and conformances of an external superclass, retroactive ones included, are unknown, so every
+    /// same-named member called through its subclass stays retained.
+    func testRetainsSameNamedMembersCalledThroughSubclassOfExternalTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionClass("NSObject")) {
+                self.assertReferenced(.functionMethodInstance("fixtureConfigure()"))
+            }
+            assertReferenced(.struct("FixtureStruct255")) {
+                self.assertReferenced(.functionMethodInstance("fixtureConfigure()"))
+            }
+        }
+    }
+
+    func testRetainsProtocolExtensionMemberOfRetroactivelyConformedNSObjectInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionProtocol("FixtureModulesThemeable")) {
+                self.assertReferenced(.functionMethodInstance("modulesApplyTheme()"))
+            }
+        }
+    }
+
+    func testRetainsProtocolExtensionMemberOfRetroactivelyConformedNSObjectInActivePlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionProtocol("FixtureModulesThemeableActive")) {
+                self.assertReferenced(.functionMethodInstance("modulesApplyThemeActive()"))
+            }
+        }
+    }
+
+    func testRetainsRequirementImplementedByRetroactiveNSObjectConformanceInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.protocol("FixtureModulesStylable")) {
+                self.assertReferenced(.functionMethodInstance("modulesApplyStyle()"))
+            }
+            assertReferenced(.extensionClass("NSObject")) {
+                self.assertReferenced(.functionMethodInstance("modulesApplyStyle()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughTypeShadowingExternalAssociatedTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureModulesRealItem")) {
+                self.assertReferenced(.functionMethodInstance("modulesItemRun()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughTypeShadowingExternalGenericParameterInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureModulesRealSlot")) {
+                self.assertReferenced(.functionMethodInstance("modulesSlotRun()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughTypeShadowingGenericParameterInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.protocol("FixtureModulesGPRunnable")) {
+                self.assertReferenced(.functionMethodInstance("modulesGPRun()"))
+            }
+            assertReferenced(.struct("FixtureModulesGPImpl")) {
+                self.assertReferenced(.functionMethodInstance("modulesGPRun()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughNestedTypealiasInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureModulesAliasTarget")) {
+                self.assertReferenced(.functionMethodInstance("modulesAliasRun()"))
+                self.assertReferenced(.functionMethodInstance("modulesAliasAnnotatedRun()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughTopLevelTypealiasInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureModulesTopAliasTarget")) {
+                self.assertReferenced(.functionMethodInstance("modulesTopAliasRun()"))
+                self.assertReferenced(.functionMethodInstance("modulesTopAliasAnnotatedRun()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughModuleQualifiedTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureModulesQualified")) {
+                self.assertReferenced(.functionMethodInstance("modulesQualifiedRun()"))
+                self.assertReferenced(.functionMethodInstance("modulesQualifiedAnnotatedRun()"))
+            }
+        }
+    }
+
+    func testRetainsExtensionMembersOfIndexedExternalSuperclassInPlatformConditionalBlock() {
+        let additionalFilesToIndex = [
+            FixturesProjectPath.appending("Sources/ExternalModuleFixtures/ExternalIndexedDeclarations.swift"),
+        ]
+
+        analyze(retainPublic: true, additionalFilesToIndex: additionalFilesToIndex) {
+            assertReferenced(.extensionProtocol("FixtureModulesIndexedRetroProto")) {
+                self.assertReferenced(.functionMethodInstance("modulesIndexedRetroRun()"))
+            }
+            assertReferenced(.class("FixtureModulesIndexedBase")) {
+                self.assertReferenced(.functionMethodInstance("modulesIndexedExtRun()"))
+            }
+        }
+    }
+
+    func testRetainsExtensionMembersOfUnindexedExternalSuperclassInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionProtocol("FixtureModulesExternalRetroProto")) {
+                self.assertReferenced(.functionMethodInstance("modulesExternalRetroRun()"))
+            }
+            assertReferenced(.extensionClass("FixtureModulesExternalBase")) {
+                self.assertReferenced(.functionMethodInstance("modulesExternalExtRun()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughTypeSharingNameWithExternalTypeInPlatformConditionalBlock() {
+        let additionalFilesToIndex = [
+            FixturesProjectPath.appending("Sources/ExternalModuleFixtures/ExternalIndexedDeclarations.swift"),
+        ]
+
+        analyze(retainPublic: false, additionalFilesToIndex: additionalFilesToIndex) {
+            assertReferenced(.struct("FixtureModulesShared", line: 5)) {
+                self.assertReferenced(.functionMethodInstance("modulesSharedRun()"))
+                self.assertReferenced(.functionMethodInstance("modulesSharedAnnotatedRun()"))
+            }
+        }
+    }
+
+    func testRetainsExtensionMemberDeclaredInAnotherFileInPlatformConditionalBlock() {
+        let additionalFilesToIndex = [
+            FixturesProjectPath.appending("Sources/RetentionFixtures/SplitExtensionDeclaration.swift"),
+        ]
+
+        analyze(retainPublic: true, additionalFilesToIndex: additionalFilesToIndex) {
+            assertReferenced(.struct("FixtureModulesSplit")) {
+                self.assertReferenced(.functionMethodInstance("modulesSplitRun()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughTypeShadowingStandardLibraryTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("CollectionOfOne")) {
+                self.assertReferenced(.functionMethodInstance("modulesResultLocal()"))
+            }
+            assertReferenced(.extensionStruct("CollectionOfOne")) {
+                self.assertReferenced(.functionMethodInstance("modulesResultSwift()"))
+            }
+        }
+    }
+
+    func testRetainsMemberOfTypeFromReexportedModuleInPlatformConditionalBlock() {
+        let additionalFilesToIndex = [
+            FixturesProjectPath.appending("Sources/ExternalModuleFixtures/ExternalIndexedDeclarations.swift"),
+        ]
+
+        analyze(retainPublic: false, additionalFilesToIndex: additionalFilesToIndex) {
+            assertReferenced(.struct("FixtureModulesExportedType")) {
+                self.assertReferenced(.functionMethodInstance("modulesExportedRun()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughLocalVariableShadowingTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureSyntax01Other")) {
+                self.assertReferenced(.functionMethodInstance("run01()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughLocalConstantNamedLikeTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureModulesLocalReal")) {
+                self.assertReferenced(.functionMethodInstance("modulesLocalRun()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughParameterShadowingTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureSyntax02Other")) {
+                self.assertReferenced(.functionMethodInstance("run02()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughLocalTypealiasShadowingTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureSyntax03Other")) {
+                self.assertReferenced(.functionMethodInstance("run03()"))
+            }
+        }
+    }
+
+    func testRetainsStaticMemberCalledThroughGenericParameterShadowingTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionProtocol("FixtureSyntax04Proto")) {
+                self.assertReferenced(.functionMethodStatic("make04()"))
+                self.assertReferenced(.functionMethodStatic("make04b()"))
+            }
+        }
+    }
+
+    func testRetainsStaticRequirementCalledThroughGenericParameterShadowingTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.protocol("FixtureTypesP10")) {
+                self.assertReferenced(.functionMethodStatic("typesGeneric()"))
+            }
+        }
+    }
+
+    func testRetainsStaticMemberCalledThroughGenericParameterOfExternalTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionProtocol("FixtureSyntax05Proto")) {
+                self.assertReferenced(.functionMethodStatic("make05()"))
+            }
+        }
+    }
+
+    func testRetainsMembersReferencedThroughMethodReferenceAndKeyPathInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.class("FixtureSyntax09Base")) {
+                self.assertReferenced(.functionMethodInstance("ref09()"))
+                self.assertReferenced(.varInstance("path09"))
+                self.assertReferenced(.functionMethodInstance("label09(_:)"))
+            }
+        }
+    }
+
+    func testRetainsMembersCalledOnChainedExpressionsInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureSyntax10Product")) {
+                self.assertReferenced(.functionMethodInstance("useA()"))
+                self.assertReferenced(.functionMethodInstance("useB()"))
+                self.assertReferenced(.functionMethodInstance("useC()"))
+                self.assertReferenced(.functionMethodInstance("useD()"))
+            }
+        }
+    }
+
+    func testRetainsMembersCalledThroughOptionalTryAndAwaitInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureSyntax11Target")) {
+                self.assertReferenced(.functionMethodInstance("optA()"))
+                self.assertReferenced(.functionMethodInstance("optB()"))
+                self.assertReferenced(.functionMethodInstance("optC()"))
+                self.assertReferenced(.functionMethodInstance("optD()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughAnnotatedValueInNestedPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.class("FixtureSyntax12Base")) {
+                self.assertReferenced(.functionMethodInstance("draw12()"))
+            }
+            assertReferenced(.class("FixtureSyntax12Sub")) {
+                self.assertReferenced(.functionMethodInstance("draw12()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughStaticPropertySharingNameWithInstancePropertyInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureSyntax13Other")) {
+                self.assertReferenced(.functionMethodInstance("fetch13()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughPropertyShadowingGlobalInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.class("FixtureSyntax14Other")) {
+                self.assertReferenced(.functionMethodInstance("log14()"))
+            }
+        }
+    }
+
+    func testRetainsViewExtensionMembersCalledInPostfixPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionProtocol("View")) {
+                self.assertReferenced(.functionMethodInstance("fixtureSyntax15Style()"))
+                self.assertReferenced(.functionMethodInstance("fixtureSyntax15Other()"))
+            }
+        }
+    }
+
+    func testRetainsMembersCalledInInterpolationClosureAndSelfInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureSyntax16Model")) {
+                self.assertReferenced(.functionMethodInstance("title16()"))
+                self.assertReferenced(.functionMethodInstance("closure16()"))
+                self.assertReferenced(.functionMethodInstance("trailing16()"))
+                self.assertReferenced(.functionMethodInstance("selfUse16()"))
+                self.assertReferenced(.functionMethodStatic("staticUse16()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughPropertyInheritedByNestedClassInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.class("FixtureSyntax17Other")) {
+                self.assertReferenced(.functionMethodInstance("start17()"))
+            }
+        }
+    }
+
+    func testRetainsMemberOfGrandSuperclassCalledThroughSubclassInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.class("FixtureTypesG1A")) {
+                self.assertReferenced(.functionMethodInstance("typesG1()"))
+            }
+        }
+    }
+
+    func testRetainsOverriddenMemberCalledThroughBaseClassValueInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.class("FixtureTypesG2A")) {
+                self.assertReferenced(.functionMethodInstance("typesG2()"))
+            }
+            assertReferenced(.class("FixtureTypesG2B")) {
+                self.assertReferenced(.functionMethodInstance("typesG2()"))
+            }
+            assertReferenced(.class("FixtureTypesG2C")) {
+                self.assertReferenced(.functionMethodInstance("typesG2()"))
+            }
+        }
+    }
+
+    func testRetainsProtocolExtensionMemberCalledThroughConditionalConformanceInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionProtocol("FixtureTypesP3")) {
+                self.assertReferenced(.functionMethodInstance("typesCond()"))
+            }
+        }
+    }
+
+    func testRetainsConstrainedExtensionMemberInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureTypesBox4")) {
+                self.assertReferenced(.functionMethodInstance("typesConstrained()"))
+            }
+        }
+    }
+
+    func testRetainsMemberOfNestedGenericTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureTypesOuter5")) {
+                self.assertReferenced(.struct("Inner")) {
+                    self.assertReferenced(.functionMethodInstance("typesNested()"))
+                }
+            }
+        }
+    }
+
+    func testRetainsEnumCaseAndStaticMemberInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.enum("FixtureTypesEnum6")) {
+                self.assertReferenced(.enumelement("typesCase(_:)"))
+                self.assertReferenced(.functionMethodStatic("typesStatic()"))
+            }
+        }
+    }
+
+    func testRetainsStaticAndInstanceMembersSharingNameInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureTypesStruct7")) {
+                self.assertReferenced(.functionMethodStatic("typesBoth()"))
+                self.assertReferenced(.functionMethodInstance("typesBoth(value:)"))
+            }
+        }
+    }
+
+    func testRetainsExtensionMemberOfImplicitHashableConformanceInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionProtocol("Hashable")) {
+                self.assertReferenced(.functionMethodInstance("typesHashable()"))
+            }
+        }
+    }
+
+    func testRetainsStaticExtensionMemberOfImplicitHashableEnumInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionProtocol("Hashable")) {
+                self.assertReferenced(.functionMethodStatic("fixtureSyntax06Make()"))
+            }
+        }
+    }
+
+    func testRetainsExtensionMemberOfImplicitActorConformanceInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionProtocol("Actor")) {
+                self.assertReferenced(.functionMethodInstance("typesActor()"))
+            }
+        }
+    }
+
+    func testRetainsActorExtensionMemberCalledOnActorInstanceInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionProtocol("Actor")) {
+                self.assertReferenced(.functionMethodInstance("fixtureSyntax08Run()"))
+            }
+        }
+    }
+
+    func testRetainsStaticMemberCalledThroughAssociatedTypeShadowingTypeInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.protocol("FixtureTypesNodeProtocol11")) {
+                self.assertReferenced(.functionMethodStatic("typesAssoc()"))
+            }
+        }
+    }
+
+    func testRetainsProtocolExtensionMemberOfSuperclassConformanceInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionProtocol("FixtureTypesP12")) {
+                self.assertReferenced(.functionMethodInstance("typesSuperExt()"))
+            }
+        }
+    }
+
+    func testRetainsConstrainedExtensionMemberOfGenericSuperclassInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.class("FixtureTypesBase13")) {
+                self.assertReferenced(.functionMethodInstance("typesGenSuper()"))
+            }
+        }
+    }
+
+    func testRetainsMemberCalledThroughNestedTypeInheritedFromSuperclassInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.class("FixtureTypesBase14")) {
+                self.assertReferenced(.struct("FixtureTypesItem14")) {
+                    self.assertReferenced(.functionMethodInstance("typesInheritedNested()"))
+                }
+            }
+        }
+    }
+
+    func testRetainsRequirementImplementedInSuperclassInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.class("FixtureTypesBase15")) {
+                self.assertReferenced(.functionMethodInstance("typesReq()"))
+            }
+        }
+    }
+
+    func testRetainsStaticExtensionMemberOfImplicitEquatableConformanceInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionProtocol("Equatable")) {
+                self.assertReferenced(.functionMethodStatic("typesEquatableStatic()"))
+            }
+        }
+    }
+
+    func testRetainsMemberOfStructWithSubscriptAndOperatorCalledThroughAnnotatedValueInPlatformConditionalBlock() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureTypesStruct17")) {
+                self.assertReferenced(.functionMethodInstance("typesCallAsFunction()"))
+            }
+        }
+    }
+
     func testRetainsPropertyWrapperReferencedInNegatedPlatformConditionalBlock() {
         analyze(retainPublic: true) {
             assertReferenced(.struct("FixtureStruct227")) {
