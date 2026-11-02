@@ -12,6 +12,23 @@
 
 - None.
 
+## 3.13.2 (2026-11-02)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- None.
+
+##### Bug Fixes
+
+- The only explicit initializer of a class that a macro such as SwiftData's `@Model` expands is no longer reported unused: implicit, macro-generated initializers no longer count against the sole-initializer rule. [#173](https://github.com/tiny-earth-moon/periphery/issues/173)
+- CSV output: the `Modifiers` and `Attributes` columns are no longer swapped, and fields containing a comma, a double quote or a line break are quoted per RFC 4180. Rows of declarations with attributes change shape; the header is unchanged. Contributed by @badrisatyam1-ctrl. [#176](https://github.com/tiny-earth-moon/periphery/issues/176)
+- GitHub Actions output escapes `%`, carriage returns and line feeds in messages, and `:` and `,` in the `file` and `title` properties, so a name or hint containing them no longer cuts the annotation short. [#176](https://github.com/tiny-earth-moon/periphery/issues/176)
+- GitHub Markdown output escapes `|` and replaces line breaks in table cells, so each result stays on one row. [#176](https://github.com/tiny-earth-moon/periphery/issues/176)
+
 ## 3.13.1 (2026-11-02)
 
 ##### Breaking
