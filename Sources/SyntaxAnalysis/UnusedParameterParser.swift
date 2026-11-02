@@ -58,6 +58,7 @@ public struct Parameter: Item, Hashable {
     public let name: PartKind
     let metatype: String?
     let hasDefaultValue: Bool
+    let isIsolated: Bool
     let location: Location
 
     public let items: [Item] = []
@@ -253,7 +254,25 @@ struct UnusedParameterParser {
                          name: name,
                          metatype: metatype,
                          hasDefaultValue: syntax.defaultValue != nil,
+                         isIsolated: isIsolated(parameter: syntax),
                          location: location)
+    }
+
+    private func isIsolated(parameter syntax: FunctionParameterSyntax) -> Bool {
+        // An isolated parameter selects or inherits the actor isolation, its body usage is irrelevant.
+        if let attributedType = syntax.type.as(AttributedTypeSyntax.self) {
+            let hasIsolatedSpecifier = attributedType.specifiers.contains {
+                guard case let .simpleTypeSpecifier(specifier) = $0 else { return false }
+
+                return specifier.specifier.tokenKind == .keyword(.isolated)
+            }
+
+            if hasIsolatedSpecifier {
+                return true
+            }
+        }
+
+        return syntax.defaultValue?.value.as(MacroExpansionExprSyntax.self)?.macroName.text == "isolation"
     }
 
     private func parse(closureExpr syntax: ClosureExprSyntax, _ collector: Collector<some Any>?) -> Closure? {

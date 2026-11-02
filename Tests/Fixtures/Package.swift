@@ -61,6 +61,9 @@ var targets: [PackageDescription.Target] = [
         ]
     ),
     .target(
+        name: "UnusedParameterRetentionFixtures"
+    ),
+    .target(
         name: "TypeSyntaxInspectorFixtures"
     ),
     .target(

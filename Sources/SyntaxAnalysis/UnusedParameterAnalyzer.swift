@@ -47,6 +47,10 @@ public final class UnusedParameterAnalyzer {
             return true
         }
 
+        if param.isIsolated {
+            return true
+        }
+
         if isParam(param, usedForSpecializationIn: function) {
             return true
         }
