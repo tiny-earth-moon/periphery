@@ -98,9 +98,11 @@ public enum SPM {
             logger.contextualized(with: "spm:package").debug("Loading \(FilePath.current)")
 
             let jsonData: Data
+            let source: String
 
             if let path = configuration.jsonPackageManifestPath {
                 jsonData = try Data(contentsOf: path.url)
+                source = "package manifest \(path.string)"
             } else {
                 let jsonString = try shell.exec(["swift", "package", "describe", "--type", "json"])
 
@@ -109,11 +111,17 @@ public enum SPM {
                 }
 
                 jsonData = data
+                source = "output of 'swift package describe'"
             }
 
             let decoder = JSONDecoder()
             decoder.keyDecodingStrategy = .convertFromSnakeCase
-            return try decoder.decode(PackageDescription.self, from: jsonData)
+
+            do {
+                return try decoder.decode(PackageDescription.self, from: jsonData)
+            } catch let error as DecodingError {
+                throw PeripheryError.packageError(message: "Invalid \(source): \(error.readableReason())")
+            }
         }
     }
 }

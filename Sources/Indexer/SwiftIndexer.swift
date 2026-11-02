@@ -281,6 +281,7 @@ final class SwiftIndexer: Indexer {
             multiplexingSyntaxVisitor.visit()
 
             sourceFile.importStatements = importSyntaxVisitor.importStatements
+            sourceFile.usesDistributedModifier = importSyntaxVisitor.usesDistributedModifier
             sourceFile.importsSwiftTesting = importSyntaxVisitor.importStatements.contains(where: { $0.module == "Testing" })
 
             if !configuration.disableUnusedImportAnalysis {
@@ -299,7 +300,7 @@ final class SwiftIndexer: Indexer {
                 let names = PlatformConditionalNameCollector.collect(from: multiplexingSyntaxVisitor.syntax)
 
                 if !names.isEmpty {
-                    graph.withLock { $0.addPlatformConditionalNames(names) }
+                    graph.withLock { $0.addPlatformConditionalNames(names, in: sourceFile) }
                 }
             }
 

@@ -20,8 +20,16 @@ final class FormatterTests: XCTestCase {
             .appendingPathComponent("Fixtures/Golden")
     }
 
+    /// The formats that only work with relative paths are fed paths below the working directory, so that their
+    /// fixtures do not depend on where the checkout lives.
+    private var root = ""
+
+    private func path(_ path: String) -> FilePath {
+        FilePath(root + path)
+    }
+
     private func location(_ path: String, modules: Set<String>, line: Int, column: Int) -> Location {
-        Location(file: SourceFile(path: FilePath(path), modules: modules), line: line, column: column)
+        Location(file: SourceFile(path: self.path(path), modules: modules), line: line, column: column)
     }
 
     private func results() -> [ScanResult] {
@@ -57,7 +65,7 @@ final class FormatterTests: XCTestCase {
         let symbol = AssetCatalogSymbol(
             kind: .color,
             assetName: "AccentColor",
-            assetPaths: [FilePath("/Project/App/Assets.xcassets/AccentColor.colorset")]
+            assetPaths: [path("/Project/App/Assets.xcassets/AccentColor.colorset")]
         )
 
         return [
@@ -69,6 +77,7 @@ final class FormatterTests: XCTestCase {
     }
 
     private func assertMatchesGolden(_ format: OutputFormat, named name: String, file: StaticString = #filePath, line: UInt = #line) throws {
+        root = format.requiresRelativePaths ? FilePath.current.string : ""
         let output = try XCTUnwrap(format.formatter.init(configuration: Configuration(), logger: logger).format(results(), colored: false), file: file, line: line)
         let url = goldenDirectory.appendingPathComponent(name)
 

@@ -32,6 +32,7 @@ final class BaselineTest: XCTestCase {
             isExported: false,
             isConditional: false,
             location: Location(file: file, line: line, column: 1),
+            endLocation: Location(file: file, line: line, column: 8 + module.count),
             commentCommands: []
         )
     }

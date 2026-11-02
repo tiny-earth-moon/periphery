@@ -108,13 +108,14 @@ final class ProtocolConformanceReferenceBuilder: SourceGraphMutator {
             var equivalentDeclarationKinds = [relatedReference.declarationKind]
 
             // A conforming declaration can be declared either 'class' or 'static', whereas
-            // protocol members can only be declared as 'static'.
+            // protocol members can only be declared as 'static'. Since SE-0280 an enum case
+            // can also witness a static requirement.
             if relatedReference.declarationKind == .functionMethodStatic {
-                equivalentDeclarationKinds.append(.functionMethodClass)
+                equivalentDeclarationKinds.append(contentsOf: [.functionMethodClass, .enumelement])
             } else if relatedReference.declarationKind == .functionMethodClass {
                 equivalentDeclarationKinds.append(.functionMethodStatic)
             } else if relatedReference.declarationKind == .varStatic {
-                equivalentDeclarationKinds.append(.varClass)
+                equivalentDeclarationKinds.append(contentsOf: [.varClass, .enumelement])
             } else if relatedReference.declarationKind == .varClass {
                 equivalentDeclarationKinds.append(.varStatic)
             } else if relatedReference.declarationKind == .associatedtype {
