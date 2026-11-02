@@ -48,6 +48,9 @@ var targets: [PackageDescription.Target] = [
         name: "UnusedSystemImportFixtures"
     ),
     .target(
+        name: "UnusedImportDistributedFixtures"
+    ),
+    .target(
         name: "UnusedImportPlatformSupportFixtures",
         path: "Sources/UnusedImportPlatformFixtures/Support"
     ),

@@ -111,6 +111,11 @@ final class UnusedImportMarker: SourceGraphMutator {
             }
         }
 
+        // The `distributed` modifier leaves no reference in the index store.
+        for file in graph.indexedSourceFiles where file.usesDistributedModifier {
+            referencedModulesByFile[file, default: []].insert("Distributed")
+        }
+
         func analysesSystemModule(_ module: String, in file: SourceFile) -> Bool {
             analysesSystemImports &&
                 graph.isSystemModuleIndexed(module) &&
