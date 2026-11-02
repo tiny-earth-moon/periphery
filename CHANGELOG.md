@@ -12,6 +12,34 @@
 
 - None.
 
+## 3.13.4 (2026-11-02)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- None.
+
+##### Bug Fixes
+
+- `isolated` parameters, including `= #isolation`, are no longer reported as unused. [#197](https://github.com/tiny-earth-moon/periphery/issues/197)
+- A property-wrapped parameter used only through its `$` projection is no longer reported as unused. [#207](https://github.com/tiny-earth-moon/periphery/issues/207)
+- Parameters of `@available(*, unavailable)` stubs are no longer reported as unused. [#209](https://github.com/tiny-earth-moon/periphery/issues/209)
+- `_body(configuration:)` and other underscored witnesses of SwiftUI styles such as `TextFieldStyle` are retained. [#194](https://github.com/tiny-earth-moon/periphery/issues/194)
+- Live-preview retention covers WidgetKit `#Preview(as:)` and `PreviewProvider` previews of widgets. [#204](https://github.com/tiny-earth-moon/periphery/issues/204)
+- C-exported and linker-visible declarations (`@c`, `@_cdecl`, `@used`, `@_silgen_name`) are retained. [#177](https://github.com/tiny-earth-moon/periphery/issues/177)
+- `dynamicallyCall` methods of a `@dynamicCallable` type are retained when the type is called. [#196](https://github.com/tiny-earth-moon/periphery/issues/196)
+- Classes named by `valueTransformerName` or `representedClassName` in a Core Data model are retained. [#195](https://github.com/tiny-earth-moon/periphery/issues/195)
+- Optional properties written through a stored key path are no longer reported as unassigned. [#198](https://github.com/tiny-earth-moon/periphery/issues/198)
+- References in top-level code of `main.swift` no longer attach to the preceding declaration. [#189](https://github.com/tiny-earth-moon/periphery/issues/189)
+- A type whose extension carries `@main` is retained as the entry point. [#205](https://github.com/tiny-earth-moon/periphery/issues/205)
+- A public protocol whose public extension witnesses a requirement of another public protocol is no longer reported as redundantly public. [#187](https://github.com/tiny-earth-moon/periphery/issues/187)
+- Types used only through inline arrays (`[N of T]`) or pack expansions are no longer reported as redundantly public. [#202](https://github.com/tiny-earth-moon/periphery/issues/202)
+- Results no longer depend on formatting: one-line enum cases, subscripts and typealiases are analysed like multi-line ones. [#188](https://github.com/tiny-earth-moon/periphery/issues/188)
+- Unused and assign-only properties of `@Observable` classes are now reported, as for plain classes; scans of projects using Observation may show new results. [#178](https://github.com/tiny-earth-moon/periphery/issues/178)
+
 ## 3.13.3 (2026-11-02)
 
 ##### Breaking

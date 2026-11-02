@@ -109,8 +109,40 @@ struct TypeSyntaxInspector {
         } else if let metatypeType = typeSyntax.as(MetatypeTypeSyntax.self) {
             // Metatype type.
             return types(for: metatypeType.baseType)
+        } else if let inlineArrayType = typeSyntax.as(InlineArrayTypeSyntax.self) {
+            // Inline array type, `[3 of T]`. The count may name a generic value parameter.
+            return types(for: inlineArrayType.count).union(types(for: inlineArrayType.element))
+        } else if let packExpansionType = typeSyntax.as(PackExpansionTypeSyntax.self) {
+            // Pack expansion type, `repeat P<each T>`.
+            return types(for: packExpansionType.repetitionPattern)
+        } else if let packElementType = typeSyntax.as(PackElementTypeSyntax.self) {
+            // Pack element type, `each T`.
+            return types(for: packElementType.pack)
+        } else if let namedOpaqueReturnType = typeSyntax.as(NamedOpaqueReturnTypeSyntax.self) {
+            // Named opaque return type, `<T: P> Foo<T>`.
+            return types(for: namedOpaqueReturnType.type)
+                .union(types(in: Syntax(namedOpaqueReturnType.genericParameterClause)))
         }
 
-        return []
+        // Any other type node, including those added by future versions of SwiftSyntax, contributes the types among
+        // its descendants.
+        return types(in: Syntax(typeSyntax))
+    }
+
+    private func types(for argument: GenericArgumentSyntax) -> Set<TokenSyntax> {
+        guard case let .type(argumentType) = argument.argument else { return [] }
+
+        return types(for: argumentType)
+    }
+
+    /// The types written among the descendants of the node, which is not itself a type.
+    private func types(in node: Syntax) -> Set<TokenSyntax> {
+        node.children(viewMode: .sourceAccurate).flatMapSet { child in
+            if let childType = child.as(TypeSyntax.self) {
+                return types(for: childType)
+            }
+
+            return types(in: child)
+        }
     }
 }

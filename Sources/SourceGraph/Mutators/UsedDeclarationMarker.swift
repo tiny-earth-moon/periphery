@@ -3,7 +3,12 @@ import Foundation
 import Shared
 
 final class UsedDeclarationMarker: SourceGraphMutator {
-    private static let swiftUIViewUsr = "s:7SwiftUI4ViewP"
+    private static let previewableProtocolUsrs: Set<String> = [
+        "s:7SwiftUI4ViewP",
+        "s:7SwiftUI6WidgetP",
+        "s:7SwiftUI13ControlWidgetP",
+    ]
+    private static let previewProviderUsr = "s:7SwiftUI15PreviewProviderP"
 
     private let graph: SourceGraph
 
@@ -75,13 +80,16 @@ final class UsedDeclarationMarker: SourceGraphMutator {
         }
     }
 
-    /// Marks used each `#Preview` expansion that previews a used SwiftUI view, along with the code
-    /// it references. Previews that only reference unused code stay unused.
+    /// Marks used each `#Preview` expansion and each `PreviewProvider` that previews a used SwiftUI view or widget,
+    /// along with the code it references. Previews that only reference unused code stay unused.
     private func markLivePreviewExpansionsUsed() {
         var pendingPreviews = graph.references(to: SwiftUIRetainer.previewRegistryUsr)
             .compactMap(\.parent)
             .filter { $0.isImplicit && !graph.isUsed($0) }
             .mapSet { $0 }
+        pendingPreviews.formUnion(graph.declarations(ofKinds: [.class, .struct, .enum]).filter {
+            !graph.isUsed($0) && isPreviewProvider($0)
+        })
 
         while true {
             let livePreviews = pendingPreviews.filter(previewsUsedView)
@@ -97,14 +105,35 @@ final class UsedDeclarationMarker: SourceGraphMutator {
             .lazy
             .flatMap(\.references)
             .compactMap { self.graph.declaration(withUsr: $0.usr) }
-            .contains { self.graph.isUsed($0) && self.isSwiftUIView($0) }
+            .contains { self.graph.isUsed($0) && self.isPreviewable($0) }
     }
 
-    private func isSwiftUIView(_ declaration: Declaration) -> Bool {
+    /// Whether the type conforms to a previewable protocol (`View`, `Widget` or `ControlWidget`), directly, through a
+    /// protocol it conforms to that refines one, or through a superclass that conforms.
+    private func isPreviewable(_ declaration: Declaration) -> Bool {
         guard [.struct, .class, .enum].contains(declaration.kind) else { return false }
 
-        return declaration.related.contains {
-            $0.declarationKind == .protocol && $0.usr == Self.swiftUIViewUsr
+        var visited: Set<Declaration> = [declaration]
+        var pending = [declaration]
+
+        while let current = pending.popLast() {
+            for related in current.related {
+                if related.declarationKind == .protocol, Self.previewableProtocolUsrs.contains(related.usr) {
+                    return true
+                }
+
+                if let inherited = graph.declaration(withUsr: related.usr), visited.insert(inherited).inserted {
+                    pending.append(inherited)
+                }
+            }
+        }
+
+        return false
+    }
+
+    private func isPreviewProvider(_ declaration: Declaration) -> Bool {
+        declaration.related.contains {
+            $0.declarationKind == .protocol && $0.usr == Self.previewProviderUsr
         }
     }
 

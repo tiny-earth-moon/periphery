@@ -29,6 +29,7 @@ public struct Function: Item, Hashable {
 public struct Attribute {
     let name: String
     let arguments: String?
+    let isUnavailableOnAllPlatforms: Bool
 }
 
 public struct Parameter: Item, Hashable {
@@ -58,6 +59,8 @@ public struct Parameter: Item, Hashable {
     public let name: PartKind
     let metatype: String?
     let hasDefaultValue: Bool
+    let isIsolated: Bool
+    let hasAttributes: Bool
     let location: Location
 
     public let items: [Item] = []
@@ -253,7 +256,26 @@ struct UnusedParameterParser {
                          name: name,
                          metatype: metatype,
                          hasDefaultValue: syntax.defaultValue != nil,
+                         isIsolated: isIsolated(parameter: syntax),
+                         hasAttributes: !syntax.attributes.isEmpty,
                          location: location)
+    }
+
+    private func isIsolated(parameter syntax: FunctionParameterSyntax) -> Bool {
+        // An isolated parameter selects or inherits the actor isolation, its body usage is irrelevant.
+        if let attributedType = syntax.type.as(AttributedTypeSyntax.self) {
+            let hasIsolatedSpecifier = attributedType.specifiers.contains {
+                guard case let .simpleTypeSpecifier(specifier) = $0 else { return false }
+
+                return specifier.specifier.tokenKind == .keyword(.isolated)
+            }
+
+            if hasIsolatedSpecifier {
+                return true
+            }
+        }
+
+        return syntax.defaultValue?.value.as(MacroExpansionExprSyntax.self)?.macroName.text == "isolation"
     }
 
     private func parse(closureExpr syntax: ClosureExprSyntax, _ collector: Collector<some Any>?) -> Closure? {
@@ -321,6 +343,26 @@ struct UnusedParameterParser {
               collector)
     }
 
+    private func isProtocolMember(_ syntax: SyntaxProtocol) -> Bool {
+        // The first enclosing declaration is the function itself, the second is its container.
+        var enclosingDecls = 0
+        var node = syntax.parent
+
+        while let current = node {
+            if current.isProtocol(DeclSyntaxProtocol.self) {
+                enclosingDecls += 1
+
+                if enclosingDecls == 2 {
+                    return current.is(ProtocolDeclSyntax.self)
+                }
+            }
+
+            node = current.parent
+        }
+
+        return false
+    }
+
     private func build(
         function syntax: SyntaxProtocol,
         attributes: AttributeListSyntax?,
@@ -330,8 +372,9 @@ struct UnusedParameterParser {
         position: AbsolutePosition,
         _ collector: Collector<some Any>?
     ) -> Function? {
-        if body == nil, !parseProtocols {
-            // Function has no body, must be a protocol declaration.
+        if body == nil, !parseProtocols || !isProtocolMember(syntax) {
+            // A function without a body is a protocol requirement, or an imported symbol such as a `@_silgen_name`
+            // or `@_extern(c)` declaration. Nothing can use the parameters of an import.
             return nil
         }
 
@@ -346,7 +389,8 @@ struct UnusedParameterParser {
                 if case let .attribute(attr) = $0 {
                     return Attribute(
                         name: attr.attributeName.trimmed.description,
-                        arguments: attr.arguments?.trimmed.description
+                        arguments: attr.arguments?.trimmed.description,
+                        isUnavailableOnAllPlatforms: isUnavailableOnAllPlatforms(attr)
                     )
                 }
 
@@ -362,6 +406,21 @@ struct UnusedParameterParser {
             genericParameters: genericParamNames,
             attributes: parsedAttributes
         )
+    }
+
+    private func isUnavailableOnAllPlatforms(_ attribute: AttributeSyntax) -> Bool {
+        guard attribute.attributeName.trimmed.description == "available",
+              case let .availability(arguments)? = attribute.arguments
+        else { return false }
+
+        let tokens = arguments.map { argument -> String? in
+            guard case let .token(token) = argument.argument else { return nil }
+
+            return token.text
+        }
+
+        // The platform is the first argument, '*' means every platform.
+        return tokens.first == "*" && tokens.contains("unavailable")
     }
 
     private func buildFullName(for function: String, with params: [Parameter]) -> String {
