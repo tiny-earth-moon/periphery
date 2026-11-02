@@ -33,6 +33,12 @@ final class UnusedImportMarker: SourceGraphMutator {
 
         // Build a mapping of source files and the modules they reference.
         for ref in graph.allReferences {
+            // The index store records a reference to the declaration named by a scoped import, e.g.
+            // `import struct Module.Type`, at the import statement itself. It is not a use.
+            if ref.location.file.importStatements.contains(where: { $0.contains(ref.location) }) {
+                continue
+            }
+
             if let modules = moduleCache[ref.usr] {
                 referencedModulesByFile[ref.location.file, default: []].formUnion(modules)
                 if unresolvedUsrs.contains(ref.usr) {

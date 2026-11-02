@@ -51,6 +51,17 @@ var targets: [PackageDescription.Target] = [
         name: "UnusedImportDistributedFixtures"
     ),
     .target(
+        name: "UnusedImportScopedSupportFixtures",
+        path: "Sources/UnusedImportScopedFixtures/Support"
+    ),
+    .target(
+        name: "UnusedImportScopedClientFixtures",
+        dependencies: [
+            .target(name: "UnusedImportScopedSupportFixtures")
+        ],
+        path: "Sources/UnusedImportScopedFixtures/Client"
+    ),
+    .target(
         name: "UnusedImportPlatformSupportFixtures",
         path: "Sources/UnusedImportPlatformFixtures/Support"
     ),

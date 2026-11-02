@@ -27,6 +27,7 @@ public final class ImportSyntaxVisitor: PeripherySyntaxVisitor {
             }
         }
         let location = sourceLocationBuilder.location(at: node.positionAfterSkippingLeadingTrivia)
+        let endLocation = sourceLocationBuilder.location(at: node.endPositionBeforeTrailingTrivia)
         let isConditional = node.parent?.parent?.parent?.is(IfConfigClauseSyntax.self) ?? false
         let statement = ImportStatement(
             module: module,
@@ -34,6 +35,7 @@ public final class ImportSyntaxVisitor: PeripherySyntaxVisitor {
             isExported: attributes.contains("_exported") || node.modifiers.contains { $0.name.text == "public" },
             isConditional: isConditional,
             location: location,
+            endLocation: endLocation,
             commentCommands: CommentCommand.parseCommands(in: node.leadingTrivia.merging(node.trailingTrivia))
         )
         importStatements.append(statement)
