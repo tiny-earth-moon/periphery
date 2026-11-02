@@ -1227,6 +1227,20 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    func testRetainsSoleInitializerOfMacroModelClass() {
+        analyze(retainPublic: true) {
+            assertReferenced(.enum("FixtureMacroModelSchema")) {
+                self.assertReferenced(.class("FixtureMacroModelSoleInitializer")) {
+                    self.assertReferenced(.functionConstructor("init(text:)"))
+                }
+                self.assertReferenced(.class("FixtureMacroModelSecondInitializer")) {
+                    self.assertNotReferenced(.functionConstructor("init(text:)"))
+                    self.assertNotReferenced(.functionConstructor("init(other:)"))
+                }
+            }
+        }
+    }
+
     func testRetainPublicMacroAndMiscKinds() {
         analyze(retainPublic: true) {
             assertReferenced(.macro("FixtureRetainPublicMacro()"))

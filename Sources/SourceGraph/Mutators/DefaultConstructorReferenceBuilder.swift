@@ -42,11 +42,13 @@ final class DefaultConstructorReferenceBuilder: SourceGraphMutator {
     }
 
     /// Removing the only initializer of a class would leave it without any initializer, which
-    /// fails to compile if it has stored properties without default values.
+    /// fails to compile if it has stored properties without default values. Implicit initializers,
+    /// such as the ones a macro like SwiftData's `@Model` adds, do not count: they are not a
+    /// replacement for the explicit initializer.
     private func referenceSoleClassConstructors() {
         for classDecl in graph.declarations(ofKind: .class) {
-            let constructors = classDecl.declarations.filter { $0.kind == .functionConstructor }
-            guard constructors.count == 1, let constructor = constructors.first, !constructor.isImplicit else { continue }
+            let constructors = classDecl.declarations.filter { $0.kind == .functionConstructor && !$0.isImplicit }
+            guard constructors.count == 1, let constructor = constructors.first else { continue }
 
             for usr in constructor.usrs {
                 let reference = Reference(
