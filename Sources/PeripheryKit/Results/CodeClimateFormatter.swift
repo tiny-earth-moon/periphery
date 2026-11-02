@@ -4,6 +4,8 @@ import Logger
 import SystemPackage
 
 final class CodeClimateFormatter: OutputFormatter {
+    static let requiresRelativePaths = true
+
     let configuration: Configuration
     let logger: Logger
     lazy var currentFilePath: FilePath = .current

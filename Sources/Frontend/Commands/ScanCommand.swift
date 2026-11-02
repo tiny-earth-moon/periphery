@@ -304,6 +304,7 @@ struct ScanCommand: ParsableCommand {
         _ = try AttributeRetentionRule.resolve(configuration)
 
         let logger = Logger(configuration: configuration)
+        ScanPreflight.applyOutputFormatRequirements(to: configuration, logger: logger)
         logger.contextualized(with: "version").debug(PeripheryVersion)
         let shell = ShellImpl(logger: logger) {
             logger.warn(

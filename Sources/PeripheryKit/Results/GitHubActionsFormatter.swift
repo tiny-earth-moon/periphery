@@ -1,11 +1,12 @@
 import Configuration
 import Foundation
 import Logger
-import Shared
 import SourceGraph
 import SystemPackage
 
 final class GitHubActionsFormatter: OutputFormatter {
+    static let requiresRelativePaths = true
+
     let configuration: Configuration
     let logger: Logger
     lazy var currentFilePath: FilePath = .current
@@ -17,7 +18,6 @@ final class GitHubActionsFormatter: OutputFormatter {
 
     func format(_ results: [ScanResult], colored: Bool) throws -> String? {
         guard !results.isEmpty else { return nil }
-        guard configuration.relativeResults else { throw PeripheryError.usageError("`periphery scan` must be ran with `--relative-results` when using the GitHub Actions formatter") }
 
         return results.flatMap { result in
             describe(result, colored: colored).map { location, description in

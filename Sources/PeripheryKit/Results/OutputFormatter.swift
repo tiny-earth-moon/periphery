@@ -9,8 +9,17 @@ public protocol OutputFormatter: AnyObject {
     var logger: Logger { get }
     var currentFilePath: FilePath { get }
 
+    /// Whether the output only makes sense with paths relative to the project root, whatever `relativeResults` says.
+    static var requiresRelativePaths: Bool { get }
+
     init(configuration: Configuration, logger: Logger)
     func format(_ results: [ScanResult], colored: Bool) throws -> String?
+}
+
+public extension OutputFormatter {
+    static var requiresRelativePaths: Bool {
+        false
+    }
 }
 
 extension OutputFormatter {
@@ -124,7 +133,7 @@ extension OutputFormatter {
     func outputPath(_ file: FilePath) -> FilePath {
         var path = file.lexicallyNormalized()
 
-        if configuration.relativeResults, path.isAbsolute {
+        if configuration.relativeResults || Self.requiresRelativePaths, path.isAbsolute {
             path = path.relativeTo(currentFilePath).removingRoot()
         }
 
@@ -175,6 +184,10 @@ extension OutputFormatter {
 }
 
 public extension OutputFormat {
+    var requiresRelativePaths: Bool {
+        formatter.requiresRelativePaths
+    }
+
     var formatter: OutputFormatter.Type {
         switch self {
         case .xcode:
