@@ -47,17 +47,12 @@ enum ScanPreflight {
             throw unreadable(path, reason: "permission denied")
         }
 
-        let data: Data
         do {
-            data = try Data(contentsOf: normalized.url)
+            return try Baseline.load(from: path)
+        } catch let error as PeripheryError {
+            throw error
         } catch {
             throw unreadable(path, reason: error.localizedDescription)
-        }
-
-        do {
-            return try JSONDecoder().decode(Baseline.self, from: data)
-        } catch {
-            throw PeripheryError.usageError("--baseline: '\(path.string)' is not a Periphery baseline (expected {\"v1\": {\"usrs\": [...]}})")
         }
     }
 
