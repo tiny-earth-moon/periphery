@@ -102,6 +102,24 @@ var targets: [PackageDescription.Target] = [
         name: "UnassignedOptionalFixtures"
     ),
     .target(
+        name: "LinkageRetentionFixtures",
+        swiftSettings: [
+            .unsafeFlags(["-enable-experimental-feature", "Extern"]) // For the @_extern(c) declarations.
+        ]
+    ),
+    .target(
+        name: "DynamicCallableRetentionFixtures"
+    ),
+    .target(
+        name: "DynamicCallableSupportFixtures"
+    ),
+    .target(
+        name: "DynamicCallableCrossModuleFixtures",
+        dependencies: [
+            .target(name: "DynamicCallableSupportFixtures")
+        ]
+    ),
+    .target(
         name: "EnumCaseRetentionFixtures"
     ),
 ]

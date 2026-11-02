@@ -164,6 +164,8 @@ final class RedundantExplicitPublicAccessibilityMarker: SourceGraphMutator {
 
     private func isRedundantPublicMember(_ member: Declaration) -> Bool {
         guard !Self.excludedMemberKinds.contains(member.kind),
+              // A @dynamicCallable type needs its dynamicallyCall methods as accessible as the type itself.
+              !(member.kind == .functionMethodInstance && DynamicMemberRetainer.dynamicCallableMethodNames.contains(member.name)),
               !graph.isRetained(member),
               // An override, a required initializer and a protocol witness must be as accessible as the declaration
               // they implement. The index relates a witness to its requirement through an override relation.
