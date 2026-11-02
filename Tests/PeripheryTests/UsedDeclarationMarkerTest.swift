@@ -20,9 +20,9 @@ final class UsedDeclarationMarkerTest: XCTestCase {
         return SourceGraph(configuration: Configuration(), logger: logger)
     }
 
-    private func mutate(_ graph: SourceGraph) {
+    private func mutate(_ graph: SourceGraph) throws {
         let logger = Logger(quiet: true, verbose: false, colorMode: .never)
-        let swiftVersion = SwiftVersion(shell: ShellImpl(logger: logger))
+        let swiftVersion = try SwiftVersion(shell: ShellImpl(logger: logger))
         UsedDeclarationMarker(graph: graph, configuration: Configuration(), swiftVersion: swiftVersion).mutate()
     }
 
@@ -60,19 +60,19 @@ final class UsedDeclarationMarkerTest: XCTestCase {
         return functions
     }
 
-    func testDeepChainFromRetainedDeclarationIsMarkedUsedWithoutStackOverflow() {
+    func testDeepChainFromRetainedDeclarationIsMarkedUsedWithoutStackOverflow() throws {
         let graph = makeGraph()
         let functions = addChain(to: graph, length: Self.chainLength)
         graph.markRetained(functions[0])
         graph.indexingComplete()
 
-        mutate(graph)
+        try mutate(graph)
 
         XCTAssertEqual(graph.usedDeclarations.count, Self.chainLength)
         XCTAssertTrue(graph.unusedDeclarations.isEmpty)
     }
 
-    func testDeepChainFromRootReferenceIsMarkedUsedWithoutStackOverflow() {
+    func testDeepChainFromRootReferenceIsMarkedUsedWithoutStackOverflow() throws {
         let graph = makeGraph()
         _ = addChain(to: graph, length: Self.chainLength)
         graph.add(Reference(
@@ -84,13 +84,13 @@ final class UsedDeclarationMarkerTest: XCTestCase {
         ))
         graph.indexingComplete()
 
-        mutate(graph)
+        try mutate(graph)
 
         XCTAssertEqual(graph.usedDeclarations.count, Self.chainLength)
         XCTAssertTrue(graph.unusedDeclarations.isEmpty)
     }
 
-    func testOnlyDeclarationsReachableFromRetainedDeclarationsAreMarkedUsed() {
+    func testOnlyDeclarationsReachableFromRetainedDeclarationsAreMarkedUsed() throws {
         let graph = makeGraph()
         let functions = addChain(to: graph, length: 6, isCyclic: true)
         let orphan = makeFunction(100)
@@ -101,7 +101,7 @@ final class UsedDeclarationMarkerTest: XCTestCase {
         graph.markRetained(functions[3])
         graph.indexingComplete()
 
-        mutate(graph)
+        try mutate(graph)
 
         XCTAssertEqual(graph.usedDeclarations, Set(functions), "A cycle must terminate and mark every member used")
         XCTAssertEqual(graph.unusedDeclarations, [orphan, orphanTarget])
