@@ -12,6 +12,20 @@
 
 - None.
 
+## 3.13.1 (2026-11-02)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- None.
+
+##### Bug Fixes
+
+- A long chain of references between declarations no longer crashes the scan with a stack overflow: used declarations are now marked with an explicit worklist instead of recursion. [#172](https://github.com/tiny-earth-moon/periphery/issues/172)
+
 ## 3.13.0 (2026-11-01)
 
 ##### Breaking
