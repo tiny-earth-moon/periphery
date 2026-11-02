@@ -29,6 +29,7 @@ public protocol PeripherySyntaxVisitor {
     func visit(_ node: OptionalBindingConditionSyntax)
     func visit(_ node: FunctionCallExprSyntax)
     func visit(_ node: AttributeSyntax)
+    func visit(_ node: DeclModifierSyntax)
 
     func visitPost(_ node: ActorDeclSyntax)
     func visitPost(_ node: ClassDeclSyntax)
@@ -74,6 +75,7 @@ public extension PeripherySyntaxVisitor {
     func visit(_: OptionalBindingConditionSyntax) {}
     func visit(_: FunctionCallExprSyntax) {}
     func visit(_: AttributeSyntax) {}
+    func visit(_: DeclModifierSyntax) {}
 
     func visitPost(_: ActorDeclSyntax) {}
     func visitPost(_: ClassDeclSyntax) {}
@@ -231,6 +233,11 @@ public final class MultiplexingSyntaxVisitor: SyntaxVisitor {
     }
 
     override public func visit(_ node: AttributeSyntax) -> SyntaxVisitorContinueKind {
+        visitors.forEach { $0.visit(node) }
+        return .visitChildren
+    }
+
+    override public func visit(_ node: DeclModifierSyntax) -> SyntaxVisitorContinueKind {
         visitors.forEach { $0.visit(node) }
         return .visitChildren
     }

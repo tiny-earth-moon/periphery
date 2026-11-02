@@ -11,10 +11,10 @@ public final class Configuration {
 
     public init() {}
 
-    @Setting(key: "project", defaultValue: nil, setter: filePathSetter)
+    @Setting(key: "project", defaultValue: nil, convert: SettingConverter.filePath)
     public var project: FilePath?
 
-    @Setting(key: "format", defaultValue: .default, setter: { OutputFormat(anyValue: $0) })
+    @Setting(key: "format", defaultValue: .default)
     public var outputFormat: OutputFormat
 
     @Setting(key: "schemes", defaultValue: [])
@@ -29,7 +29,7 @@ public final class Configuration {
     @Setting(key: "index_exclude", defaultValue: ["**/*?.build/**/*", "**/SourcePackages/checkouts/**"], requireDefaultValues: true)
     public var indexExclude: [String]
 
-    @Setting(key: "report_exclude", defaultValue: [], setter: reportExcludeSetter)
+    @Setting(key: "report_exclude", defaultValue: [], convert: SettingConverter.reportExclude)
     public var reportExclude: [ReportExcludeEntry]
 
     @Setting(key: "report_include", defaultValue: [])
@@ -152,7 +152,7 @@ public final class Configuration {
     @Setting(key: "quiet", defaultValue: false)
     public var quiet: Bool
 
-    @Setting(key: "color", defaultValue: .default, setter: { ColorOption(anyValue: $0) })
+    @Setting(key: "color", defaultValue: .default)
     public var color: ColorOption
 
     @Setting(key: "disable_update_check", defaultValue: false)
@@ -161,7 +161,7 @@ public final class Configuration {
     @Setting(key: "strict", defaultValue: false)
     public var strict: Bool
 
-    @Setting(key: "index_store_path", defaultValue: [], setter: filePathArraySetter)
+    @Setting(key: "index_store_path", defaultValue: [], convert: SettingConverter.filePathList)
     public var indexStorePath: [FilePath]
 
     @Setting(key: "skip_build", defaultValue: false)
@@ -176,25 +176,25 @@ public final class Configuration {
     @Setting(key: "relative_results", defaultValue: false)
     public var relativeResults: Bool
 
-    @Setting(key: "json_package_manifest_path", defaultValue: nil, setter: filePathSetter)
+    @Setting(key: "json_package_manifest_path", defaultValue: nil, convert: SettingConverter.filePath)
     public var jsonPackageManifestPath: FilePath?
 
     @Setting(key: "cache_max_age_days", defaultValue: 14)
     public var cacheMaxAgeDays: Int
 
-    @Setting(key: "baseline", defaultValue: nil, setter: filePathSetter)
+    @Setting(key: "baseline", defaultValue: nil, convert: SettingConverter.filePath)
     public var baseline: FilePath?
 
-    @Setting(key: "write_baseline", defaultValue: nil, setter: filePathSetter)
+    @Setting(key: "write_baseline", defaultValue: nil, convert: SettingConverter.filePath)
     public var writeBaseline: FilePath?
 
-    @Setting(key: "write_results", defaultValue: nil, setter: filePathSetter)
+    @Setting(key: "write_results", defaultValue: nil, convert: SettingConverter.filePath)
     public var writeResults: FilePath?
 
     @Setting(key: "skip_stdout_results", defaultValue: false)
     public var skipStdoutResults: Bool
 
-    @Setting(key: "generic_project_config", defaultValue: nil, setter: filePathSetter)
+    @Setting(key: "generic_project_config", defaultValue: nil, convert: SettingConverter.filePath)
     public var genericProjectConfig: FilePath?
 
     @Setting(key: "retain_synthesized_uses", defaultValue: false)
@@ -232,34 +232,54 @@ public final class Configuration {
         FileManager.default.createFile(atPath: path.string, contents: data)
     }
 
-    public func load(from path: FilePath?) throws {
+    /// Loads the configuration file. A value that is not valid for its setting, and a key that is not a setting, are
+    /// reported to `warn` and ignored, an unreadable file or a document that is not a mapping is an error.
+    public func load(from path: FilePath?, warn: ((String) -> Void)? = nil) throws {
         guard let path = try configurationPath(withUserProvided: path) else { return }
 
         let encodedYAML = try String(contentsOf: path.url, encoding: .utf8)
-        let yaml = try Yams.load(yaml: encodedYAML) as? [String: Any] ?? [:]
         let logger = Logger(quiet: false, verbose: false, colorMode: .never)
+        let warn = warn ?? { logger.warn($0) }
 
-        if let key = yaml.keys.sorted().first(where: Self.isRemovedBazelKey) {
+        // An empty document is an empty configuration.
+        guard let document = try Yams.load(yaml: encodedYAML) else { return }
+        guard let yaml = document as? [AnyHashable: Any] else {
+            throw PeripheryError.usageError("\(path.string): the configuration must be a mapping of keys to values, got \(SettingValueError.describe(document))")
+        }
+
+        let entries = yaml.map { (key: "\($0.key.base)", value: $0.value, isString: $0.key.base is String) }.sorted { $0.key < $1.key }
+
+        if let key = entries.map(\.key).first(where: Self.isRemovedBazelKey) {
             throw PeripheryError.removedBazelOption("'\(key)' in \(path.string)")
         }
 
-        for (key, value) in yaml {
-            if let setting = settings.first(where: { key == $0.key }) {
-                setting.assign(value)
+        for (key, value, isString) in entries {
+            if isString, let setting = settings.first(where: { key == $0.key }) {
+                if let message = setting.assign(value) {
+                    warn("\(path.string): \(message)")
+                }
+            } else if isString, let suggestion = closestSettingKey(to: key) {
+                warn("\(path.string): invalid key '\(key)' (did you mean '\(suggestion)'?)")
             } else {
-                logger.warn("\(path.string): invalid key '\(key)'")
+                warn("\(path.string): invalid key '\(key)'")
             }
         }
     }
 
     // MARK: - Helpers
 
-    public func apply<T: Equatable>(_ path: KeyPath<Configuration, Setting<T>>, _ value: T) {
-        let setting = self[keyPath: path]
+    /// Applies a value given on the command line, which takes precedence over the configuration file whatever it is,
+    /// the default included. A nil value was not given and leaves the setting untouched.
+    public func apply<T: Equatable>(_ path: KeyPath<Configuration, Setting<T>>, _ value: T?) {
+        guard let value else { return }
 
-        if setting.defaultValue != value {
-            setting.wrappedValue = value
-        }
+        self[keyPath: path].wrappedValue = value
+    }
+
+    public func apply<T: Equatable>(_ path: KeyPath<Configuration, Setting<T?>>, _ value: T?) {
+        guard let value else { return }
+
+        self[keyPath: path].wrappedValue = value
     }
 
     public func buildFilenameMatchers() {
@@ -310,6 +330,40 @@ public final class Configuration {
     // MARK: - Private
 
     /// Keys of the Bazel mode, removed in 3.13.0, which are rejected instead of being reported as invalid keys.
+    /// The setting key that a misspelt key most likely stands for, if any is close enough.
+    private func closestSettingKey(to key: String) -> String? {
+        let normalized = key.lowercased().replacingOccurrences(of: "-", with: "_")
+        let candidates = settings.map(\.key).sorted()
+
+        if let exact = candidates.first(where: { $0 == normalized }) {
+            return exact
+        }
+
+        let maxDistance = min(3, max(1, key.count / 4))
+        let ranked = candidates.map { (key: $0, distance: Self.editDistance(normalized, $0)) }
+
+        return ranked.filter { $0.distance <= maxDistance }.min { $0.distance < $1.distance }?.key
+    }
+
+    /// The Levenshtein distance between two strings.
+    private static func editDistance(_ lhs: String, _ rhs: String) -> Int {
+        let lhs = Array(lhs)
+        let rhs = Array(rhs)
+        var previous = Array(0 ... rhs.count)
+
+        for (i, l) in lhs.enumerated() {
+            var current = [i + 1]
+
+            for (j, r) in rhs.enumerated() {
+                current.append(min(previous[j + 1] + 1, current[j] + 1, previous[j] + (l == r ? 0 : 1)))
+            }
+
+            previous = current
+        }
+
+        return previous[rhs.count]
+    }
+
     private static func isRemovedBazelKey(_ key: String) -> Bool {
         key == "bazel" || key.hasPrefix("bazel_")
     }
@@ -344,94 +398,6 @@ public final class Configuration {
         }
 
         return [Self.defaultConfigurationFile, FilePath(".periphery.yaml")].first { $0.exists }
-    }
-}
-
-protocol AbstractSetting {
-    associatedtype Value
-
-    var key: String { get }
-    var hasNonDefaultValue: Bool { get }
-    var wrappedValue: Value { get }
-
-    func assign(_ value: Any)
-}
-
-@propertyWrapper public final class Setting<Value: Equatable>: AbstractSetting {
-    typealias Setter = (Any) -> Value?
-
-    public let defaultValue: Value
-    let key: String
-
-    private let setter: Setter
-    private var value: Value
-
-    init(
-        key: String,
-        defaultValue: Value,
-        setter: @escaping Setter = { $0 as? Value }
-    ) {
-        self.key = key
-        value = defaultValue
-        self.defaultValue = defaultValue
-        self.setter = setter
-    }
-
-    public var wrappedValue: Value {
-        get { value }
-        set { value = setter(newValue) ?? defaultValue }
-    }
-
-    public var projectedValue: Setting {
-        self
-    }
-
-    var hasNonDefaultValue: Bool {
-        value != defaultValue
-    }
-
-    public func assign(_ newValue: Any) {
-        value = setter(newValue) ?? defaultValue
-    }
-}
-
-private let filePathSetter: (Any) -> FilePath? = { value in
-    if let value = value as? FilePath {
-        return value
-    } else if let value = value as? String {
-        return FilePath(value)
-    }
-
-    return nil
-}
-
-private let filePathArraySetter: (Any) -> [FilePath]? = { value in
-    if let value = value as? [FilePath] {
-        return value
-    } else if let path = value as? String {
-        return [FilePath(path)]
-    } else if let paths = value as? [String] {
-        return paths.map { FilePath($0) }
-    }
-
-    return nil
-}
-
-extension Setting where Value == [String] {
-    convenience init(
-        key: String,
-        defaultValue: Value,
-        requireDefaultValues: Bool
-    ) {
-        self.init(
-            key: key,
-            defaultValue: defaultValue,
-            setter: { value in
-                guard let typedValue = value as? [String] else { return nil }
-
-                return requireDefaultValues ? Array(Set(typedValue).union(defaultValue)) : typedValue
-            }
-        )
     }
 }
 
