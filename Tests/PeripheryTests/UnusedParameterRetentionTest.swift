@@ -56,4 +56,19 @@ final class UnusedParameterRetentionTest: FixtureSourceGraphTestCase {
             }
         }
     }
+
+    func testUnavailableStubs() {
+        analyze(retainPublic: true) {
+            assertReferenced(.class("UnavailableStubHost")) {
+                for name in ["plain(value:)", "withMessage(value:)", "renamedStub(value:)", "extraWhitespace(value:)", "commasInMessage(value:)"] {
+                    self.assertReferenced(.functionMethodInstance(name)) {
+                        self.assertUsedParameter("value")
+                    }
+                }
+                self.assertReferenced(.functionMethodInstance("deprecatedOnly(value:)")) {
+                    self.assertNotReferenced(.varParameter("value"))
+                }
+            }
+        }
+    }
 }

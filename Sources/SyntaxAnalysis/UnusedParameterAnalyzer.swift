@@ -67,7 +67,7 @@ public final class UnusedParameterAnalyzer {
     }
 
     private func isFunctionUnavailable(_ function: Function) -> Bool {
-        function.attributes.contains { $0.name == "available" && $0.arguments == "*, unavailable" }
+        function.attributes.contains { $0.isUnavailableOnAllPlatforms }
     }
 
     private func isFunctionFatalErrorOnly(_ function: Function) -> Bool {
