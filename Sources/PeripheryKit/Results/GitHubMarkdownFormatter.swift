@@ -50,7 +50,15 @@ final class GitHubMarkdownFormatter: OutputFormatter {
 
     private func format(_ result: ScanResult) -> [String] {
         describe(result, colored: false).map { location, description in
-            "| **\(description)**<br>\(locationDescription(location)) |"
+            "| **\(escapeCell(description))**<br>\(escapeCell(locationDescription(location))) |"
         }
+    }
+
+    private func escapeCell(_ value: String) -> String {
+        value
+            .replacingOccurrences(of: "|", with: "\\|")
+            .replacingOccurrences(of: "\r\n", with: " ")
+            .replacingOccurrences(of: "\n", with: " ")
+            .replacingOccurrences(of: "\r", with: " ")
     }
 }
