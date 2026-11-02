@@ -199,6 +199,9 @@ struct ScanCommand: ParsableCommand {
     @Option(help: "File path where formatted results are written.")
     var writeResults: FilePath?
 
+    @Flag(help: "Do not print the results to stdout. Requires '--write-results'")
+    var skipStdoutResults: Bool = defaultConfiguration.$skipStdoutResults.defaultValue
+
     @Option(help: "Project configuration for non-Apple build systems")
     var genericProjectConfig: FilePath?
 
@@ -283,6 +286,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$baseline, baseline)
         configuration.apply(\.$writeBaseline, writeBaseline)
         configuration.apply(\.$writeResults, writeResults)
+        configuration.apply(\.$skipStdoutResults, skipStdoutResults)
         configuration.apply(\.$genericProjectConfig, genericProjectConfig)
         configuration.apply(\.$retainSynthesizedUses, retainSynthesizedUses)
         configuration.apply(\.$retainAttributes, given(retainAttributes))
@@ -305,11 +309,17 @@ struct ScanCommand: ParsableCommand {
         configuration.projectRoot = projectRoot
         apply(to: configuration)
 
+        if configuration.skipStdoutResults, configuration.writeResults == nil {
+            throw PeripheryError.usageError("The '--skip-stdout-results' option requires '--write-results', otherwise the results would not be output anywhere.")
+        }
+
         configuration.buildFilenameMatchers()
         _ = try ReportExcludeRule.resolve(configuration)
         _ = try AttributeRetentionRule.resolve(configuration)
+        let baseline = try ScanPreflight.validatePaths(of: configuration)
 
         let logger = Logger(configuration: configuration)
+        ScanPreflight.applyOutputFormatRequirements(to: configuration, logger: logger)
         logger.contextualized(with: "version").debug(PeripheryVersion)
         let shell = ShellImpl(logger: logger) {
             logger.warn(
@@ -317,7 +327,7 @@ struct ScanCommand: ParsableCommand {
                 newlinePrefix: true // Print a newline after ^C
             )
         }
-        let swiftVersion = SwiftVersion(shell: shell)
+        let swiftVersion = try SwiftVersion(shell: shell)
         logger.debug(swiftVersion.fullVersion)
         try swiftVersion.validateVersion()
 
@@ -338,11 +348,6 @@ struct ScanCommand: ParsableCommand {
 
         let results = scanOutput.results
         let interval = logger.beginInterval("result:output")
-        var baseline: Baseline?
-
-        if let baselinePath = configuration.baseline {
-            baseline = try Baseline.load(from: baselinePath)
-        }
 
         let filteredResults = try OutputDeclarationFilter(configuration: configuration, logger: logger).filter(results, with: baseline)
 
@@ -350,9 +355,7 @@ struct ScanCommand: ParsableCommand {
             let usrs = filteredResults
                 .flatMapSet { $0.usrs }
                 .union(baseline?.usrs ?? [])
-            let baseline = Baseline.v1(usrs: usrs.sorted())
-            let data = try JSONEncoder().encode(baseline)
-            try data.write(to: baselinePath.url)
+            try Self.writeBaseline(.v1(usrs: usrs.sorted()), to: baselinePath)
         }
 
         let outputFormat = configuration.outputFormat
@@ -361,12 +364,12 @@ struct ScanCommand: ParsableCommand {
 
         let formattedOutput = try formatter.format(filteredResults, colored: colored)
 
-        if let output = formattedOutput {
+        if let output = formattedOutput, !configuration.skipStdoutResults {
             if outputFormat.supportsAuxiliaryOutput {
                 logger.info("", canQuiet: true)
             }
 
-            logger.info(output, canQuiet: false)
+            logger.output(output)
         }
 
         if let resultsPath = configuration.writeResults {
@@ -388,6 +391,10 @@ struct ScanCommand: ParsableCommand {
         if !filteredResults.isEmpty, configuration.strict {
             throw PeripheryError.foundIssues(count: filteredResults.count)
         }
+    }
+
+    static func writeBaseline(_ baseline: Baseline, to path: FilePath) throws {
+        try JSONEncoder().encode(baseline).write(to: path.url, options: .atomic)
     }
 
     // MARK: - Private

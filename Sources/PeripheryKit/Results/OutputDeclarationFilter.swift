@@ -19,21 +19,24 @@ public final class OutputDeclarationFilter {
         var declarations = declarations
 
         if let baseline {
+            let matcher = BaselineMatcher(baseline, projectRoot: configuration.projectRoot)
             var didFilterDeclaration = false
-            let ignoredUsrs = declarations
-                .flatMapSet(\.usrs)
-                .intersection(baseline.usrs)
+            var didMatchLegacyId = false
 
             declarations = declarations.filter {
-                let isIgnored = $0.usrs.contains { ignoredUsrs.contains($0) }
-                if isIgnored {
-                    didFilterDeclaration = true
-                }
-                return !isIgnored
+                guard let match = matcher.match($0) else { return true }
+
+                didFilterDeclaration = true
+                didMatchLegacyId = didMatchLegacyId || match == .legacy
+                return false
             }
 
             if !didFilterDeclaration {
                 logger.warn("No results were filtered by the baseline.")
+            }
+
+            if didMatchLegacyId {
+                logger.warn("The baseline holds ids written by an earlier version, which change when lines move or the project is checked out elsewhere. Rewrite it with '--write-baseline' (without '--baseline') to switch to stable ids.")
             }
         }
 
