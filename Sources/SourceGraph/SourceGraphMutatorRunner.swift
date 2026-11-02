@@ -33,6 +33,9 @@ public final class SourceGraphMutatorRunner {
         ProtocolExtensionReferenceBuilder.self,
         ProtocolConformanceReferenceBuilder.self,
         ExternalTypeProtocolConformanceReferenceRemover.self,
+        // Must come before ComplexPropertyAccessorReferenceBuilder, which treats accessors that hold references as
+        // explicit implementations.
+        ObservationMacroReferenceEliminator.self,
         ComplexPropertyAccessorReferenceBuilder.self,
         EnumCaseReferenceBuilder.self,
         DefaultConstructorReferenceBuilder.self,

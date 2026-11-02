@@ -10,6 +10,9 @@ func main() {
     _ = SPMXibViewController.self
     _ = SPMImplicitXibViewController.self
     _ = StateMacroView().body
+    if #available(macOS 14, *) {
+        retainObservationModels()
+    }
 }
 
 main()
