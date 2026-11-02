@@ -1,0 +1,3 @@
+extension FixtureModulesSplit {
+    func modulesSplitRun() {}
+}
