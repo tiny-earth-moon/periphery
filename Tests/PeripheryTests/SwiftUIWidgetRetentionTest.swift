@@ -26,5 +26,29 @@
                 assertNotReferenced(.struct("UnusedShapeStyleFixture"))
             }
         }
+
+        func testRetainsWidgetPreviewHelpers() {
+            analyze(retainPublic: true) {
+                assertReferenced(.struct("PreviewedWidgetEntry")) {
+                    self.assertReferenced(.varStatic("previewOnlySample"))
+                    self.assertNotReferenced(.varStatic("unreferencedSample"))
+                    self.assertNotReferenced(.varStatic("deadPreviewSample"))
+                }
+                assertNotReferenced(.struct("DeadPreviewedWidget"))
+            }
+        }
+
+        func testRetainsPreviewProviderOfUsedView() {
+            analyze(retainPublic: true) {
+                assertReferenced(.struct("UsedProvidedPreviewView_Previews"))
+                assertReferenced(.enum("ProvidedPreviewSampleData")) {
+                    self.assertReferenced(.varStatic("title"))
+                    self.assertNotReferenced(.varStatic("unreferencedTitle"))
+                }
+                assertNotReferenced(.struct("DeadProvidedPreviewView"))
+                assertNotReferenced(.struct("DeadProvidedPreviewView_Previews"))
+                assertNotReferenced(.enum("DeadProvidedPreviewSampleData"))
+            }
+        }
     }
 #endif
