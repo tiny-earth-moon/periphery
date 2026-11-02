@@ -100,12 +100,27 @@ final class UsedDeclarationMarker: SourceGraphMutator {
             .contains { self.graph.isUsed($0) && self.isSwiftUIView($0) }
     }
 
+    /// Whether the type conforms to `View`, directly or through a protocol it conforms to that refines `View`, or a
+    /// superclass that conforms.
     private func isSwiftUIView(_ declaration: Declaration) -> Bool {
         guard [.struct, .class, .enum].contains(declaration.kind) else { return false }
 
-        return declaration.related.contains {
-            $0.declarationKind == .protocol && $0.usr == Self.swiftUIViewUsr
+        var visited: Set<Declaration> = [declaration]
+        var pending = [declaration]
+
+        while let current = pending.popLast() {
+            for related in current.related {
+                if related.declarationKind == .protocol, related.usr == Self.swiftUIViewUsr {
+                    return true
+                }
+
+                if let inherited = graph.declaration(withUsr: related.usr), visited.insert(inherited).inserted {
+                    pending.append(inherited)
+                }
+            }
         }
+
+        return false
     }
 
     private func ignoreUnusedDescendents(in decls: Set<Declaration>, unusedDeclarations: Set<Declaration>) {
