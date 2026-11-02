@@ -12,16 +12,6 @@ public enum OutputFormat: String, CaseIterable {
 
     public static let `default` = OutputFormat.xcode
 
-    init?(anyValue: Any) {
-        if let format = anyValue as? OutputFormat {
-            self = format
-            return
-        }
-        guard let stringValue = anyValue as? String else { return nil }
-
-        self.init(rawValue: stringValue)
-    }
-
     @inlinable public var supportsAuxiliaryOutput: Bool {
         self == .xcode
     }

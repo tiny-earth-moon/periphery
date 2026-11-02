@@ -12,9 +12,7 @@ public enum ReportExcludeEntry: Equatable {
     case malformed(String)
 
     init(anyValue value: Any) {
-        if let entry = value as? ReportExcludeEntry {
-            self = entry
-        } else if let string = value as? String {
+        if let string = value as? String {
             self = .pattern(string)
         } else if let object = value as? [AnyHashable: Any] {
             let allowedKeys: Set = ["path", "kinds"]
@@ -53,14 +51,15 @@ extension ReportExcludeEntry: Yams.NodeRepresentable {
     }
 }
 
-let reportExcludeSetter: (Any) -> [ReportExcludeEntry]? = { value in
-    if let entries = value as? [ReportExcludeEntry] {
-        return entries
-    } else if let values = value as? [Any] {
-        return values.map(ReportExcludeEntry.init(anyValue:))
-    } else if value is String {
-        return [ReportExcludeEntry(anyValue: value)]
-    }
+extension SettingConverter {
+    /// A glob, an object, or a list of them.
+    static let reportExclude: Conversion<[ReportExcludeEntry]> = { value throws(SettingValueError) in
+        if let values = value as? [Any] {
+            return SettingConversion(values.map(ReportExcludeEntry.init(anyValue:)))
+        } else if value is String || value is [AnyHashable: Any] {
+            return SettingConversion([ReportExcludeEntry(anyValue: value)])
+        }
 
-    return nil
+        throw .wrongType(expected: "a glob, an object with 'path' and 'kinds', or a list of them")
+    }
 }
