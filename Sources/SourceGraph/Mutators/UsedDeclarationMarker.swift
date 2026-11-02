@@ -15,7 +15,7 @@ final class UsedDeclarationMarker: SourceGraphMutator {
         removeErroneousProtocolReferences()
         markUsed(graph.retainedDeclarations)
 
-        graph.rootReferences.forEach { markUsed(declarationsReferenced(by: $0)) }
+        markUsed(graph.rootReferences.compactMapSet { graph.declaration(withUsr: $0.usr) })
         markLivePreviewExpansionsUsed()
 
         ignoreUnusedDescendents(in: graph.rootDeclarations,
@@ -56,18 +56,21 @@ final class UsedDeclarationMarker: SourceGraphMutator {
         }
     }
 
+    /// Marks the declarations, and everything reachable from them through references and related references, as
+    /// used. The walk uses an explicit worklist because a reference chain can be arbitrarily long and walking it by
+    /// recursion overflows the stack.
     private func markUsed(_ declarations: Set<Declaration>) {
-        for declaration in declarations {
+        var pending = Array(declarations)
+
+        while let declaration = pending.popLast() {
             guard !graph.isUsed(declaration) else { continue }
 
             graph.markUsed(declaration)
 
-            for ref in declaration.references {
-                markUsed(declarationsReferenced(by: ref))
-            }
-
-            for ref in declaration.related {
-                markUsed(declarationsReferenced(by: ref))
+            for reference in [declaration.references, declaration.related].joined() {
+                if let referenced = graph.declaration(withUsr: reference.usr), !graph.isUsed(referenced) {
+                    pending.append(referenced)
+                }
             }
         }
     }
@@ -103,16 +106,6 @@ final class UsedDeclarationMarker: SourceGraphMutator {
         return declaration.related.contains {
             $0.declarationKind == .protocol && $0.usr == Self.swiftUIViewUsr
         }
-    }
-
-    private func declarationsReferenced(by reference: Reference) -> Set<Declaration> {
-        var declarations: Set<Declaration> = []
-
-        if let declaration = graph.declaration(withUsr: reference.usr) {
-            declarations.insert(declaration)
-        }
-
-        return declarations
     }
 
     private func ignoreUnusedDescendents(in decls: Set<Declaration>, unusedDeclarations: Set<Declaration>) {
