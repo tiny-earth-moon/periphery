@@ -65,10 +65,26 @@ final class CsvFormatter: OutputFormatter {
         location: Location,
         hint: String?
     ) -> String {
-        let joinedModifiers = attributes.sorted().joined(separator: "|")
-        let joinedAttributes = modifiers.sorted().joined(separator: "|")
+        let joinedModifiers = modifiers.sorted().joined(separator: "|")
+        let joinedAttributes = attributes.sorted().joined(separator: "|")
         let joinedUsrs = usrs.sorted().joined(separator: "|")
         let path = locationDescription(location)
-        return "\(kind),\(name),\(joinedModifiers),\(joinedAttributes),\(accessibility ?? ""),\(joinedUsrs),\(path),\(hint ?? "")"
+        return [
+            kind,
+            name,
+            joinedModifiers,
+            joinedAttributes,
+            accessibility ?? "",
+            joinedUsrs,
+            path,
+            hint ?? "",
+        ].map(escape).joined(separator: ",")
+    }
+
+    private func escape(_ field: String) -> String {
+        guard field.contains(",") || field.contains("\"") || field.contains("\n") || field.contains("\r") else {
+            return field
+        }
+        return "\"\(field.replacingOccurrences(of: "\"", with: "\"\""))\""
     }
 }
