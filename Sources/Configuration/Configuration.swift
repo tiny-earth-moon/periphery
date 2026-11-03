@@ -191,6 +191,12 @@ public final class Configuration {
     @Setting(key: "write_baseline", defaultValue: nil, convert: SettingConverter.filePath)
     public var writeBaseline: FilePath?
 
+    @Setting(key: "prune_baseline", defaultValue: false)
+    public var pruneBaseline: Bool
+
+    @Setting(key: "strict_baseline", defaultValue: false)
+    public var strictBaseline: Bool
+
     @Setting(key: "write_results", defaultValue: nil, convert: SettingConverter.filePath)
     public var writeResults: FilePath?
 
@@ -380,7 +386,7 @@ public final class Configuration {
         $disableUpdateCheck, $strict, $indexStorePath,
         $skipBuild, $skipSchemesValidation, $cleanBuild, $cacheMaxAgeDays, $buildArguments, $xcodeListArguments, $relativeResults, $relativeResultsBase,
         $jsonPackageManifestPath, $retainCodableProperties, $retainEncodableProperties, $retainEquatableProperties,
-        $retainHashableProperties, $baseline, $writeBaseline,
+        $retainHashableProperties, $baseline, $writeBaseline, $pruneBaseline, $strictBaseline,
         $writeResults, $skipStdoutResults, $genericProjectConfig,
         $retainSynthesizedUses, $retainAttributes, $detectUnusedAssetCatalogColors, $detectUnusedAssetCatalogImages,
     ]

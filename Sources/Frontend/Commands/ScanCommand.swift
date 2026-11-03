@@ -199,8 +199,14 @@ struct ScanCommand: ParsableCommand {
     @Option(help: "Baseline file path used to filter results. A relative path is resolved from '--project-root'")
     var baseline: FilePath?
 
-    @Option(help: "Baseline file path where results are written. Pass the same path to '--baseline' in subsequent scans to exclude the results recorded in the baseline. A relative path is resolved from '--project-root'.")
+    @Option(help: "Baseline file path where results are written, in a readable format that lists the kind, name and file of each entry. Entries of the baseline given to '--baseline' are kept. Pass the same path to '--baseline' in subsequent scans to exclude the results recorded in the baseline. A relative path is resolved from '--project-root'.")
     var writeBaseline: FilePath?
+
+    @Flag(inversion: .prefixedNo, help: "Rewrite the file given to '--baseline' keeping only the entries that still match a result. Requires '--baseline'")
+    var pruneBaseline: Bool?
+
+    @Flag(inversion: .prefixedNo, help: "Exit with non-zero status (1, like '--strict') if the baseline holds entries that no longer match any result. Requires '--baseline'. Not applied when '--prune-baseline' removes the entries")
+    var strictBaseline: Bool?
 
     @Option(help: "File path where formatted results are written. A relative path is resolved from '--project-root'.")
     var writeResults: FilePath?
@@ -293,6 +299,8 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$jsonPackageManifestPath, jsonPackageManifestPath)
         configuration.apply(\.$baseline, baseline)
         configuration.apply(\.$writeBaseline, writeBaseline)
+        configuration.apply(\.$pruneBaseline, pruneBaseline)
+        configuration.apply(\.$strictBaseline, strictBaseline)
         configuration.apply(\.$writeResults, writeResults)
         configuration.apply(\.$skipStdoutResults, skipStdoutResults)
         configuration.apply(\.$genericProjectConfig, genericProjectConfig)
@@ -357,13 +365,16 @@ struct ScanCommand: ParsableCommand {
         let results = scanOutput.results
         let interval = logger.beginInterval("result:output")
 
-        let filteredResults = try OutputDeclarationFilter(configuration: configuration, logger: logger).filter(results, with: baseline)
+        let outputFilter = OutputDeclarationFilter(configuration: configuration, logger: logger)
+        let filteredResults = try outputFilter.filter(results, with: baseline)
+
+        if configuration.pruneBaseline, let baselinePath = configuration.baseline {
+            try Self.writeBaseline(.pruned(keeping: outputFilter.baselineMatchedResults, projectRoot: configuration.projectRoot), to: baselinePath)
+            logger.info("Pruned \(outputFilter.staleBaselineEntries.count) stale entries from \(baselinePath.string)")
+        }
 
         if let baselinePath = configuration.writeBaseline {
-            let usrs = filteredResults
-                .flatMapSet { $0.usrs }
-                .union(baseline?.usrs ?? [])
-            try Self.writeBaseline(.v1(usrs: usrs.sorted()), to: baselinePath)
+            try Self.writeBaseline(.written(from: filteredResults, union: baseline, projectRoot: configuration.projectRoot), to: baselinePath)
         }
 
         let outputFormat = configuration.outputFormat
@@ -399,10 +410,22 @@ struct ScanCommand: ParsableCommand {
         if !filteredResults.isEmpty, configuration.strict {
             throw PeripheryError.foundIssues(count: filteredResults.count)
         }
+
+        if let failure = Self.staleBaselineFailure(configuration: configuration, staleEntryCount: outputFilter.staleBaselineEntries.count) {
+            throw failure
+        }
+    }
+
+    /// The error that ends the scan with a non-zero status when `--strict-baseline` finds stale entries, which
+    /// `--prune-baseline` has just removed.
+    static func staleBaselineFailure(configuration: Configuration, staleEntryCount: Int) -> PeripheryError? {
+        guard configuration.strictBaseline, !configuration.pruneBaseline, staleEntryCount > 0 else { return nil }
+
+        return .staleBaselineEntries(count: staleEntryCount)
     }
 
     static func writeBaseline(_ baseline: Baseline, to path: FilePath) throws {
-        try JSONEncoder().encode(baseline).write(to: path.url, options: .atomic)
+        try baseline.write(to: path)
     }
 
     // MARK: - Private
