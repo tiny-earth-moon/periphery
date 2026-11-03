@@ -184,5 +184,10 @@ public struct ContextualLogger: Sendable {
     }
 #endif
 
-private var standardOutput: UnsafeMutablePointer<FILE> { periphery_stdout()! }
-private var standardError: UnsafeMutablePointer<FILE> { periphery_stderr()! }
+private var standardOutput: UnsafeMutablePointer<FILE> {
+    periphery_stdout()!
+}
+
+private var standardError: UnsafeMutablePointer<FILE> {
+    periphery_stderr()!
+}
