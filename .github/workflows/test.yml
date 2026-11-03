@@ -60,7 +60,7 @@ jobs:
         run: swift test
       # Swift 6.4 builds with the swiftbuild backend, whose index store is `.build/out`: outskirts finds it itself.
       - name: Self-scan
-        # Advisory until the baseline is regenerated on Linux (#219): a stale baseline fails here without failing the job.
+        # Advisory until baselines/linux.json is regenerated on Linux (#281): a stale baseline fails here without failing the job.
         continue-on-error: true
         run: .build/debug/outskirts scan --skip-build --baseline baselines/linux.json --strict --disable-update-check
   linux-minimum:
