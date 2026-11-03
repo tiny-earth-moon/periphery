@@ -2186,13 +2186,18 @@ final class RetentionTest: FixtureSourceGraphTestCase {
     // MARK: - Comment Commands
 
     func testOutskirtsIgnoreComments() {
-        analyze(retainPublic: false) {
+        analyze(retainPublic: true) {
             assertReferenced(.class("FixtureOutskirtsIgnoredClass"))
             assertReferenced(.class("FixtureOutskirtsParametersClass")) {
                 self.assertReferenced(.functionMethodInstance("someFunc(a:b:)")) {
                     self.assertReferenced(.varParameter("b"))
                 }
             }
+        }
+    }
+
+    func testOutskirtsIgnoreAllComment() {
+        analyze(retainPublic: false) {
             assertReferenced(.class("FixtureOutskirtsIgnoredAllClass")) {
                 self.assertReferenced(.functionMethodInstance("unusedMethod()"))
             }
