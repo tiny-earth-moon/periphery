@@ -140,7 +140,8 @@ struct JSONSchemaValidator {
 
             return CFGetTypeID(number) == CFBooleanGetTypeID()
         #else
-            return value is Bool
+            // `NSNumber` bridges to `Bool` for 0 and 1 on Linux, so only the exact dynamic type counts.
+            return type(of: value) == Bool.self
         #endif
     }
 
