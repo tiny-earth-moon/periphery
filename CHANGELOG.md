@@ -12,6 +12,21 @@
 
 - None.
 
+## 3.14.1 (2026-11-03)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- The Code Climate output now carries the `type`, `check_name` and `categories` fields required by the Code Climate engine specification. [#221](https://github.com/tiny-earth-moon/periphery/issues/221)
+
+##### Bug Fixes
+
+- Fixed a data race on the error propagated by concurrent indexing jobs (`JobPool`) and on the update checker state; the first error is now kept behind a `Mutex`. The mutable statics shared across threads are gone and Logger, Extensions, Shared and Configuration build in the Swift 6 language mode. [#181](https://github.com/tiny-earth-moon/periphery/issues/181)
+- The parser now uses swift-syntax 604, matching the Swift 6.4 toolchain of CI, the Homebrew bottle and current Xcode. [#186](https://github.com/tiny-earth-moon/periphery/issues/186)
+
 ## 3.14.0 (2026-11-02)
 
 ##### Breaking
