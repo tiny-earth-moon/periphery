@@ -144,6 +144,7 @@ var targets: [PackageDescription.Target] = [
     .testTarget(
         name: "FrontendTests",
         dependencies: [
+            .target(name: "TestShared"),
             .target(name: "Frontend"),
             .target(name: "Configuration"),
             .target(name: "PeripheryKit"),

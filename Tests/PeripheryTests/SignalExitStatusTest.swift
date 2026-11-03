@@ -1,5 +1,6 @@
 import Foundation
 @testable import Shared
+@testable import TestShared
 import XCTest
 
 /// Launches the `periphery` executable on a project whose build never finishes, signals it, and checks how it exits.
@@ -129,17 +130,7 @@ final class SignalExitStatusTest: XCTestCase {
     }
 
     private func peripheryExecutable() throws -> URL {
-        #if os(macOS)
-            let products = Bundle(for: Self.self).bundleURL.deletingLastPathComponent()
-        #else
-            let products = Bundle.main.bundleURL.deletingLastPathComponent()
-        #endif
-        let url = products.appendingPathComponent("periphery")
-        guard FileManager.default.isExecutableFile(atPath: url.path) else {
-            throw CocoaError(.fileNoSuchFile, userInfo: [NSFilePathErrorKey: url.path, NSLocalizedDescriptionKey: "Build the 'periphery' product before running this test"])
-        }
-
-        return url
+        try locatePeripheryExecutable(near: Self.self)
     }
 
     private func log() -> String {
