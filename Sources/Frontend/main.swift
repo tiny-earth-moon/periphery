@@ -12,9 +12,9 @@ if (info.st_mode & S_IFMT) == S_IFIFO {
     setlinebuf(periphery_stderr())
 }
 
-struct PeripheryCommand: ParsableCommand {
+struct OutskirtsCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "periphery",
+        commandName: "outskirts",
         subcommands: [
             ScanCommand.self,
             CheckUpdateCommand.self,
@@ -25,8 +25,8 @@ struct PeripheryCommand: ParsableCommand {
 }
 
 do {
-    var command = try PeripheryCommand.parseAsRoot()
+    var command = try OutskirtsCommand.parseAsRoot()
     try command.run()
 } catch {
-    PeripheryCommand.exit(withError: error)
+    OutskirtsCommand.exit(withError: error)
 }
