@@ -1,7 +1,7 @@
 import Foundation
 
 public final class Declaration {
-    public enum Kind: String, RawRepresentable, CaseIterable {
+    public enum Kind: String, RawRepresentable, CaseIterable, Sendable {
         case `associatedtype`
         case `class`
         case `enum`
