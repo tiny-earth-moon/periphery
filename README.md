@@ -7,14 +7,6 @@
 
 <p align="center">Find unused code at the outskirts of your Swift project. A community-maintained fork of Periphery 3.x.</p>
 
-<p align="center">
-<a href="https://github.com/tiny-earth-moon/outskirts/releases/latest">
-<img src="https://img.shields.io/github/release/tiny-earth-moon/outskirts.svg?color=008DFF"/></a>
-<img src="https://img.shields.io/badge/platform-macOS%20|%20Linux-008DFF">
-<br>
-<br>
-</p>
-
 > [!NOTE]
 >
 > outskirts is the new name, since 3.16.0 (2026-11), of the community-maintained successor of [peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived in August 2026. It continues the open-source 3.x line with bug fixes, support for current Xcode/Swift toolchains and new features. Nothing breaks: see [Migrating from Periphery](#migrating-from-periphery).
