@@ -27,7 +27,7 @@ report_exclude:
 # Alternative, with a stable result list: keep the default output and filter JSON.
 # Remove the report_exclude block above, then:
 #
-#   periphery scan --config examples/types-only.periphery.yml --format json --quiet \
+#   outskirts scan --config examples/types-only.outskirts.yml --format json --quiet \
 #     | jq '[.[] | select(.kind | test("^(class|struct|enum|protocol|typealias)"))]'
 #
 # `kind` holds the declaration kind (class, struct, enum, protocol, typealias,

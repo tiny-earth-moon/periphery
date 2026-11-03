@@ -1,5 +1,5 @@
 # Scenario: framework or library whose public API is consumed by other code.
-# Run: periphery scan --config examples/library-public-api.periphery.yml
+# Run: outskirts scan --config examples/library-public-api.outskirts.yml
 # Expected: public declarations are never reported; internal and private code
 # unused inside the library still is. Declarations exposed to Objective-C or carrying
 # the listed attributes are kept, and so are unused parameters that have no default

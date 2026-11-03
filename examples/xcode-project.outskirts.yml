@@ -1,5 +1,5 @@
 # Scenario: minimal configuration for an Xcode project (app or app + frameworks).
-# Run from the project root: periphery scan --config examples/xcode-project.periphery.yml
+# Run from the project root: outskirts scan --config examples/xcode-project.outskirts.yml
 # Expected: declarations unused by any scanned scheme are reported in the Xcode
 # format (warnings, clickable in a build log). Test targets are not indexed, so
 # code only used by tests is reported as unused.

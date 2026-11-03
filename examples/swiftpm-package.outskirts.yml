@@ -1,7 +1,7 @@
-# Scenario: Swift package (no `project`, no `schemes`: Periphery builds every target).
-# Run from the package root: periphery scan --config examples/swiftpm-package.periphery.yml
+# Scenario: Swift package (no `project`, no `schemes`: outskirts builds every target).
+# Run from the package root: outskirts scan --config examples/swiftpm-package.outskirts.yml
 # Expected: an executable package reports everything not reachable from its
-# entry points; for a library package, see library-public-api.periphery.yml.
+# entry points; for a library package, see library-public-api.outskirts.yml.
 # Arguments after `--` on the command line, or build_arguments here, go to `swift build`.
 build_arguments:
   - -c

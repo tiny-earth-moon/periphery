@@ -1,7 +1,7 @@
 name: Bottle
-# Builds an arm64 Homebrew bottle so that `brew install` pours periphery in seconds instead of
+# Builds an arm64 Homebrew bottle so that `brew install` pours outskirts in seconds instead of
 # building it from source; building from source stays the fallback. Homebrew itself builds the
-# bottle: a temporary local tap holds a formula equivalent to Formula/periphery.rb of
+# bottle: a temporary local tap holds a formula equivalent to Formula/outskirts.rb of
 # tiny-earth-moon/homebrew-tap (scripts/bottle-formula.sh), installed with --build-bottle, then
 # `brew bottle`. The job pours the bottle back and runs it, including as on a machine without
 # the runner's Xcode path.
@@ -10,7 +10,7 @@ name: Bottle
 # downloads them, attaches the bottle to the GitHub release and pastes the block printed by
 # scripts/bottle-block.sh (also in the job summary) into the tap formula.
 #
-# libIndexStore.dylib: periphery links @rpath/libIndexStore.dylib and swift-index-store only
+# libIndexStore.dylib: outskirts links @rpath/libIndexStore.dylib and swift-index-store only
 # puts the building Xcode in the rpath (/Applications/Xcode_27.2.app here). A bottle build adds
 # rpaths to /Applications/Xcode.app, then to the Command Line Tools, at link time; a user with
 # neither installs with `brew install --build-from-source`. Apple's dylib is never bundled.
@@ -37,7 +37,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ inputs.tag || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 env:
-  BOTTLE_TAP: periphery-ci/local
+  BOTTLE_TAP: outskirts-ci/local
   XCODE_LIB: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib
   HOMEBREW_NO_AUTO_UPDATE: "1"
   HOMEBREW_NO_INSTALL_CLEANUP: "1"
@@ -89,18 +89,18 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          tarball="$RUNNER_TEMP/periphery-$VERSION.tar.gz"
-          git archive --format=tar.gz --prefix="periphery-$VERSION/" --output="$tarball" HEAD
+          tarball="$RUNNER_TEMP/outskirts-$VERSION.tar.gz"
+          git archive --format=tar.gz --prefix="outskirts-$VERSION/" --output="$tarball" HEAD
           sha256=$(shasum -a 256 "$tarball" | cut -d ' ' -f 1)
           brew tap-new --no-git "$BOTTLE_TAP"
-          formula="$(brew --repository "$BOTTLE_TAP")/Formula/periphery.rb"
+          formula="$(brew --repository "$BOTTLE_TAP")/Formula/outskirts.rb"
           scripts/bottle-formula.sh "$VERSION" "file://$tarball" "$sha256" > "$formula"
           cat "$formula"
       - name: Build with Homebrew
-        run: brew install --build-bottle --verbose "$BOTTLE_TAP/periphery"
+        run: brew install --build-bottle --verbose "$BOTTLE_TAP/outskirts"
       - name: Check the rpaths
         run: |
-          binary="$(brew --prefix "$BOTTLE_TAP/periphery")/bin/periphery"
+          binary="$(brew --prefix "$BOTTLE_TAP/outskirts")/bin/outskirts"
           otool -L "$binary"
           # Read the whole output first: under pipefail, `grep -q` closing the pipe early could fail otool.
           load_commands=$(otool -l "$binary")
@@ -118,9 +118,9 @@ jobs:
           cd "$RUNNER_TEMP/bottle"
           brew bottle --json --no-rebuild \
             --root-url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$VERSION" \
-            "$BOTTLE_TAP/periphery"
+            "$BOTTLE_TAP/outskirts"
           shopt -s nullglob
-          jsons=(periphery--*.bottle.json)
+          jsons=(outskirts--*.bottle.json)
           if [[ ${#jsons[@]} -ne 1 ]]; then
             echo "::error::Expected one bottle JSON, found ${#jsons[@]}"
             exit 1
@@ -143,16 +143,16 @@ jobs:
           # Developer mode enforces tap trust. Installing a bottle file needs the whole tap trusted:
           # trusting only the formula still fails with "Refusing to load formula ... from untrusted tap".
           brew trust --tap "$BOTTLE_TAP"
-          brew uninstall --formula "$BOTTLE_TAP/periphery"
+          brew uninstall --formula "$BOTTLE_TAP/outskirts"
           brew install "$RUNNER_TEMP/bottle/$LOCAL_FILENAME"
       - name: Test the poured bottle
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          brew test "$BOTTLE_TAP/periphery"
-          keg="$(brew --cellar "$BOTTLE_TAP/periphery")/$VERSION"
+          brew test "$BOTTLE_TAP/outskirts"
+          keg="$(brew --cellar "$BOTTLE_TAP/outskirts")/$VERSION"
           cd "$RUNNER_TEMP"
-          for binary in "$keg/bin/periphery" "$(brew --prefix)/bin/periphery"; do
+          for binary in "$keg/bin/outskirts" "$keg/bin/outskirts" "$(brew --prefix)/bin/outskirts" "$(brew --prefix)/bin/outskirts"; do
             output=$("$binary" version)
             echo "$binary version: $output"
             if [[ $output != "$VERSION" ]]; then
@@ -173,8 +173,8 @@ jobs:
           ls -ld /Applications/Xcode.app
           user_dir="$RUNNER_TEMP/user-machine"
           mkdir "$user_dir"
-          binary="$user_dir/periphery"
-          cp "$(brew --cellar "$BOTTLE_TAP/periphery")/$VERSION/bin/periphery" "$binary"
+          binary="$user_dir/outskirts"
+          cp "$(brew --cellar "$BOTTLE_TAP/outskirts")/$VERSION/bin/outskirts" "$binary"
           chmod u+w "$binary"
           rpaths=$(otool -l "$binary" | awk '$1 == "cmd" && $2 == "LC_RPATH" { getline; getline; print $2 }')
           while read -r rpath; do
@@ -186,7 +186,7 @@ jobs:
           codesign --force --sign - "$binary"
           otool -l "$binary" | grep -A2 LC_RPATH
           cd "$user_dir"
-          output=$(DYLD_PRINT_LIBRARIES=1 ./periphery version 2> dyld.log)
+          output=$(DYLD_PRINT_LIBRARIES=1 ./outskirts version 2> dyld.log)
           grep libIndexStore dyld.log
           resolved_lib=$(cd "$XCODE_LIB" && pwd -P)
           if ! grep -Fq -e "$XCODE_LIB/libIndexStore.dylib" -e "$resolved_lib/libIndexStore.dylib" dyld.log; then
@@ -194,7 +194,7 @@ jobs:
             exit 1
           fi
           if [[ $output != "$VERSION" ]]; then
-            echo "::error::periphery version printed '$output', expected $VERSION"
+            echo "::error::outskirts version printed '$output', expected $VERSION"
             exit 1
           fi
       - name: Run the bottle with only the Command Line Tools
@@ -210,8 +210,8 @@ jobs:
           fi
           clt_dir="$RUNNER_TEMP/clt-only"
           mkdir "$clt_dir"
-          binary="$clt_dir/periphery"
-          cp "$(brew --cellar "$BOTTLE_TAP/periphery")/$VERSION/bin/periphery" "$binary"
+          binary="$clt_dir/outskirts"
+          cp "$(brew --cellar "$BOTTLE_TAP/outskirts")/$VERSION/bin/outskirts" "$binary"
           chmod u+w "$binary"
           rpaths=$(otool -l "$binary" | awk '$1 == "cmd" && $2 == "LC_RPATH" { getline; getline; print $2 }')
           while read -r rpath; do
@@ -222,14 +222,14 @@ jobs:
           codesign --force --sign - "$binary"
           otool -l "$binary" | grep -A2 LC_RPATH
           cd "$clt_dir"
-          output=$(DYLD_PRINT_LIBRARIES=1 ./periphery version 2> dyld.log)
+          output=$(DYLD_PRINT_LIBRARIES=1 ./outskirts version 2> dyld.log)
           grep libIndexStore dyld.log
           if ! grep -Fq "$CLT_LIB/libIndexStore.dylib" dyld.log; then
             echo "::error::libIndexStore.dylib was not loaded from $CLT_LIB"
             exit 1
           fi
           if [[ $output != "$VERSION" ]]; then
-            echo "::error::periphery version printed '$output', expected $VERSION"
+            echo "::error::outskirts version printed '$output', expected $VERSION"
             exit 1
           fi
       - name: Name the bottle for the release
@@ -253,7 +253,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: periphery-bottle-${{ steps.version.outputs.version }}
+          name: outskirts-bottle-${{ steps.version.outputs.version }}
           path: |
             ${{ runner.temp }}/bottle/*.bottle.tar.gz
             ${{ runner.temp }}/bottle/*.bottle.json

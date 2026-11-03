@@ -3,9 +3,9 @@
 
 set -eo pipefail
 
-SWIFT_BUILD_FLAGS="--product periphery --configuration release -Xswiftc -cross-module-optimization --disable-sandbox --scratch-path .build"
-EXECUTABLE_X86_64="$(swift build ${SWIFT_BUILD_FLAGS} --arch x86_64 --show-bin-path)/periphery"
-EXECUTABLE_ARM64="$(swift build ${SWIFT_BUILD_FLAGS} --arch arm64 --show-bin-path)/periphery"
+SWIFT_BUILD_FLAGS="--product outskirts --configuration release -Xswiftc -cross-module-optimization --disable-sandbox --scratch-path .build"
+EXECUTABLE_X86_64="$(swift build ${SWIFT_BUILD_FLAGS} --arch x86_64 --show-bin-path)/outskirts"
+EXECUTABLE_ARM64="$(swift build ${SWIFT_BUILD_FLAGS} --arch arm64 --show-bin-path)/outskirts"
 
 build_x86_64() {
     swift build ${SWIFT_BUILD_FLAGS} --arch x86_64
@@ -28,9 +28,9 @@ elif [ "$usage_arch" = "release" ]; then
     build_x86_64
     build_arm64
     mkdir -p .release
-	lipo -create -output .release/periphery ${EXECUTABLE_X86_64} ${EXECUTABLE_ARM64}
-	strip -rSTX .release/periphery
-    echo "$(realpath .release/periphery)"
+	lipo -create -output .release/outskirts ${EXECUTABLE_X86_64} ${EXECUTABLE_ARM64}
+	strip -rSTX .release/outskirts
+    echo "$(realpath .release/outskirts)"
 else
     echo "Invalid architecture. Use --arch <arch> where <arch> is x86_64, arm64 or release"
     exit 1

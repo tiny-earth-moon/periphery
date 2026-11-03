@@ -1,12 +1,12 @@
 {
     "schemaVersion": "1.0",
     "artifacts": {
-        "periphery": {
+        "outskirts": {
             "version": "__VERSION__",
             "type": "executable",
             "variants": [
                 {
-                    "path": "periphery-__VERSION__-macos/bin/periphery",
+                    "path": "outskirts-__VERSION__-macos/bin/outskirts",
                     "supportedTriples": ["x86_64-apple-macosx", "arm64-apple-macosx"]
                 }
             ]
