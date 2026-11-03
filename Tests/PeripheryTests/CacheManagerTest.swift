@@ -53,6 +53,7 @@ final class CacheManagerTest: XCTestCase {
     }
 
     func testClearCache_listsEntryThatCannotBeRemoved() throws {
+        try XCTSkipIf(getuid() == 0, "root can remove a directory without write permission")
         let locked = try makeDerivedData("DerivedData-locked", ageDays: 1)
         let removable = try makeDerivedData("DerivedData-ok", ageDays: 1)
         // A directory without write permission prevents removing its children.
