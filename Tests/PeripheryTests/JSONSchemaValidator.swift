@@ -132,14 +132,20 @@ struct JSONSchemaValidator {
         return node as? [String: Any]
     }
 
+    /// JSONSerialization decodes booleans as `NSNumber` on Darwin, where `as? Bool` also accepts 0 and 1, and as
+    /// `Bool` on Linux.
     private func isBoolean(_ value: Any) -> Bool {
-        guard let number = value as? NSNumber else { return false }
+        #if canImport(Darwin)
+            guard let number = value as? NSNumber else { return false }
 
-        return CFGetTypeID(number) == CFBooleanGetTypeID()
+            return CFGetTypeID(number) == CFBooleanGetTypeID()
+        #else
+            return value is Bool
+        #endif
     }
 
     private func isNumber(_ value: Any) -> Bool {
-        value is NSNumber && !isBoolean(value)
+        (value is NSNumber || value is Int || value is Double) && !isBoolean(value)
     }
 
     private func matches(_ value: Any, type: Any) -> Bool {
