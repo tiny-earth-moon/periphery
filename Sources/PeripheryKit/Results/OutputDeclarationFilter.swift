@@ -9,6 +9,9 @@ public final class OutputDeclarationFilter {
     private let logger: Logger
     private let contextualLogger: ContextualLogger
 
+    /// The baseline entries that no result matched in the last call to ``filter(_:with:)``, sorted.
+    public private(set) var staleBaselineEntries: [String] = []
+
     public required init(configuration: Configuration, logger: Logger) {
         self.configuration = configuration
         self.logger = logger
@@ -22,17 +25,30 @@ public final class OutputDeclarationFilter {
             let matcher = BaselineMatcher(baseline, projectRoot: configuration.projectRoot)
             var didFilterDeclaration = false
             var didMatchLegacyId = false
+            var matchedEntries: Set<String> = []
 
             declarations = declarations.filter {
                 guard let match = matcher.match($0) else { return true }
 
                 didFilterDeclaration = true
+                matchedEntries.formUnion(matcher.entries(matchedBy: $0))
                 didMatchLegacyId = didMatchLegacyId || match == .legacy
                 return false
             }
 
             if !didFilterDeclaration {
                 logger.warn("No results were filtered by the baseline.")
+            }
+
+            staleBaselineEntries = matcher.staleEntries(given: matchedEntries)
+
+            if !staleBaselineEntries.isEmpty {
+                let count = staleBaselineEntries.count
+                logger.info(count == 1 ? "1 baseline entry no longer matches any result" : "\(count) baseline entries no longer match any result", canQuiet: false)
+
+                for entry in staleBaselineEntries {
+                    logger.debug("Stale baseline entry: \(entry)")
+                }
             }
 
             if didMatchLegacyId {

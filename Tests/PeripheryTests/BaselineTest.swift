@@ -108,19 +108,25 @@ final class BaselineTest: XCTestCase {
     }
 
     private func captureStandardError(_ body: () throws -> Void) throws -> String {
+        try capture(STDERR_FILENO, body)
+    }
+
+    private func capture(_ descriptor: Int32, _ body: () throws -> Void) throws -> String {
         let pipe = Pipe()
-        let original = dup(STDERR_FILENO)
+        let original = dup(descriptor)
         fflush(stderr)
-        dup2(pipe.fileHandleForWriting.fileDescriptor, STDERR_FILENO)
+        fflush(stdout)
+        dup2(pipe.fileHandleForWriting.fileDescriptor, descriptor)
 
         defer {
-            dup2(original, STDERR_FILENO)
+            dup2(original, descriptor)
             close(original)
         }
 
         try body()
         fflush(stderr)
-        dup2(original, STDERR_FILENO)
+        fflush(stdout)
+        dup2(original, descriptor)
         pipe.fileHandleForWriting.closeFile()
         return try XCTUnwrap(String(bytes: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8))
     }
@@ -286,5 +292,70 @@ final class BaselineTest: XCTestCase {
         }
 
         XCTAssertFalse(output.contains("--write-baseline"), output)
+    }
+
+    // MARK: - Stale entries
+
+    func testStaleEntries_areCountedAndLogged() throws {
+        let baseline = Baseline.v1(usrs: [importId, "s:3Lib10unusedFuncyyF", "s:3Lib7movedFuncyyF"])
+        let logger = Logger(quiet: false, verbose: false, colorMode: .never)
+        let filter = OutputDeclarationFilter(configuration: configuration(root: rootA), logger: logger)
+        var remaining: [ScanResult] = []
+
+        let output = try capture(STDOUT_FILENO) {
+            remaining = try filter.filter(scanLib(root: rootA, extensionLines: []), with: baseline)
+        }
+
+        XCTAssertEqual(remaining.count, 0)
+        XCTAssertEqual(filter.staleBaselineEntries, ["s:3Lib10unusedFuncyyF", "s:3Lib7movedFuncyyF"])
+        XCTAssertTrue(output.contains("2 baseline entries no longer match any result"), output)
+        XCTAssertFalse(output.contains("s:3Lib10unusedFuncyyF"), "The entries are only listed with --verbose")
+    }
+
+    func testStaleEntries_areListedWithVerbose() throws {
+        let baseline = Baseline.v1(usrs: [importId, "s:3Lib10unusedFuncyyF"])
+        let logger = Logger(quiet: false, verbose: true, colorMode: .never)
+
+        let output = try capture(STDOUT_FILENO) {
+            _ = try filter(scanLib(root: rootA, extensionLines: []), with: baseline, root: rootA, logger: logger)
+        }
+
+        XCTAssertTrue(output.contains("1 baseline entry no longer matches any result"), output)
+        XCTAssertTrue(output.contains("s:3Lib10unusedFuncyyF"), output)
+    }
+
+    func testNoStaleEntries_logsNothing() throws {
+        let baseline = try writeBaseline(from: scanLib(root: rootA))
+        let logger = Logger(quiet: false, verbose: true, colorMode: .never)
+        let filter = OutputDeclarationFilter(configuration: configuration(root: rootA), logger: logger)
+
+        let output = try capture(STDOUT_FILENO) {
+            _ = try filter.filter(scanLib(root: rootA), with: baseline)
+        }
+
+        XCTAssertTrue(filter.staleBaselineEntries.isEmpty)
+        XCTAssertFalse(output.contains("no longer match"), output)
+    }
+
+    func testEntryOfAnExcludedFile_isNotStale() throws {
+        let baseline = try writeBaseline(from: scanLib(root: rootA))
+        let configuration = configuration(root: rootA)
+        configuration.reportExclude = [.pattern("**/Lib.swift")]
+        configuration.buildFilenameMatchers()
+        let filter = OutputDeclarationFilter(configuration: configuration, logger: quietLogger)
+
+        let remaining = try filter.filter(scanLib(root: rootA), with: baseline)
+
+        XCTAssertTrue(remaining.isEmpty)
+        XCTAssertTrue(filter.staleBaselineEntries.isEmpty)
+    }
+
+    func testStaleLegacyEntries_areNotCountedWhenTheyMatch() throws {
+        let baseline = Baseline.v1(usrs: ["import-Util-Sources/Lib/Lib.swift:2:1", "empty-extension-Used-Sources/Lib/Lib.swift:13:11"])
+        let filter = OutputDeclarationFilter(configuration: configuration(root: rootA), logger: quietLogger)
+
+        _ = try filter.filter(scanLib(root: rootA), with: baseline)
+
+        XCTAssertTrue(filter.staleBaselineEntries.isEmpty)
     }
 }

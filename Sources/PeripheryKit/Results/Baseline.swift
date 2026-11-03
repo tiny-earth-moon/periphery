@@ -75,6 +75,30 @@ struct BaselineMatcher {
         return nil
     }
 
+    /// The entries of the baseline that a matched result accounts for.
+    func entries(matchedBy result: ScanResult) -> Set<String> {
+        var matched = result.usrs.union(result.legacyUsrs(projectRoot: projectRoot)).intersection(usrs)
+
+        if !legacyCatalogSuffixes.isEmpty, result.declaration.kind == .localizedString {
+            let absoluteCatalogPrefix = SyntheticUsr.localizedStringPrefix + "/"
+
+            for usr in result.usrs where usr.hasPrefix(SyntheticUsr.localizedStringPrefix) {
+                let suffix = "/" + usr.dropFirst(SyntheticUsr.localizedStringPrefix.count)
+
+                for entry in usrs where entry.hasPrefix(absoluteCatalogPrefix) && entry.hasSuffix(suffix) {
+                    matched.insert(entry)
+                }
+            }
+        }
+
+        return matched
+    }
+
+    /// The entries of the baseline that no result matches.
+    func staleEntries(given matchedEntries: Set<String>) -> [String] {
+        usrs.subtracting(matchedEntries).sorted()
+    }
+
     // MARK: - Private
 
     private func matchesLegacyCatalogEntry(_ result: ScanResult) -> Bool {
