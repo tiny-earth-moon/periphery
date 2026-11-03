@@ -161,9 +161,14 @@ struct JSONSchemaValidator {
         case "null": return value is NSNull
         case "number": return isNumber(value)
         case "integer":
-            guard isNumber(value), let number = value as? NSNumber else { return false }
+            guard isNumber(value) else { return false }
 
-            return number.doubleValue == number.doubleValue.rounded()
+            if value is Int {
+                return true
+            }
+
+            let double = (value as? NSNumber)?.doubleValue ?? value as? Double
+            return double.map { $0 == $0.rounded() } ?? false
         default: return true
         }
     }
