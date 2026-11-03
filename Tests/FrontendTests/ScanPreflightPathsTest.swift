@@ -32,13 +32,15 @@ final class ScanPreflightPathsTest: XCTestCase {
         baseline: FilePath? = nil,
         writeBaseline: FilePath? = nil,
         writeResults: FilePath? = nil,
-        pruneBaseline: Bool = false
+        pruneBaseline: Bool = false,
+        strictBaseline: Bool = false
     ) -> Configuration {
         let configuration = Configuration()
         configuration.baseline = baseline
         configuration.writeBaseline = writeBaseline
         configuration.writeResults = writeResults
         configuration.pruneBaseline = pruneBaseline
+        configuration.strictBaseline = strictBaseline
         return configuration
     }
 
@@ -75,6 +77,19 @@ final class ScanPreflightPathsTest: XCTestCase {
             message(of: configuration(baseline: path, writeBaseline: directory.appending("out.json"), pruneBaseline: true)),
             "The '--prune-baseline' option rewrites the file given to '--baseline', it cannot be combined with '--write-baseline'."
         )
+    }
+
+    func testStrictBaseline_withoutBaseline_isRejected() {
+        XCTAssertEqual(
+            message(of: configuration(strictBaseline: true)),
+            "The '--strict-baseline' option requires '--baseline', the file to check."
+        )
+    }
+
+    func testStrictBaseline_withBaseline_isAccepted() throws {
+        let path = try write(#"{"v1":{"usrs":[]}}"#, to: "baseline.json")
+
+        XCTAssertNotNil(try ScanPreflight.validatePaths(of: configuration(baseline: path, strictBaseline: true)))
     }
 
     func testPruneBaseline_withBaseline_isAccepted() throws {
@@ -258,5 +273,41 @@ final class ScanPreflightPathsTest: XCTestCase {
                 "--write-results: directory 'nodir' does not exist"
             )
         }
+    }
+
+    // MARK: - Strict baseline
+
+    private func staleBaselineFailure(strict: Bool, prune: Bool = false, stale: Int) -> PeripheryError? {
+        ScanCommand.staleBaselineFailure(
+            configuration: configuration(pruneBaseline: prune, strictBaseline: strict),
+            staleEntryCount: stale
+        )
+    }
+
+    func testStrictBaseline_withStaleEntries_fails() {
+        guard case let .staleBaselineEntries(count)? = staleBaselineFailure(strict: true, stale: 3) else {
+            return XCTFail("Expected the stale entries to fail the scan")
+        }
+
+        XCTAssertEqual(count, 3)
+    }
+
+    func testStrictBaseline_withoutStaleEntries_passes() {
+        XCTAssertNil(staleBaselineFailure(strict: true, stale: 0))
+    }
+
+    func testStaleEntries_withoutStrictBaseline_pass() {
+        XCTAssertNil(staleBaselineFailure(strict: false, stale: 3))
+    }
+
+    func testStrictBaseline_withPrune_passesAsTheEntriesAreRemoved() {
+        XCTAssertNil(staleBaselineFailure(strict: true, prune: true, stale: 3))
+    }
+
+    func testStrictBaselineFailure_messageNamesTheRemedy() {
+        XCTAssertEqual(
+            PeripheryError.staleBaselineEntries(count: 1).errorDescription,
+            "Found 1 stale baseline entry, run with '--prune-baseline' to remove it."
+        )
     }
 }

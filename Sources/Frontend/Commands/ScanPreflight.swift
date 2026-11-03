@@ -36,6 +36,10 @@ enum ScanPreflight {
     // MARK: - Private
 
     private static func validateBaselineOptions(of configuration: Configuration) throws {
+        if configuration.strictBaseline, configuration.baseline == nil {
+            throw PeripheryError.usageError("The '--strict-baseline' option requires '--baseline', the file to check.")
+        }
+
         if configuration.pruneBaseline {
             guard configuration.baseline != nil else {
                 throw PeripheryError.usageError("The '--prune-baseline' option requires '--baseline', the file to prune.")

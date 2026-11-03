@@ -191,6 +191,13 @@ final class CommandLinePrecedenceTest: XCTestCase {
         XCTAssertFalse(try merge([], file: nil).pruneBaseline)
     }
 
+    func testStrictBaseline_commandLineOverridesTheFile() throws {
+        XCTAssertTrue(try merge(["--strict-baseline"], file: "strict_baseline: false").strictBaseline)
+        XCTAssertFalse(try merge(["--no-strict-baseline"], file: "strict_baseline: true").strictBaseline)
+        XCTAssertTrue(try merge([], file: "strict_baseline: true").strictBaseline)
+        XCTAssertFalse(try merge([], file: nil).strictBaseline)
+    }
+
     func testWithoutAFileTheCommandLineAndTheDefaultsApply() throws {
         let configuration = try merge(["--strict", "--format", "json"], file: nil)
 

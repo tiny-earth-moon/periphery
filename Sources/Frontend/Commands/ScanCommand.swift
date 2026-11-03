@@ -202,6 +202,9 @@ struct ScanCommand: ParsableCommand {
     @Flag(inversion: .prefixedNo, help: "Rewrite the file given to '--baseline' keeping only the entries that still match a result. Requires '--baseline'")
     var pruneBaseline: Bool?
 
+    @Flag(inversion: .prefixedNo, help: "Exit with non-zero status (1, like '--strict') if the baseline holds entries that no longer match any result. Requires '--baseline'. Not applied when '--prune-baseline' removes the entries")
+    var strictBaseline: Bool?
+
     @Option(help: "File path where formatted results are written.")
     var writeResults: FilePath?
 
@@ -293,6 +296,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$baseline, baseline)
         configuration.apply(\.$writeBaseline, writeBaseline)
         configuration.apply(\.$pruneBaseline, pruneBaseline)
+        configuration.apply(\.$strictBaseline, strictBaseline)
         configuration.apply(\.$writeResults, writeResults)
         configuration.apply(\.$skipStdoutResults, skipStdoutResults)
         configuration.apply(\.$genericProjectConfig, genericProjectConfig)
@@ -405,6 +409,18 @@ struct ScanCommand: ParsableCommand {
         if !filteredResults.isEmpty, configuration.strict {
             throw PeripheryError.foundIssues(count: filteredResults.count)
         }
+
+        if let failure = Self.staleBaselineFailure(configuration: configuration, staleEntryCount: outputFilter.staleBaselineEntries.count) {
+            throw failure
+        }
+    }
+
+    /// The error that ends the scan with a non-zero status when `--strict-baseline` finds stale entries, which
+    /// `--prune-baseline` has just removed.
+    static func staleBaselineFailure(configuration: Configuration, staleEntryCount: Int) -> PeripheryError? {
+        guard configuration.strictBaseline, !configuration.pruneBaseline, staleEntryCount > 0 else { return nil }
+
+        return .staleBaselineEntries(count: staleEntryCount)
     }
 
     static func writeBaseline(_ baseline: Baseline, to path: FilePath) throws {
