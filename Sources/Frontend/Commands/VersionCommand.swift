@@ -1,5 +1,6 @@
 import ArgumentParser
 import Foundation
+import Shared
 
 struct VersionCommand: ParsableCommand {
     static let configuration = CommandConfiguration(

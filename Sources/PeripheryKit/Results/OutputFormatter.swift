@@ -42,7 +42,7 @@ extension OutputFormatter {
 
     /// Serializes with sorted keys, as dictionaries are hashed per process and would otherwise change the key order
     /// of every object from one run to the next.
-    func serializeJSON(_ object: [Any]) throws -> String? {
+    func serializeJSON(_ object: Any) throws -> String? {
         let data = try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
         return String(bytes: data, encoding: .utf8)
     }
@@ -226,6 +226,8 @@ public extension OutputFormat {
             GitHubMarkdownFormatter.self
         case .gitlabCodeQuality:
             GitLabCodeQualityFormatter.self
+        case .sarif:
+            SarifFormatter.self
         }
     }
 }

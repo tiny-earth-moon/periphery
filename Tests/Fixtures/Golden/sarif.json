@@ -1,0 +1,334 @@
+{
+  "$schema" : "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs" : [
+    {
+      "originalUriBaseIds" : {
+        "%SRCROOT%" : {
+          "uri" : "file:///ROOT/"
+        }
+      },
+      "results" : [
+        {
+          "level" : "warning",
+          "locations" : [
+            {
+              "physicalLocation" : {
+                "artifactLocation" : {
+                  "uri" : "Sources/My%20Lib/Widget.swift",
+                  "uriBaseId" : "%SRCROOT%"
+                },
+                "region" : {
+                  "startColumn" : 14,
+                  "startLine" : 3
+                }
+              }
+            }
+          ],
+          "message" : {
+            "text" : "Unused class 'Widget'"
+          },
+          "partialFingerprints" : {
+            "peripheryResult/v1" : "063c2693e0ad329d5a02c7fc2d4eb36d0b7433ba3e6c2e840c2ae0bffffcd989"
+          },
+          "properties" : {
+            "accessibility" : "internal",
+            "kind" : "class",
+            "modules" : [
+              "Lib"
+            ]
+          },
+          "ruleId" : "unused",
+          "ruleIndex" : 0
+        },
+        {
+          "level" : "warning",
+          "locations" : [
+            {
+              "physicalLocation" : {
+                "artifactLocation" : {
+                  "uri" : "Sources/Lib/Helper.swift",
+                  "uriBaseId" : "%SRCROOT%"
+                },
+                "region" : {
+                  "startColumn" : 13,
+                  "startLine" : 5
+                }
+              }
+            }
+          ],
+          "message" : {
+            "text" : "Redundant public accessibility for function 'helper()' (not used outside of Alpha, Zeta)"
+          },
+          "partialFingerprints" : {
+            "peripheryResult/v1" : "378ec8505118088a398c7f85f67792d870f9e5ac9b25669c1f2b466fbd96631c"
+          },
+          "properties" : {
+            "accessibility" : "public",
+            "kind" : "function.free",
+            "modules" : [
+              "Lib"
+            ]
+          },
+          "ruleId" : "redundantPublicAccessibility",
+          "ruleIndex" : 4
+        },
+        {
+          "level" : "warning",
+          "locations" : [
+            {
+              "physicalLocation" : {
+                "artifactLocation" : {
+                  "uri" : "Sources/Demo/Marker.swift",
+                  "uriBaseId" : "%SRCROOT%"
+                },
+                "region" : {
+                  "startColumn" : 10,
+                  "startLine" : 1
+                }
+              }
+            }
+          ],
+          "message" : {
+            "text" : "Redundant protocol 'Marker' (never used as an existential type)"
+          },
+          "partialFingerprints" : {
+            "peripheryResult/v1" : "faa24b26a09dd2f6093102cfdde41a4feb896971c7fcd72dda5445456fb57d5d"
+          },
+          "properties" : {
+            "accessibility" : "internal",
+            "kind" : "protocol",
+            "modules" : [
+              "Demo"
+            ]
+          },
+          "relatedLocations" : [
+            {
+              "id" : 1,
+              "message" : {
+                "text" : "Redundant protocol conformance 'Marker' (replace with 'Base')"
+              },
+              "physicalLocation" : {
+                "artifactLocation" : {
+                  "uri" : "Sources/Demo/main.swift",
+                  "uriBaseId" : "%SRCROOT%"
+                },
+                "region" : {
+                  "startColumn" : 8,
+                  "startLine" : 6
+                }
+              }
+            },
+            {
+              "id" : 2,
+              "message" : {
+                "text" : "Redundant protocol conformance 'Marker' (replace with 'Base')"
+              },
+              "physicalLocation" : {
+                "artifactLocation" : {
+                  "uri" : "Sources/Demo/main.swift",
+                  "uriBaseId" : "%SRCROOT%"
+                },
+                "region" : {
+                  "startColumn" : 8,
+                  "startLine" : 7
+                }
+              }
+            }
+          ],
+          "ruleId" : "redundantProtocol",
+          "ruleIndex" : 3
+        },
+        {
+          "level" : "warning",
+          "locations" : [
+            {
+              "physicalLocation" : {
+                "artifactLocation" : {
+                  "uri" : "Sources/Lib/Widget.swift",
+                  "uriBaseId" : "%SRCROOT%"
+                },
+                "region" : {
+                  "startColumn" : 1,
+                  "startLine" : 1
+                }
+              }
+            }
+          ],
+          "message" : {
+            "text" : "Unused imported module 'Combine'"
+          },
+          "partialFingerprints" : {
+            "peripheryResult/v1" : "f22d7e6c7d7db07a412578ab55a66401be5956bc1365a53c8cd709a049954f02"
+          },
+          "properties" : {
+            "accessibility" : "internal",
+            "kind" : "module",
+            "modules" : [
+              "Lib"
+            ]
+          },
+          "ruleId" : "unused",
+          "ruleIndex" : 0
+        },
+        {
+          "level" : "warning",
+          "locations" : [
+            {
+              "physicalLocation" : {
+                "artifactLocation" : {
+                  "uri" : "Sources/Lib/Counter.swift",
+                  "uriBaseId" : "%SRCROOT%"
+                },
+                "region" : {
+                  "startColumn" : 9,
+                  "startLine" : 4
+                }
+              }
+            }
+          ],
+          "message" : {
+            "text" : "Assign-only property 'counter' is assigned, but never used"
+          },
+          "partialFingerprints" : {
+            "peripheryResult/v1" : "dd75756f68356d333256b83abfede72bfc650629f2c73c80c187c5e130c534b8"
+          },
+          "properties" : {
+            "accessibility" : "internal",
+            "kind" : "var.instance",
+            "modules" : [
+              "Lib"
+            ]
+          },
+          "ruleId" : "assignOnlyProperty",
+          "ruleIndex" : 1
+        },
+        {
+          "level" : "warning",
+          "locations" : [
+            {
+              "physicalLocation" : {
+                "artifactLocation" : {
+                  "uri" : "DerivedSources/GeneratedAssetSymbols.swift",
+                  "uriBaseId" : "%SRCROOT%"
+                },
+                "region" : {
+                  "startColumn" : 16,
+                  "startLine" : 3
+                }
+              }
+            }
+          ],
+          "message" : {
+            "text" : "Unused asset catalog color 'AccentColor' (App/Assets.xcassets/AccentColor.colorset)"
+          },
+          "partialFingerprints" : {
+            "peripheryResult/v1" : "51d95641399e12a553d6a3a0385c925a1c55aa14abb38980228afb9fb5a3ad7e"
+          },
+          "properties" : {
+            "accessibility" : "internal",
+            "kind" : "var.static",
+            "modules" : [
+              "App"
+            ]
+          },
+          "ruleId" : "unusedAssetCatalogColor",
+          "ruleIndex" : 10
+        }
+      ],
+      "tool" : {
+        "driver" : {
+          "informationUri" : "https://github.com/tiny-earth-moon/periphery#readme",
+          "name" : "Periphery",
+          "rules" : [
+            {
+              "helpUri" : "https://github.com/tiny-earth-moon/periphery#analysis",
+              "id" : "unused",
+              "shortDescription" : {
+                "text" : "The declaration is never referenced"
+              }
+            },
+            {
+              "helpUri" : "https://github.com/tiny-earth-moon/periphery#assign-only-properties",
+              "id" : "assignOnlyProperty",
+              "shortDescription" : {
+                "text" : "The property is assigned, but never read"
+              }
+            },
+            {
+              "helpUri" : "https://github.com/tiny-earth-moon/periphery#unassigned-optional-analysis",
+              "id" : "unassignedOptionalProperty",
+              "shortDescription" : {
+                "text" : "The optional property is never assigned and is always nil"
+              }
+            },
+            {
+              "helpUri" : "https://github.com/tiny-earth-moon/periphery#protocols-1",
+              "id" : "redundantProtocol",
+              "shortDescription" : {
+                "text" : "The protocol is never used as an existential type"
+              }
+            },
+            {
+              "helpUri" : "https://github.com/tiny-earth-moon/periphery#redundant-public-accessibility",
+              "id" : "redundantPublicAccessibility",
+              "shortDescription" : {
+                "text" : "The declaration is public but not used outside of its module"
+              }
+            },
+            {
+              "helpUri" : "https://github.com/tiny-earth-moon/periphery#open--final-analysis",
+              "id" : "redundantOpenAccessibility",
+              "shortDescription" : {
+                "text" : "The declaration is open but never subclassed or overridden outside of its module"
+              }
+            },
+            {
+              "helpUri" : "https://github.com/tiny-earth-moon/periphery#open--final-analysis",
+              "id" : "missingFinal",
+              "shortDescription" : {
+                "text" : "The class or member could be final"
+              }
+            },
+            {
+              "helpUri" : "https://github.com/tiny-earth-moon/periphery#redundant-access-level-analysis",
+              "id" : "redundantAccessLevel",
+              "shortDescription" : {
+                "text" : "The access level is already the default in its context"
+              }
+            },
+            {
+              "helpUri" : "https://github.com/tiny-earth-moon/periphery#empty-extension-analysis",
+              "id" : "emptyExtension",
+              "shortDescription" : {
+                "text" : "The extension declares nothing"
+              }
+            },
+            {
+              "helpUri" : "https://github.com/tiny-earth-moon/periphery#comment-commands",
+              "id" : "superfluousIgnoreCommand",
+              "shortDescription" : {
+                "text" : "The ignore comment is on a declaration that is referenced"
+              }
+            },
+            {
+              "helpUri" : "https://github.com/tiny-earth-moon/periphery#asset-catalog-colors",
+              "id" : "unusedAssetCatalogColor",
+              "shortDescription" : {
+                "text" : "The asset catalog color is never referenced"
+              }
+            },
+            {
+              "helpUri" : "https://github.com/tiny-earth-moon/periphery#asset-catalog-images",
+              "id" : "unusedAssetCatalogImage",
+              "shortDescription" : {
+                "text" : "The asset catalog image is never referenced"
+              }
+            }
+          ],
+          "version" : "VERSION"
+        }
+      }
+    }
+  ],
+  "version" : "2.1.0"
+}

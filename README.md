@@ -116,7 +116,7 @@ For projects that are mixed Objective-C & Swift, it's highly recommended you [re
 
 Once you've settled upon the appropriate options for your project, you may wish to persist them in a YAML configuration file. The simplest way to achieve this is to run Periphery with the `--verbose` option. Near the beginning of the output, you will see the `[configuration:begin]` section with your configuration formatted as YAML below. Copy & paste the configuration into `.periphery.yml` in the root of your project folder. You can now simply run `periphery scan` and the YAML configuration will be used.
 
-Values are checked when the file is loaded. A value that does not suit its key, such as a number for a boolean (`strict: 1`), a format that does not exist (`format: sarif`) or a quoted number for an integer, is reported on stderr as `<file>: '<key>' expects a boolean, got the integer 1`, and the default is kept. A key that is not an option is reported too, with the closest option when there is one (`invalid key 'retain_pubic' (did you mean 'retain_public'?)`). The file only has to be a mapping, otherwise the scan stops with an error. Two shapes are accepted in place of the exact one: a single value for an option that takes a list (`exclude_targets: Demo` is `exclude_targets: [Demo]`), and the strings `"true"` and `"false"` for a boolean, which is also reported.
+Values are checked when the file is loaded. A value that does not suit its key, such as a number for a boolean (`strict: 1`), a format that does not exist (`format: xml`) or a quoted number for an integer, is reported on stderr as `<file>: '<key>' expects a boolean, got the integer 1`, and the default is kept. A key that is not an option is reported too, with the closest option when there is one (`invalid key 'retain_pubic' (did you mean 'retain_public'?)`). The file only has to be a mapping, otherwise the scan stops with an error. Two shapes are accepted in place of the exact one: a single value for an option that takes a list (`exclude_targets: Demo` is `exclude_targets: [Demo]`), and the strings `"true"` and `"false"` for a boolean, which is also reported.
 
 The command line takes precedence over the configuration file, which takes precedence over the defaults. An option given on the command line wins even when its value is the default (`--format xcode` over `format: json` in the file), and an option that is not given leaves the value of the file untouched. Every boolean option has a `--no-` form to switch off, for one run, what the file enables (`--no-strict`, `--no-retain-public`, `--no-quiet`...). A list given on the command line replaces the list of the file; the default `index_exclude` patterns are always kept.
 
@@ -742,7 +742,21 @@ To retain all declarations in files, pass the `--retain-files <globs>` option to
 
 When integrating Periphery into a CI pipeline, you can potentially skip the build phase if your pipeline has already done so, e.g., to run tests. This can be achieved using the `--skip-build` option. However, you also need to tell Periphery the location of the index store using `--index-store-path`. This location is dependent on your project type.
 
-The `github-actions`, `gitlab-codequality` and `codeclimate` output formats always report paths relative to the project root, as if `--relative-results` was passed, because the CI services that read them match results to files in the repository. The other formats (`xcode`, `csv`, `json`, `checkstyle` and `github-markdown`) report absolute paths unless `--relative-results` is passed.
+The `github-actions`, `gitlab-codequality`, `codeclimate` and `sarif` output formats always report paths relative to the project root, as if `--relative-results` was passed, because the CI services that read them match results to files in the repository. The other formats (`xcode`, `csv`, `json`, `checkstyle` and `github-markdown`) report absolute paths unless `--relative-results` is passed.
+
+### GitHub Code Scanning
+
+The `sarif` format writes a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html) log that GitHub code scanning turns into alerts, which are tracked across commits, can be dismissed with a reason and decorate pull requests. Each result carries a `peripheryResult/v1` fingerprint (a SHA-256 of the rule and the ids of the declaration) that GitHub uses to recognise the same alert in the next run. Paths are relative to the project root and resolved against the `%SRCROOT%` base id.
+
+```yaml
+- run: periphery scan --skip-build --index-store-path <path> --format sarif --write-results periphery.sarif --skip-stdout-results
+- uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: periphery.sarif
+    category: periphery
+```
+
+The upload needs the `security-events: write` permission. Code scanning is free on public repositories; on private repositories it requires GitHub Code Security. GitHub limits the size of an uploaded SARIF file, so a project with a very large number of results may need to be scanned in parts.
 
 Relative paths are made relative to the project root (`--project-root`). In a repository that holds several projects, CI services need paths from the repository root: pass it with `--relative-to` (configuration key `relative_results_base`), e.g. `--relative-to "$GITHUB_WORKSPACE"` on GitHub Actions or `--relative-to "$CI_PROJECT_DIR"` on GitLab CI. With `--project-root pkg`, a result reported as `Sources/Demo/main.swift` becomes `pkg/Sources/Demo/main.swift`. A relative `--relative-to` value is resolved from the project root, like the other path options (`--config`, `--baseline`, `--index-store-path`, `--write-baseline`, `--write-results`), which are all resolved from `--project-root` rather than from the directory the command was typed in.
 
