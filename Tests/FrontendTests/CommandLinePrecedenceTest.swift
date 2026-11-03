@@ -73,6 +73,18 @@ final class CommandLinePrecedenceTest: XCTestCase {
         XCTAssertEqual(configuration.outputFormat, .csv)
     }
 
+    func testRelativeToOnTheCommandLineOverridesTheFile() throws {
+        let configuration = try merge(["--relative-to", "/repo"], file: "relative_results_base: /other\n")
+
+        XCTAssertEqual(configuration.relativeResultsBase?.string, "/repo")
+    }
+
+    func testRelativeResultsBaseFromTheFile_isKeptWhenTheOptionIsNotPassed() throws {
+        let configuration = try merge([], file: "relative_results_base: /other\n")
+
+        XCTAssertEqual(configuration.relativeResultsBase?.string, "/other")
+    }
+
     func testNoStrictOverridesTheFile() throws {
         let configuration = try merge(["--no-strict"], file: "strict: true\n")
 
