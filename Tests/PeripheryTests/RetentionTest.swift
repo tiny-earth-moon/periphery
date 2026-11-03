@@ -2185,6 +2185,20 @@ final class RetentionTest: FixtureSourceGraphTestCase {
 
     // MARK: - Comment Commands
 
+    func testOutskirtsIgnoreComments() {
+        analyze(retainPublic: false) {
+            assertReferenced(.class("FixtureOutskirtsIgnoredClass"))
+            assertReferenced(.class("FixtureOutskirtsParametersClass")) {
+                self.assertReferenced(.functionMethodInstance("someFunc(a:b:)")) {
+                    self.assertReferenced(.varParameter("b"))
+                }
+            }
+            assertReferenced(.class("FixtureOutskirtsIgnoredAllClass")) {
+                self.assertReferenced(.functionMethodInstance("unusedMethod()"))
+            }
+        }
+    }
+
     func testIgnoreComments() {
         // ensure this external module is explicitly indexed so we can tell if it is unused
         let additionalFilesToIndex = [
