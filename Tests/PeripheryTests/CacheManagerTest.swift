@@ -96,3 +96,59 @@ final class CacheManagerTest: XCTestCase {
         XCTAssertTrue(fm.fileExists(atPath: stale.path))
     }
 }
+
+extension CacheManagerTest {
+    private func write(_ name: String, in dir: URL) throws {
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        try Data(name.utf8).write(to: dir.appendingPathComponent("marker"))
+    }
+
+    private func marker(in dir: URL) throws -> String {
+        try String(contentsOf: dir.appendingPathComponent("marker"), encoding: .utf8)
+    }
+
+    func testCachePath_movesLegacyDirectoryToOutskirtsName() throws {
+        let legacy = cache.appendingPathComponent("com.github.tiny-earth-moon.periphery")
+        let current = cache.appendingPathComponent("com.github.tiny-earth-moon.outskirts")
+        try write("legacy", in: legacy)
+
+        let path = try Constants.cachePath(cachesDirectory: cache)
+
+        XCTAssertEqual(path.string, current.path)
+        XCTAssertFalse(fm.fileExists(atPath: legacy.path))
+        XCTAssertEqual(try marker(in: current), "legacy")
+    }
+
+    func testCachePath_deletesLegacyDirectoryWhenOutskirtsDirectoryExists() throws {
+        let legacy = cache.appendingPathComponent("com.github.tiny-earth-moon.periphery")
+        let current = cache.appendingPathComponent("com.github.tiny-earth-moon.outskirts")
+        try write("legacy", in: legacy)
+        try write("current", in: current)
+
+        _ = try Constants.cachePath(cachesDirectory: cache)
+
+        XCTAssertFalse(fm.fileExists(atPath: legacy.path))
+        XCTAssertEqual(try marker(in: current), "current")
+    }
+
+    func testCachePath_returnsOutskirtsPathWithoutCreatingAnythingWhenNoCacheExists() throws {
+        let path = try Constants.cachePath(cachesDirectory: cache)
+
+        XCTAssertEqual(path.string, cache.appendingPathComponent("com.github.tiny-earth-moon.outskirts").path)
+        XCTAssertEqual(try fm.contentsOfDirectory(atPath: cache.path), [])
+    }
+
+    func testClearCache_removesLeftoverLegacyDirectoryToo() throws {
+        let legacy = cache.appendingPathComponent("com.github.tiny-earth-moon.periphery")
+        let current = cache.appendingPathComponent("com.github.tiny-earth-moon.outskirts")
+        try write("current", in: current)
+        // Created after the first cachePath() call of the process, as a stale copy from an older release would be.
+        _ = try Constants.cachePath(cachesDirectory: cache)
+        try write("legacy", in: legacy)
+
+        try CacheManager.clearIncludingLegacy(cachesDirectory: cache)
+
+        XCTAssertFalse(fm.fileExists(atPath: legacy.path))
+        XCTAssertFalse(fm.fileExists(atPath: current.path))
+    }
+}
