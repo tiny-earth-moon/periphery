@@ -12,6 +12,21 @@
 
 - None.
 
+## 3.16.0 (2026-11-03)
+
+##### Breaking
+
+- None. The executable, the configuration file and the comment commands keep working under their `periphery` names.
+
+##### Enhancements
+
+- The project is now named **outskirts**: it finds what lies at the outskirts of your Swift project, the code nothing reaches. The executable is `outskirts` and `periphery` remains available as an alias; `.outskirts.yml` is read before `.periphery.yml`, and `// outskirts:ignore` is equivalent to `// periphery:ignore`. The repository moved to [tiny-earth-moon/outskirts](https://github.com/tiny-earth-moon/outskirts), where the update check now looks for releases; the SARIF driver is named `outskirts`. See [Migrating from Periphery](README.md#migrating-from-periphery).
+- Linux is now built and tested in CI, in the official Swift 6.4 container and on the minimum toolchain (Swift 6.1); the standard streams are read through a small C shim and the SARIF fingerprints no longer need CryptoKit, so the `sarif` format is available on Linux. [#219](https://github.com/tiny-earth-moon/outskirts/issues/219)
+
+##### Bug Fixes
+
+- None.
+
 ## 3.15.0 (2026-11-03)
 
 ##### Breaking
