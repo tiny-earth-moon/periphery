@@ -1,6 +1,11 @@
-<h1 align="center">Periphery</h1>
+<p align="center">
+<picture>
+<source media="(prefers-color-scheme: dark)" srcset="assets/brand/outskirts-logo-dark.svg">
+<img src="assets/brand/outskirts-logo.svg" alt="outskirts" width="420">
+</picture>
+</p>
 
-<h4 align="center">A tool to identify unused code in Swift projects.</h4>
+<p align="center">Find unused code at the outskirts of your Swift project. A community-maintained fork of Periphery 3.x.</p>
 
 <p align="center">
 <a href="https://github.com/tiny-earth-moon/periphery/releases/latest">
@@ -12,17 +17,18 @@
 
 > [!NOTE]
 >
-> This is the community-maintained successor of [peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived in August 2026. It continues the open-source 3.x line with bug fixes, support for current Xcode/Swift toolchains and new features.
+> outskirts is the new name, since 3.16.0 (2026-11), of the community-maintained successor of [peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived in August 2026. It continues the open-source 3.x line with bug fixes, support for current Xcode/Swift toolchains and new features. Nothing breaks: see [Migrating from Periphery](#migrating-from-periphery).
 >
-> Install with `brew install tiny-earth-moon/tap/periphery` (a prebuilt bottle is available, see [Installation](#installation)) or build from source. Versions and changes: [CHANGELOG.md](CHANGELOG.md) and the [releases page](https://github.com/tiny-earth-moon/periphery/releases). Issues and pull requests: this repository, see [CONTRIBUTING.md](CONTRIBUTING.md).
+> Install with `brew install tiny-earth-moon/tap/outskirts` (a prebuilt bottle is available, see [Installation](#installation)) or build from source. The former `periphery` name keeps working. Versions and changes: [CHANGELOG.md](CHANGELOG.md) and the [releases page](https://github.com/tiny-earth-moon/periphery/releases). Issues and pull requests: this repository, see [CONTRIBUTING.md](CONTRIBUTING.md).
 >
 > Periphery was created by [Ian Leitch](https://github.com/ileitch), whom we thank for years of excellent work and for keeping the project open source. See [Credits](#credits) for the full attribution, including the sibling fork [agoodkind/periphery](https://github.com/agoodkind/periphery).
 >
-> The original author now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. This fork takes nothing from it; both install a `periphery` executable, so install one or the other (the Homebrew formulae conflict on purpose). This fork is not affiliated with, nor endorsed by, the original author or Periphery Pro. The `periphery` name is kept for the executable and the configuration file for compatibility; it is not a claim on the Periphery brand.
+> The original author now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. This fork takes nothing from it; outskirts also installs a `periphery` alias for compatibility, so install one or the other (the Homebrew formulae conflict on purpose). This fork is not affiliated with, nor endorsed by, the original author or Periphery Pro. The `periphery` name is kept as an alias and for the configuration file and comment commands for compatibility; it is not a claim on the Periphery brand.
 
 ## Contents
 
 - [Installation](#installation)
+- [Migrating from Periphery](#migrating-from-periphery)
 - [How To Use](#how-to-use)
     - [The `scan` Command](#the-scan-command)
     - [Configuration](#configuration)
@@ -68,15 +74,15 @@
 ### [Homebrew](https://brew.sh/)
 
 ```sh
-brew install tiny-earth-moon/tap/periphery
+brew install tiny-earth-moon/tap/outskirts
 ```
 
-On Apple silicon with macOS 27 or later, Homebrew pours a prebuilt bottle; on other systems it builds from source. The bottle loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools; with neither, build from source with `brew install --build-from-source tiny-earth-moon/tap/periphery`. Installing by the full name trusts the formula under Homebrew's [tap trust](https://docs.brew.sh/Tap-Trust); after `brew tap tiny-earth-moon/tap`, a short-name install needs `brew trust --formula tiny-earth-moon/tap/periphery` first.
+On Apple silicon with macOS 27 or later, Homebrew pours a prebuilt bottle; on other systems it builds from source. The bottle loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools; with neither, build from source with `brew install --build-from-source tiny-earth-moon/tap/outskirts`. Installing by the full name trusts the formula under Homebrew's [tap trust](https://docs.brew.sh/Tap-Trust); after `brew tap tiny-earth-moon/tap`, a short-name install needs `brew trust --formula tiny-earth-moon/tap/outskirts` first.
 
 ### [Mint](https://github.com/yonaskolb/mint)
 
 ```sh
-mint install tiny-earth-moon/periphery
+mint install tiny-earth-moon/outskirts
 ```
 
 ### From source
@@ -84,37 +90,47 @@ mint install tiny-earth-moon/periphery
 ```sh
 git clone https://github.com/tiny-earth-moon/periphery.git
 cd periphery
-swift build -c release --product periphery
+swift build -c release --product outskirts
 ```
+
+## Migrating from Periphery
+
+There is nothing to do: the rename to outskirts (3.16.0) breaks nothing.
+
+- **New names**: the executable is `outskirts`, the Homebrew formula is `tiny-earth-moon/tap/outskirts`, the configuration file is `.outskirts.yml` and comment commands are written `// outskirts:ignore`.
+- **The `periphery` alias**: outskirts also installs a `periphery` executable, which behaves exactly like `outskirts`. It prints no warning and has no announced end date, so existing scripts, CI jobs and Xcode run scripts keep working.
+- **Configuration file**: `.periphery.yml` is still read next to `.outskirts.yml`. Rename it whenever you like.
+- **Comment commands**: `// periphery:ignore`, `// periphery:ignore:all`, `// periphery:ignore:parameters` and `// periphery:override` are equivalent to their `outskirts:` form.
+- **Update check**: it now points at the outskirts repository.
 
 ## How To Use
 
 ### The `scan` Command
 
-The scan command is Periphery's primary function. To begin a guided setup, change to your project directory and run:
+The scan command is outskirts's primary function. To begin a guided setup, change to your project directory and run:
 
 ```sh
-periphery scan --setup
+outskirts scan --setup
 ```
 
-The guided setup will detect your project type and configure a few options. After answering a few questions, Periphery will print out the full scan command and execute it.
+The guided setup will detect your project type and configure a few options. After answering a few questions, outskirts will print out the full scan command and execute it.
 
-The guided setup is only intended for introductory purposes. Once you are familiar with Periphery, you can try some more advanced options, all of which can be seen with `periphery help scan`.
+The guided setup is only intended for introductory purposes. Once you are familiar with outskirts, you can try some more advanced options, all of which can be seen with `outskirts help scan`.
 
-To get the most from Periphery, it’s important to understand how it works. Periphery first builds your project; it does this to generate the “index store”. The index store contains detailed information about the declarations (class, struct, func, etc.) in your project and their references to other declarations. Using this store, Periphery builds an in-memory graph of the relational structure of your project, supplementing it with additional information obtained by parsing each source file. Next, the graph is mutated to make it more suitable for detecting unused code, e.g., marking your project’s entry points. Finally, the graph is traversed from its roots to identify unreferenced declarations.
+To get the most from outskirts, it’s important to understand how it works. outskirts first builds your project; it does this to generate the “index store”. The index store contains detailed information about the declarations (class, struct, func, etc.) in your project and their references to other declarations. Using this store, outskirts builds an in-memory graph of the relational structure of your project, supplementing it with additional information obtained by parsing each source file. Next, the graph is mutated to make it more suitable for detecting unused code, e.g., marking your project’s entry points. Finally, the graph is traversed from its roots to identify unreferenced declarations.
 
 > [!TIP]
-> The index store only contains information about source files in the build targets compiled during the build phase. If a given class is only referenced in a source file that was not compiled, then Periphery will identify the class as unused. It's important to ensure you build all the targets you expect to contain references. For an Xcode project, this is controlled using the `--schemes` option. For a Swift package, all targets are built automatically.
+> The index store only contains information about source files in the build targets compiled during the build phase. If a given class is only referenced in a source file that was not compiled, then outskirts will identify the class as unused. It's important to ensure you build all the targets you expect to contain references. For an Xcode project, this is controlled using the `--schemes` option. For a Swift package, all targets are built automatically.
 
-If your project consists of one or more standalone frameworks that do not also contain some kind of application that consumes their interfaces, you need to tell Periphery to assume that all public declarations are used with the `--retain-public` option.
+If your project consists of one or more standalone frameworks that do not also contain some kind of application that consumes their interfaces, you need to tell outskirts to assume that all public declarations are used with the `--retain-public` option.
 
-The results are written to stdout. With any `--format` other than `xcode`, progress and `--verbose` messages go to stderr, so stdout carries only the report, e.g. `periphery scan --format json > report.json`. `--write-results <file>` also writes the report to a file, and `--skip-stdout-results` then stops it from being printed to stdout. Interrupting a scan with Ctrl-C (`SIGINT`) or `SIGTERM` stops the running build and exits with status 130 or 143.
+The results are written to stdout. With any `--format` other than `xcode`, progress and `--verbose` messages go to stderr, so stdout carries only the report, e.g. `outskirts scan --format json > report.json`. `--write-results <file>` also writes the report to a file, and `--skip-stdout-results` then stops it from being printed to stdout. Interrupting a scan with Ctrl-C (`SIGINT`) or `SIGTERM` stops the running build and exits with status 130 or 143.
 
 For projects that are mixed Objective-C & Swift, it's highly recommended you [read about the implications](#objective-c) this can have on your results.
 
 ### Configuration
 
-Once you've settled upon the appropriate options for your project, you may wish to persist them in a YAML configuration file. The simplest way to achieve this is to run Periphery with the `--verbose` option. Near the beginning of the output, you will see the `[configuration:begin]` section with your configuration formatted as YAML below. Copy & paste the configuration into `.periphery.yml` in the root of your project folder. You can now simply run `periphery scan` and the YAML configuration will be used.
+Once you've settled upon the appropriate options for your project, you may wish to persist them in a YAML configuration file. The simplest way to achieve this is to run outskirts with the `--verbose` option. Near the beginning of the output, you will see the `[configuration:begin]` section with your configuration formatted as YAML below. Copy & paste the configuration into `.outskirts.yml` in the root of your project folder. You can now simply run `outskirts scan` and the YAML configuration will be used. A `.periphery.yml` file is still read, so existing projects keep working unchanged.
 
 Values are checked when the file is loaded. A value that does not suit its key, such as a number for a boolean (`strict: 1`), a format that does not exist (`format: xml`) or a quoted number for an integer, is reported on stderr as `<file>: '<key>' expects a boolean, got the integer 1`, and the default is kept. A key that is not an option is reported too, with the closest option when there is one (`invalid key 'retain_pubic' (did you mean 'retain_public'?)`). The file only has to be a mapping, otherwise the scan stops with an error. Two shapes are accepted in place of the exact one: a single value for an option that takes a list (`exclude_targets: Demo` is `exclude_targets: [Demo]`), and the strings `"true"` and `"false"` for a boolean, which is also reported.
 
@@ -148,13 +164,13 @@ Select a format with `--format` (`format` in the configuration file). The defaul
 
 ## Analysis
 
-The goal of Periphery is to report instances of unused _declarations_. A declaration is a `class`, `struct`, `protocol`, `function`, `property`, `constructor`, `enum`, `typealias`, `associatedtype`, etc. As you'd expect, Periphery can identify simple unreferenced declarations, e.g., a `class` that is no longer used anywhere in your codebase.
+The goal of outskirts is to report instances of unused _declarations_. A declaration is a `class`, `struct`, `protocol`, `function`, `property`, `constructor`, `enum`, `typealias`, `associatedtype`, etc. As you'd expect, outskirts can identify simple unreferenced declarations, e.g., a `class` that is no longer used anywhere in your codebase.
 
-Periphery can also identify more advanced instances of unused code. The following section explains these in detail.
+outskirts can also identify more advanced instances of unused code. The following section explains these in detail.
 
 ### Function Parameters
 
-Periphery can identify unused function parameters. Instances of unused parameters can also be identified in protocols and their conforming declarations, as well as parameters in overridden methods. Both of these scenarios are explained further below.
+outskirts can identify unused function parameters. Instances of unused parameters can also be identified in protocols and their conforming declarations, as well as parameters in overridden methods. Both of these scenarios are explained further below.
 
 #### Protocols
 
@@ -246,7 +262,7 @@ struct Tagged<Tag> { // 'Tag' is reported only with --report-unused-type-paramet
 
 ### Protocols
 
-A protocol that is conformed to by an object is not truly used unless it's also used as an existential type or to specialize a generic method/class. Periphery is able to identify such redundant protocols whether they are conformed to by one or even multiple objects.
+A protocol that is conformed to by an object is not truly used unless it's also used as an existential type or to specialize a generic method/class. outskirts is able to identify such redundant protocols whether they are conformed to by one or even multiple objects.
 
 ```swift
 protocol MyProtocol { // 'MyProtocol' is redundant
@@ -303,11 +319,11 @@ let myClass = MyClass()
 myClass.perform()
 ```
 
-Here we can see that `MyProtocol` is itself used and cannot be removed. However, since `unusedProperty` is never called on `MyConformingClass`, Periphery can identify that the declaration of `unusedProperty` in `MyProtocol` is also unused and can be removed along with the unused implementation of `unusedProperty`.
+Here we can see that `MyProtocol` is itself used and cannot be removed. However, since `unusedProperty` is never called on `MyConformingClass`, outskirts can identify that the declaration of `unusedProperty` in `MyProtocol` is also unused and can be removed along with the unused implementation of `unusedProperty`.
 
 ### Enumerations
 
-Along with being able to identify unused enumerations, Periphery can also identify individual unused enum cases. Plain enums that are not raw representable, i.e., that _don't_ have a `String`, `Character`, `Int`, or floating-point value type, can be reliably identified. However, enumerations that _do_ have a raw value type can be dynamic, and therefore must be assumed to be used.
+Along with being able to identify unused enumerations, outskirts can also identify individual unused enum cases. Plain enums that are not raw representable, i.e., that _don't_ have a `String`, `Character`, `Int`, or floating-point value type, can be reliably identified. However, enumerations that _do_ have a raw value type can be dynamic, and therefore must be assumed to be used.
 
 Let's clear this up with a quick example:
 
@@ -342,7 +358,7 @@ class MyClass {
 In some cases this may be the intended behavior; therefore, you have a few options available to silence such results:
 
 - Retain individual properties using [Comment Commands](#comment-commands).
-- Retain all assign-only properties by their type with `--retain-assign-only-property-types`. Given types must match their exact usage in the property declaration (sans optional question mark), e.g. `String`, `[String]`, `Set<String>`. Periphery is unable to resolve inferred property types, therefore in some instances, you may need to add explicit type annotations to your properties.
+- Retain all assign-only properties by their type with `--retain-assign-only-property-types`. Given types must match their exact usage in the property declaration (sans optional question mark), e.g. `String`, `[String]`, `Set<String>`. outskirts is unable to resolve inferred property types, therefore in some instances, you may need to add explicit type annotations to your properties.
 - Disable assign-only property analysis entirely with `--retain-assign-only-properties`.
 
 ### Unassigned Optional Analysis
@@ -431,13 +447,13 @@ This opt-in analysis, enabled with `--enable-empty-extension-analysis` (`enable_
 | conformance (`extension Foo: Bar {}`), even with an empty body | never |
 | at least one member, including in one clause of an `#if` block | never |
 | any other attribute (an attached macro can add members or conformances) | never |
-| preceded by `// periphery:ignore`, in a file with `// periphery:ignore:all`, or in a file matched by `retain_files` | never |
+| preceded by `// outskirts:ignore`, in a file with `// outskirts:ignore:all`, or in a file matched by `retain_files` | never |
 
-The index store has no record of an extension without members or conformances, so this analysis reads the syntax of the indexed source files instead. As a consequence, an extension is judged on its source text only: the members a macro expansion or another `#if` configuration would produce are unknown, and `// periphery:ignore` is the way to keep an extension that is empty on purpose. Results can be excluded with `report_exclude`, e.g. `**/Generated/**:emptyExtension`.
+The index store has no record of an extension without members or conformances, so this analysis reads the syntax of the indexed source files instead. As a consequence, an extension is judged on its source text only: the members a macro expansion or another `#if` configuration would produce are unknown, and `// outskirts:ignore` is the way to keep an extension that is empty on purpose. Results can be excluded with `report_exclude`, e.g. `**/Generated/**:emptyExtension`.
 
 ### Unused Imports
 
-Periphery can only detect unused imports of targets it has scanned. It cannot detect unused imports of other targets because the Swift source files are unavailable and uses of `@_exported` cannot be observed. `@_exported` is problematic because it changes the public interface of a target such that the declarations exported by the target are no longer necessarily declared by the imported target. For example, the `Foundation` target exports `Dispatch`, among other targets. If any given source file imports `Foundation` and references `DispatchQueue` but no other declarations from `Foundation`, then the `Foundation` import cannot be removed as it would also make the `DispatchQueue` type unavailable. To avoid false positives, therefore, Periphery only detects unused imports of targets it has scanned.
+outskirts can only detect unused imports of targets it has scanned. It cannot detect unused imports of other targets because the Swift source files are unavailable and uses of `@_exported` cannot be observed. `@_exported` is problematic because it changes the public interface of a target such that the declarations exported by the target are no longer necessarily declared by the imported target. For example, the `Foundation` target exports `Dispatch`, among other targets. If any given source file imports `Foundation` and references `DispatchQueue` but no other declarations from `Foundation`, then the `Foundation` import cannot be removed as it would also make the `DispatchQueue` type unavailable. To avoid false positives, therefore, outskirts only detects unused imports of targets it has scanned.
 
 #### System Framework Imports
 
@@ -448,13 +464,13 @@ By default, imports of system frameworks (`Foundation`, `UIKit`, `SwiftUI`, `Com
 - A file referencing any declaration whose module cannot be determined has none of its system imports analysed.
 - System imports are only analysed when the index store contains the system modules. A store built without them (for example with `-index-ignore-system-modules`) reports no system import.
 
-Limitations: uses that leave no reference in the index store are invisible, such as `@objc` or `dynamic` without any other Objective-C runtime reference, so a file whose only use of `Foundation` is an `@objc` attribute is reported. Use `// periphery:ignore` on the import, or `retain_unused_imported_modules`, for such cases.
+Limitations: uses that leave no reference in the index store are invisible, such as `@objc` or `dynamic` without any other Objective-C runtime reference, so a file whose only use of `Foundation` is an `@objc` attribute is reported. Use `// outskirts:ignore` on the import, or `retain_unused_imported_modules`, for such cases.
 
-Periphery will likely produce false positives for targets with mixed Swift and Objective-C, as Periphery cannot scan the Objective-C files. It is recommended, therefore, to disable unused import detection for projects with a significant amount of Objective-C or manually exclude the mixed language targets from the results.
+outskirts will likely produce false positives for targets with mixed Swift and Objective-C, as outskirts cannot scan the Objective-C files. It is recommended, therefore, to disable unused import detection for projects with a significant amount of Objective-C or manually exclude the mixed language targets from the results.
 
 ### Platform Conditionals
 
-The index store only describes the platform Periphery built for, so code that is only used on another platform would be reported as unused. To avoid these false positives, Periphery retains:
+The index store only describes the platform outskirts built for, so code that is only used on another platform would be reported as unused. To avoid these false positives, outskirts retains:
 
 - Declarations marked `@available(<platform>, unavailable)` (e.g. `@available(tvOS, unavailable)`), along with their members. `@available(*, unavailable)`, `swift` and `*ApplicationExtension` platforms are not affected.
 - Declarations whose name is written inside an `#if` block conditioned on `os()`, `targetEnvironment()`, `arch()` or `canImport()`, including its `#else` branches. Matching is done by name on the syntax tree, so unrelated declarations that share the name are retained too.
@@ -464,31 +480,31 @@ This can be disabled with `--disable-platform-conditional-retention`. Other cond
 
 ### Objective-C
 
-Periphery cannot analyze Objective-C code since types may be dynamically typed.
+outskirts cannot analyze Objective-C code since types may be dynamically typed.
 
-By default, Periphery does not assume that declarations accessible by the Objective-C runtime are in use. If your project is a mix of Swift & Objective-C, you can enable this behavior with the `--retain-objc-accessible` option. Swift declarations that are accessible by the Objective-C runtime are those that are explicitly annotated with `@objc` or `@objcMembers`, and classes that inherit `NSObject` either directly or indirectly via another class.
+By default, outskirts does not assume that declarations accessible by the Objective-C runtime are in use. If your project is a mix of Swift & Objective-C, you can enable this behavior with the `--retain-objc-accessible` option. Swift declarations that are accessible by the Objective-C runtime are those that are explicitly annotated with `@objc` or `@objcMembers`, and classes that inherit `NSObject` either directly or indirectly via another class.
 
 Alternatively, the `--retain-objc-annotated` option can be used to only retain declarations that are explicitly annotated with `@objc` or `@objcMembers`. Types that inherit `NSObject` are not retained unless they have explicit annotations. This option may uncover more unused code, but with the caveat that some of the results may be incorrect if the declaration is used in Objective-C code. To resolve these incorrect results, you must add an `@objc` annotation to the declaration.
 
 ### JavaScriptCore
 
-Protocols that inherit `JSExport` expose their members to JavaScript, which Periphery cannot analyze. Use `--retain-js-accessible` (`retain_js_accessible` in the configuration file) to retain every protocol that inherits `JSExport`, either directly or through another protocol, together with its members and the members of the conforming types that satisfy them. `--retain-objc-accessible` does not cover a protocol that is only exposed through `JSExport` and has no `@objc` annotation; where it does retain them, it also retains all other Objective-C accessible declarations. The dedicated option keeps the report focused on JavaScript-exposed declarations.
+Protocols that inherit `JSExport` expose their members to JavaScript, which outskirts cannot analyze. Use `--retain-js-accessible` (`retain_js_accessible` in the configuration file) to retain every protocol that inherits `JSExport`, either directly or through another protocol, together with its members and the members of the conforming types that satisfy them. `--retain-objc-accessible` does not cover a protocol that is only exposed through `JSExport` and has no `@objc` annotation; where it does retain them, it also retains all other Objective-C accessible declarations. The dedicated option keeps the report focused on JavaScript-exposed declarations.
 
 ### Codable
 
-Swift synthesizes additional code for `Codable` types that is not visible to Periphery and can result in false positives for properties not directly referenced from non-synthesized code. If your project contains many such types, you can retain all properties on `Codable` types with `--retain-codable-properties`. Alternatively, you can retain properties only on `Encodable` types with `--retain-encodable-properties`.
+Swift synthesizes additional code for `Codable` types that is not visible to outskirts and can result in false positives for properties not directly referenced from non-synthesized code. If your project contains many such types, you can retain all properties on `Codable` types with `--retain-codable-properties`. Alternatively, you can retain properties only on `Encodable` types with `--retain-encodable-properties`.
 
-If `Codable` conformance is declared by a protocol in an external module not scanned by Periphery, you can instruct Periphery to identify the protocols as `Codable` with `--external-codable-protocols "ExternalProtocol"`.
+If `Codable` conformance is declared by a protocol in an external module not scanned by outskirts, you can instruct outskirts to identify the protocols as `Codable` with `--external-codable-protocols "ExternalProtocol"`.
 
 ### Equatable and Hashable
 
-Swift synthesizes additional code for `Equatable` and `Hashable` types that is not visible to Periphery and can result in false positives for properties not directly referenced from non-synthesized code. If your project contains many such types, you can retain all properties on `Equatable` types with `--retain-equatable-properties`, or all properties on `Hashable` types with `--retain-hashable-properties`. The `Equatable` option also retains properties on `Hashable` types because `Hashable` refines `Equatable`.
+Swift synthesizes additional code for `Equatable` and `Hashable` types that is not visible to outskirts and can result in false positives for properties not directly referenced from non-synthesized code. If your project contains many such types, you can retain all properties on `Equatable` types with `--retain-equatable-properties`, or all properties on `Hashable` types with `--retain-hashable-properties`. The `Equatable` option also retains properties on `Hashable` types because `Hashable` refines `Equatable`.
 
 Properties can also be read implicitly through reflection, when a value is described by `print`, `debugPrint`, `String(describing:)`, `String(reflecting:)` or string interpolation (structs that do not provide their own description), or by `dump` (structs and classes). Use `--retain-synthesized-uses` to retain the stored properties of such types.
 
 ### Retaining by Attribute
 
-Use `--retain-attributes` (`retain_attributes` in the configuration file) to retain every declaration that has one of the given attributes, as if it had a `// periphery:ignore` comment. Give the attribute name without the `@`, e.g. `--retain-attributes OptionGroup MainActor`. Custom attributes such as property wrappers are supported. To limit an attribute to some declaration kinds, append them after a colon: `--retain-attributes objc:function.method.instance,var.instance`. A kind matches itself and its sub-kinds, so `function` matches every function and method, and an unknown kind is a configuration error.
+Use `--retain-attributes` (`retain_attributes` in the configuration file) to retain every declaration that has one of the given attributes, as if it had a `// outskirts:ignore` comment. Give the attribute name without the `@`, e.g. `--retain-attributes OptionGroup MainActor`. Custom attributes such as property wrappers are supported. To limit an attribute to some declaration kinds, append them after a colon: `--retain-attributes objc:function.method.instance,var.instance`. A kind matches itself and its sub-kinds, so `function` matches every function and method, and an unknown kind is a configuration error.
 
 Some attributes are retained without configuration, because they exist for callers that the index cannot see:
 
@@ -504,11 +520,11 @@ Removing an unused parameter that has a default value rarely breaks callers, whe
 
 ### XCTestCase
 
-Any class that inherits `XCTestCase` is automatically retained along with its test methods. However, when a class inherits `XCTestCase` indirectly via another class, e.g., `UnitTestCase`, and that class resides in a target that isn't scanned by Periphery, you need to use the `--external-test-case-classes UnitTestCase` option to instruct Periphery to treat `UnitTestCase` as an `XCTestCase` subclass.
+Any class that inherits `XCTestCase` is automatically retained along with its test methods. However, when a class inherits `XCTestCase` indirectly via another class, e.g., `UnitTestCase`, and that class resides in a target that isn't scanned by outskirts, you need to use the `--external-test-case-classes UnitTestCase` option to instruct outskirts to treat `UnitTestCase` as an `XCTestCase` subclass.
 
 ### Interface Builder
 
-If your project contains Interface Builder files (such as storyboards and XIBs), Periphery will take these into account when identifying unused declarations. Periphery parses these files to identify which classes, `@IBOutlet` properties, `@IBAction` methods, and `@IBInspectable` properties are actually referenced. Only those members that are connected in the Interface Builder file will be retained. Any `@IB*` members that are declared but not connected will be reported as unused.
+If your project contains Interface Builder files (such as storyboards and XIBs), outskirts will take these into account when identifying unused declarations. outskirts parses these files to identify which classes, `@IBOutlet` properties, `@IBAction` methods, and `@IBInspectable` properties are actually referenced. Only those members that are connected in the Interface Builder file will be retained. Any `@IB*` members that are declared but not connected will be reported as unused.
 
 Files inside Xcode 16+ synchronized folders (`PBXFileSystemSynchronizedRootGroup`) are supported: they are collected per target, honouring each target's membership exceptions.
 
@@ -528,7 +544,7 @@ Swift's `@_spi` attribute marks declarations as pseudo-private, making them acce
 
 When using `--retain-public` for framework projects, all public declarations are retained, including those marked with `@_spi`. However, you may want to check for unused code within specific SPIs. The `--no-retain-spi` option allows you to specify which SPIs should be checked for unused code even when `--retain-public` is enabled.
 
-For example, with `--retain-public --no-retain-spi Internal`, Periphery will:
+For example, with `--retain-public --no-retain-spi Internal`, outskirts will:
 - Retain regular `public` declarations
 - Retain `@_spi(Testing) public` declarations (different SPI)
 - **Check** `@_spi(Internal) public` declarations for unused code
@@ -536,7 +552,7 @@ For example, with `--retain-public --no-retain-spi Internal`, Periphery will:
 This is particularly useful for internal SPIs that should be audited for unused code while still retaining the framework's public API.
 ### Localized Strings
 
-Periphery can identify unused localized strings in String Catalog (`.xcstrings`) files. Catalogues are discovered from Xcode target resources (including synchronized folders), SPM target `resources` and the `xcstrings` key of a generic project configuration. This analysis can be disabled with `--disable-unused-localized-string-analysis` (or `disable_unused_localized_string_analysis: true` in `.periphery.yml`).
+outskirts can identify unused localized strings in String Catalog (`.xcstrings`) files. Catalogues are discovered from Xcode target resources (including synchronized folders), SPM target `resources` and the `xcstrings` key of a generic project configuration. This analysis can be disabled with `--disable-unused-localized-string-analysis` (or `disable_unused_localized_string_analysis: true` in `.outskirts.yml`).
 
 A key is considered used when a static string literal with the same value is:
 
@@ -548,13 +564,13 @@ An interpolated literal is matched to the format key Foundation derives from it:
 
 When the called function cannot be resolved (e.g. calling a closure, an enum case constructor or an Objective-C method), the literals passed to it are conservatively considered keys. Ternaries, tuple, array and dictionary literals, `if`/`switch` expressions and closure bodies are looked through.
 
-Keys referenced through the symbols Xcode 26+ generates for a catalogue (`STRING_CATALOG_GENERATE_SYMBOLS`, e.g. `Text(.settingsTitle)` or `String(localized: .itemCount(3))`) are detected: Periphery reads the generated `GeneratedStringSymbols_<Table>.swift` files (even inside `index_exclude` build directories) to map each symbol to its key, and a key is used when its symbol is referenced. When a referenced symbol cannot be mapped (e.g. its generated file was deleted after the build), a warning names it and its key is only considered used if a string literal references it, as without generated symbols; no catalogue is retained as a whole.
+Keys referenced through the symbols Xcode 26+ generates for a catalogue (`STRING_CATALOG_GENERATE_SYMBOLS`, e.g. `Text(.settingsTitle)` or `String(localized: .itemCount(3))`) are detected: outskirts reads the generated `GeneratedStringSymbols_<Table>.swift` files (even inside `index_exclude` build directories) to map each symbol to its key, and a key is used when its symbol is referenced. When a referenced symbol cannot be mapped (e.g. its generated file was deleted after the build), a warning names it and its key is only considered used if a string literal references it, as without generated symbols; no catalogue is retained as a whole.
 
-A key built at runtime and passed to `NSLocalizedString`, `Bundle.localizedString(forKey:)`, `LocalizedStringKey(_:)`, `LocalizedStringResource(_:)` or `String.LocalizationValue(_:)` (a variable, a concatenation, an interpolation passed to a plain `String` key, or a ternary with a non-literal branch) cannot be matched to a catalogue key. Instead of reporting the keys it may look up, Periphery retains the catalogue keys starting with its literal prefix: `NSLocalizedString("settings." + name, comment: "")` and `NSLocalizedString("settings.\(name)", comment: "")` retain `settings.*`. With `bundle: .module` (or `Bundle.module.localizedString(forKey:)`), only the catalogues of the calling module are affected; with any other bundle, every catalogue is. Catalogue ownership comes from SwiftPM target membership; catalogues of other project types have no known owner and are matched against the runtime keys of every module. `--verbose` lists each runtime key call site.
+A key built at runtime and passed to `NSLocalizedString`, `Bundle.localizedString(forKey:)`, `LocalizedStringKey(_:)`, `LocalizedStringResource(_:)` or `String.LocalizationValue(_:)` (a variable, a concatenation, an interpolation passed to a plain `String` key, or a ternary with a non-literal branch) cannot be matched to a catalogue key. Instead of reporting the keys it may look up, outskirts retains the catalogue keys starting with its literal prefix: `NSLocalizedString("settings." + name, comment: "")` and `NSLocalizedString("settings.\(name)", comment: "")` retain `settings.*`. With `bundle: .module` (or `Bundle.module.localizedString(forKey:)`), only the catalogues of the calling module are affected; with any other bundle, every catalogue is. Catalogue ownership comes from SwiftPM target membership; catalogues of other project types have no known owner and are matched against the runtime keys of every module. `--verbose` lists each runtime key call site.
 
-A key without a literal prefix (e.g. a central helper such as `String(localized: String.LocalizationValue(key))`) may be any key, so it retains nothing: a warning names each such call site, and the keys it looks up are reported unless they are referenced elsewhere or declared with `localized_string_key_patterns`. The `--retain-runtime-localized-keys` option (`retain_runtime_localized_keys: true` in `.periphery.yml`, disabled by default) instead retains every key of the catalogues such a lookup may reach, which hides every unused key of these catalogues.
+A key without a literal prefix (e.g. a central helper such as `String(localized: String.LocalizationValue(key))`) may be any key, so it retains nothing: a warning names each such call site, and the keys it looks up are reported unless they are referenced elsewhere or declared with `localized_string_key_patterns`. The `--retain-runtime-localized-keys` option (`retain_runtime_localized_keys: true` in `.outskirts.yml`, disabled by default) instead retains every key of the catalogues such a lookup may reach, which hides every unused key of these catalogues.
 
-Catalogues matching the `--localized-string-catalog-exclude` globs (`localized_string_catalog_exclude` in `.periphery.yml`) are not analysed. By default `**/InfoPlist.xcstrings` and `**/AppShortcuts.xcstrings` are excluded, since their keys are consumed by the system rather than referenced from Swift source. Setting the option replaces the default list, so include these patterns if you add your own:
+Catalogues matching the `--localized-string-catalog-exclude` globs (`localized_string_catalog_exclude` in `.outskirts.yml`) are not analysed. By default `**/InfoPlist.xcstrings` and `**/AppShortcuts.xcstrings` are excluded, since their keys are consumed by the system rather than referenced from Swift source. Setting the option replaces the default list, so include these patterns if you add your own:
 
 ```yaml
 localized_string_catalog_exclude:
@@ -563,7 +579,7 @@ localized_string_catalog_exclude:
   - "**/DefaultCategories.xcstrings"
 ```
 
-Keys built at runtime (e.g. `String(localized: String.LocalizationValue("quickChat.\(id)"))`) can be declared with the `--localized-string-key-patterns` option (`localized_string_key_patterns` in `.periphery.yml`). Each pattern is either a glob, where `*` matches any characters and `?` a single character, or a regular expression between slashes. Patterns must match the whole key, and catalogue keys matching any of them are considered used:
+Keys built at runtime (e.g. `String(localized: String.LocalizationValue("quickChat.\(id)"))`) can be declared with the `--localized-string-key-patterns` option (`localized_string_key_patterns` in `.outskirts.yml`). Each pattern is either a glob, where `*` matches any characters and `?` a single character, or a regular expression between slashes. Patterns must match the whole key, and catalogue keys matching any of them are considered used:
 
 ```yaml
 localized_string_key_patterns:
@@ -571,10 +587,10 @@ localized_string_key_patterns:
   - "/^tier\.(gold|silver|bronze)\.label$/"
 ```
 
-Codebases that pass keys around as plain `String` values (e.g. `titleKey: String`, a `switch` returning a `String` key, tuples) can enable the `--localized-string-key-literal-match` option (`localized_string_key_literal_match: true` in `.periphery.yml`, disabled by default). Any string literal in the source whose value, after decoding escapes, equals a catalogue key then marks that key as used, whatever its type or position. Literals with interpolation are not considered, and test targets are skipped when `--exclude-tests` is set.
+Codebases that pass keys around as plain `String` values (e.g. `titleKey: String`, a `switch` returning a `String` key, tuples) can enable the `--localized-string-key-literal-match` option (`localized_string_key_literal_match: true` in `.outskirts.yml`, disabled by default). Any string literal in the source whose value, after decoding escapes, equals a catalogue key then marks that key as used, whatever its type or position. Literals with interpolation are not considered, and test targets are skipped when `--exclude-tests` is set.
 
 > [!WARNING]
-> Matching is by value only, so an incidental literal (e.g. `"title"`, `"OK"`) that happens to equal a dead key hides it. Prefer typing keys as `LocalizedStringResource` (or `LocalizedStringKey`), which Periphery detects precisely, and reserve this option for code that cannot be migrated.
+> Matching is by value only, so an incidental literal (e.g. `"title"`, `"OK"`) that happens to equal a dead key hides it. Prefer typing keys as `LocalizedStringResource` (or `LocalizedStringKey`), which outskirts detects precisely, and reserve this option for code that cannot be migrated.
 
 > [!NOTE]
 > Apart from generated symbols, only string literals are detected, and keys are matched regardless of the `table:`/`bundle:` arguments. Keys passed around as values (e.g. `String(localized: value)` where `value` is a `String.LocalizationValue` built elsewhere) are only detected where the value is created from a literal. Declare keys used only through such values with `localized_string_key_patterns`, keep them in a dedicated catalogue excluded with `localized_string_catalog_exclude`, or, where possible, refactor dynamic keys to use conditional expressions with static literals:
@@ -595,25 +611,27 @@ For whatever reason, you may want to keep some unused code. Source code comment 
 An ignore comment command can be placed directly on the line above any declaration to ignore it and all descendent declarations:
 
 ```swift
-// periphery:ignore
+// outskirts:ignore
 class MyClass {}
 ```
+
+The `// periphery:ignore` form keeps working and is equivalent, and so is the `periphery:` prefix of every other comment command below.
 
 You can also ignore specific unused function parameters:
 
 ```swift
-// periphery:ignore:parameters unusedOne,unusedTwo
+// outskirts:ignore:parameters unusedOne,unusedTwo
 func someFunc(used: String, unusedOne: String, unusedTwo: String) {
     print(used)
 }
 ```
 
-The `// periphery:ignore:all` command can be placed at the top of the source file to ignore the entire contents of the file. Note that the comment must be placed above any code, including import statements.
+The `// outskirts:ignore:all` command can be placed at the top of the source file to ignore the entire contents of the file. Note that the comment must be placed above any code, including import statements.
 
 Comment commands also support trailing comments following a hyphen so that you can include an explanation on the same line:
 
 ```swift
-// periphery:ignore - explanation of why this is necessary
+// outskirts:ignore - explanation of why this is necessary
 class MyClass {}
 ```
 
@@ -622,7 +640,7 @@ class MyClass {}
 In generated code scenarios where the generated code is too low-level or obtuse to be directly reported as unused, you can override the `kind` and/or `location` of a result to provide a more meaningful report:
 
 ```swift
-// periphery:override kind="MyCustomThing" location="path/to/file.swift:42:1"
+// outskirts:override kind="MyCustomThing" location="path/to/file.swift:42:1"
 func generatedFunction() {}
 ```
 
@@ -630,7 +648,7 @@ The `kind` override allows you to specify a custom kind that will be shown in th
 
 ## Xcode Integration
 
-Before setting up Xcode integration, first get Periphery working in a terminal, as you will be using the same command via Xcode. Your project may require passing the `-destination` argument to xcodebuild. This can be done by supplying it as an additional argument, e.g. `periphery scan ... -- -destination "generic/platform=iOS Simulator"`.
+Before setting up Xcode integration, first get outskirts working in a terminal, as you will be using the same command via Xcode. Your project may require passing the `-destination` argument to xcodebuild. This can be done by supplying it as an additional argument, e.g. `outskirts scan ... -- -destination "generic/platform=iOS Simulator"`.
 
 ### Step 1: Create an Aggregate Target
 
@@ -638,7 +656,7 @@ Select your project in the Project Navigator and click the + button at the botto
 
 ![Step 1](assets/xcode-integration/1.png)
 
-Choose a name for the new target, e.g., "Periphery" or "Unused Code".
+Choose a name for the new target, e.g., "outskirts" or "Unused Code".
 
 ![Step 2](assets/xcode-integration/2.png)
 
@@ -648,17 +666,17 @@ In the **Build Phases** section, click the + button to add a new Run Script phas
 
 ![Step 3](assets/xcode-integration/3.png)
 
-Copy and paste your Periphery command into the script input.
+Copy and paste your outskirts command into the script input.
 
 > [!TIP]
 > 1. Include the `--format xcode` option to ensure results are always formatted so that Xcode can parse them.
-> 2. Use the absolute path to `periphery`.
+> 2. Use the absolute path to `outskirts`.
 
 ![Step 4](assets/xcode-integration/4.png)
 
 #### Ready-to-paste script
 
-Instead of a bare `periphery scan` command, this script builds the project itself into a project-local DerivedData with the index store enabled, then scans that index store. Results appear as warnings in Xcode. Adjust `PROJECT` (or switch to `-workspace`) and `SCHEME` to match your project.
+Instead of a bare `outskirts scan` command, this script builds the project itself into a project-local DerivedData with the index store enabled, then scans that index store. Results appear as warnings in Xcode. Adjust `PROJECT` (or switch to `-workspace`) and `SCHEME` to match your project.
 
 ```sh
 set -eu
@@ -666,15 +684,15 @@ set -eu
 PROJECT="MyApp.xcodeproj"
 SCHEME="MyApp"
 DESTINATION=""   # e.g. "platform=iOS Simulator,name=iPhone 16"; empty = auto-detect
-DERIVED_DATA="$PROJECT_DIR/.build/periphery-derived-data"
+DERIVED_DATA="$PROJECT_DIR/.build/outskirts-derived-data"
 
-# Locate periphery (Homebrew: tiny-earth-moon/tap/periphery)
-PERIPHERY=""
-for candidate in "$(command -v periphery 2>/dev/null || true)" /opt/homebrew/bin/periphery /usr/local/bin/periphery; do
-  if [ -n "$candidate" ] && [ -x "$candidate" ]; then PERIPHERY="$candidate"; break; fi
+# Locate outskirts (Homebrew: tiny-earth-moon/tap/outskirts)
+OUTSKIRTS=""
+for candidate in "$(command -v outskirts 2>/dev/null || true)" /opt/homebrew/bin/outskirts /usr/local/bin/outskirts; do
+  if [ -n "$candidate" ] && [ -x "$candidate" ]; then OUTSKIRTS="$candidate"; break; fi
 done
-if [ -z "$PERIPHERY" ]; then
-  echo "error: periphery not found. Install it with: brew install tiny-earth-moon/tap/periphery" >&2
+if [ -z "$OUTSKIRTS" ]; then
+  echo "error: outskirts not found. Install it with: brew install tiny-earth-moon/tap/outskirts" >&2
   exit 1
 fi
 
@@ -705,7 +723,7 @@ xcodebuild build \
   CODE_SIGNING_ALLOWED=NO
 
 # Scan the index store; xcode format makes results show up as Xcode warnings
-"$PERIPHERY" scan \
+"$OUTSKIRTS" scan \
   --skip-build \
   --index-store-path "$DERIVED_DATA/Index.noindex/DataStore" \
   --format xcode
@@ -714,12 +732,12 @@ xcodebuild build \
 Since 3.12.2, `--skip-build` without `--index-store-path` finds the DataStore in DerivedData on its own (#91). If the project is built in the default DerivedData location, the last command can be shortened to:
 
 ```sh
-"$PERIPHERY" scan --skip-build --format xcode
+"$OUTSKIRTS" scan --skip-build --format xcode
 ```
 
 ### Step 3: Disable User Script Sandboxing
 
-You must disable **User Script Sandboxing** for the Run Script phase. Periphery requires access to your project's index store and source files, which are blocked by Xcode's default sandbox. To disable sandboxing, set the `ENABLE_USER_SCRIPT_SANDBOXING` option to `No` in the Build Settings for the Periphery aggregate target.
+You must disable **User Script Sandboxing** for the Run Script phase. outskirts requires access to your project's index store and source files, which are blocked by Xcode's default sandbox. To disable sandboxing, set the `ENABLE_USER_SCRIPT_SANDBOXING` option to `No` in the Build Settings for the outskirts aggregate target.
 
 ![Step 4](assets/xcode-integration/5.png)
 
@@ -752,7 +770,7 @@ report_exclude:
 
 ### Excluding Indexed Files
 
-Excluding files from the indexing phase means that any declarations and references contained within the files will not be seen by Periphery. Periphery will behave as if the files do not exist.
+Excluding files from the indexing phase means that any declarations and references contained within the files will not be seen by outskirts. outskirts will behave as if the files do not exist.
 
 To exclude files from being indexed, there are a few options:
 
@@ -762,11 +780,11 @@ To exclude files from being indexed, there are a few options:
 
 ### Retaining File Declarations
 
-To retain all declarations in files, pass the `--retain-files <globs>` option to the `scan` command. This option is equivalent to adding a `// periphery:ignore:all` comment command at the top of each file.
+To retain all declarations in files, pass the `--retain-files <globs>` option to the `scan` command. This option is equivalent to adding a `// outskirts:ignore:all` comment command at the top of each file.
 
 ## Continuous Integration
 
-When integrating Periphery into a CI pipeline, you can potentially skip the build phase if your pipeline has already done so, e.g., to run tests. This can be achieved using the `--skip-build` option. However, you also need to tell Periphery the location of the index store using `--index-store-path`. This location is dependent on your project type.
+When integrating outskirts into a CI pipeline, you can potentially skip the build phase if your pipeline has already done so, e.g., to run tests. This can be achieved using the `--skip-build` option. However, you also need to tell outskirts the location of the index store using `--index-store-path`. This location is dependent on your project type.
 
 The `github-actions`, `gitlab-codequality`, `codeclimate` and `sarif` output formats always report paths relative to the project root, as if `--relative-results` was passed, because the CI services that read them match results to files in the repository. The other formats (`xcode`, `csv`, `json`, `checkstyle` and `github-markdown`) report absolute paths unless `--relative-results` is passed.
 
@@ -775,11 +793,11 @@ The `github-actions`, `gitlab-codequality`, `codeclimate` and `sarif` output for
 The `sarif` format writes a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html) log that GitHub code scanning turns into alerts, which are tracked across commits, can be dismissed with a reason and decorate pull requests. Each result carries a `peripheryResult/v1` fingerprint (a SHA-256 of the rule and the ids of the declaration) that GitHub uses to recognise the same alert in the next run. Paths are relative to the project root and resolved against the `%SRCROOT%` base id.
 
 ```yaml
-- run: periphery scan --skip-build --index-store-path <path> --format sarif --write-results periphery.sarif --skip-stdout-results
+- run: outskirts scan --skip-build --index-store-path <path> --format sarif --write-results outskirts.sarif --skip-stdout-results
 - uses: github/codeql-action/upload-sarif@v3
   with:
-    sarif_file: periphery.sarif
-    category: periphery
+    sarif_file: outskirts.sarif
+    category: outskirts
 ```
 
 The upload needs the `security-events: write` permission. Code scanning is free on public repositories; on private repositories it requires GitHub Code Security. GitHub limits the size of an uploaded SARIF file, so a project with a very large number of results may need to be scanned in parts.
@@ -788,19 +806,19 @@ Relative paths are made relative to the project root (`--project-root`). In a re
 
 ### Baseline ratchet
 
-A baseline hides the results that exist today so that CI only fails on new ones. Without care it only grows: an entry stays after its code is fixed or deleted, and hides the declaration if it is added back with the same id. Periphery logs `N baseline entries no longer match any result` on every scan with a baseline, and lists them with `--verbose`.
+A baseline hides the results that exist today so that CI only fails on new ones. Without care it only grows: an entry stays after its code is fixed or deleted, and hides the declaration if it is added back with the same id. outskirts logs `N baseline entries no longer match any result` on every scan with a baseline, and lists them with `--verbose`.
 
 To let a baseline only shrink:
 
 ```sh
 # Once: record the current results. Each entry lists the kind, name and file, so a review shows what was baselined.
-periphery scan --write-baseline baseline.json
+outskirts scan --write-baseline baseline.json
 
 # In CI, on every change: fail on new results (--strict) and on entries that no longer match (--strict-baseline, exit status 1).
-periphery scan --baseline baseline.json --strict --strict-baseline
+outskirts scan --baseline baseline.json --strict --strict-baseline
 
 # On a schedule, e.g. weekly: remove the entries that no longer match and open a pull request with the diff.
-periphery scan --baseline baseline.json --prune-baseline
+outskirts scan --baseline baseline.json --prune-baseline
 ```
 
 `--prune-baseline` rewrites the file given to `--baseline` and requires it; it cannot be combined with `--write-baseline`, which keeps the entries of the baseline it is given and adds the current results. `--strict-baseline` requires `--baseline` too, and does not fail a run that also passes `--prune-baseline`. Entries are matched before `report_include` and `report_exclude`, so the entries of excluded files are kept. Baselines are written in format `v2` (sorted, pretty-printed, newline-terminated); `v1` files are still read, and are rewritten as `v2` by `--write-baseline` and `--prune-baseline`.
@@ -811,12 +829,12 @@ The index store generated by `xcodebuild` exists in DerivedData at a location de
 
 ### SwiftPM
 
-By default, Periphery asks SwiftPM where it places build products (`swift build --show-bin-path`, honouring the `-c`/`--configuration`, `--scratch-path`, `--build-system` and `--triple` options passed after `--`) and looks for the index store next to them:
+By default, outskirts asks SwiftPM where it places build products (`swift build --show-bin-path`, honouring the `-c`/`--configuration`, `--scratch-path`, `--build-system` and `--triple` options passed after `--`) and looks for the index store next to them:
 
 - Swift 6.4 and later (default `swiftbuild` backend): `<scratch path>/out`, e.g. `.build/out` (it contains `v5/units` and `v5/records`).
 - The `native` backend: `<bin path>/index/store`, e.g. `.build/debug/index/store` or `.build/arm64-apple-macosx/debug/index/store`.
 
-Therefore, if you intend to run Periphery directly after calling `swift test`, you can omit the `--index-store-path` option, and Periphery will use the index store created when the project was built for testing, provided you pass the same build options (e.g. `periphery scan --skip-build -- -c release`). If no index store is found, Periphery fails and lists the locations it tried. If the project wasn't built that way, you must provide Periphery the location of the index store with `--index-store-path`.
+Therefore, if you intend to run outskirts directly after calling `swift test`, you can omit the `--index-store-path` option, and outskirts will use the index store created when the project was built for testing, provided you pass the same build options (e.g. `outskirts scan --skip-build -- -c release`). If no index store is found, outskirts fails and lists the locations it tried. If the project wasn't built that way, you must provide outskirts the location of the index store with `--index-store-path`.
 
 ## Build Systems
 
@@ -826,7 +844,7 @@ The Bazel mode (`--bazel` and every `--bazel-*` option) was removed in 3.13.0 ([
 
 ### Other
 
-Periphery can analyze projects using other build systems, though it cannot drive them automatically like SPM and Xcode. Instead, you need to create a configuration file that specifies the location of indexstore and other resource files. The format is as follows:
+outskirts can analyze projects using other build systems, though it cannot drive them automatically like SPM and Xcode. Instead, you need to create a configuration file that specifies the location of indexstore and other resource files. The format is as follows:
 
 ```json
 {
@@ -860,15 +878,15 @@ Only `indexstores` is required and it must list at least one index store; every 
 > [!TIP]
 > Relative paths are assumed to be relative to the current directory.
 
-You can then invoke Periphery as follows:
+You can then invoke outskirts as follows:
 
 ```sh
-periphery scan --generic-project-config config.json
+outskirts scan --generic-project-config config.json
 ```
 
 ## Platforms
 
-Periphery supports both macOS and Linux. macOS supports both Xcode and Swift Package Manager (SPM) projects, whereas only SPM projects are supported on Linux.
+outskirts supports both macOS and Linux. macOS supports both Xcode and Swift Package Manager (SPM) projects, whereas only SPM projects are supported on Linux.
 
 Linux is built and tested in CI on Ubuntu, in the official Swift container. Minimum versions: macOS 15 and Swift 6.1.2. The Homebrew formula requires Xcode 26.0 or later.
 
@@ -880,7 +898,7 @@ It's possible for the index store to become corrupt or out of sync with the sour
 
 ### Code referenced within a preprocessor macro conditional branch is unused
 
-When Periphery builds your project, it uses the default build configuration, which is typically 'debug'. If you use preprocessor macros to conditionally compile code, Periphery will only have visibility into the branches that are compiled. In the example below, `releaseName` will be reported as unused as it is only referenced within the non-debug branch of the macro.
+When outskirts builds your project, it uses the default build configuration, which is typically 'debug'. If you use preprocessor macros to conditionally compile code, outskirts will only have visibility into the branches that are compiled. In the example below, `releaseName` will be reported as unused as it is only referenced within the non-debug branch of the macro.
 
 ```swift
 struct BuildInfo {
@@ -901,7 +919,7 @@ You have a few options to work around this:
 
 - Use [Comment Commands](#comment-commands) to explicitly ignore `releaseName`.
 - Filter the results to remove known instances.
-- Run Periphery once for each build configuration and keep only the results common to all of them (see below). You can pass arguments to the underlying build by specifying them after `--`, e.g., `periphery scan ... -- -configuration release`.
+- Run outskirts once for each build configuration and keep only the results common to all of them (see below). You can pass arguments to the underlying build by specifying them after `--`, e.g., `outskirts scan ... -- -configuration release`.
 
 #### Merging the results of several build configurations
 
@@ -910,8 +928,8 @@ You have a few options to work around this:
 Run one scan per configuration and save each report as JSON:
 
 ```sh
-periphery scan --format json ... -- -configuration Debug > results-debug.json
-periphery scan --format json ... -- -configuration Release > results-release.json
+outskirts scan --format json ... -- -configuration Debug > results-debug.json
+outskirts scan --format json ... -- -configuration Release > results-release.json
 ```
 
 Then compute the intersection with [jq](https://jqlang.github.io/jq/). A result is identified by its `location`, `kind`, `name` and `hints`; add more `results-*.json` files to intersect more configurations.
@@ -927,7 +945,7 @@ The output is a JSON array of the results reported by every configuration. If a 
 
 ### Swift package is platform-specific
 
-Periphery uses `swift build` to compile a Swift package, which will fail if the Swift package is platform-specific (e.g., to iOS).
+outskirts uses `swift build` to compile a Swift package, which will fail if the Swift package is platform-specific (e.g., to iOS).
 
 As a workaround, you can manually build the Swift package with `xcodebuild` and then use the `--skip-build` and `--index-store-path` options to target the index store previously produced by `xcodebuild`.
 
@@ -938,12 +956,12 @@ Example:
 xcodebuild -scheme MyScheme -destination 'platform=iOS Simulator,OS=16.2,name=iPhone 14' -derivedDataPath '../dd' clean build
 
 # 2. Use produced index store for scanning
-periphery scan --skip-build --index-store-path '../dd/Index.noindex/DataStore/'
+outskirts scan --skip-build --index-store-path '../dd/Index.noindex/DataStore/'
 ```
 
 ## Known Bugs
 
-Due to some underlying bugs in Swift, Periphery may in some instances report incorrect results. Three of these issues were closed by the Swift project in January 2026 without a confirmed fix; Periphery keeps its workarounds for them.
+Due to some underlying bugs in Swift, outskirts may in some instances report incorrect results. Three of these issues were closed by the Swift project in January 2026 without a confirmed fix; outskirts keeps its workarounds for them.
 
 | ID    | Title | State |
 | :---  | :---  | :---  |
@@ -952,11 +970,11 @@ Due to some underlying bugs in Swift, Periphery may in some instances report inc
 | [56189](https://github.com/swiftlang/swift/issues/56189) | Index store should relate appendInterpolation from string literals | Closed 2026-01, no fix confirmed |
 | [56165](https://github.com/swiftlang/swift/issues/56165) | Index store does not relate constructor via literal notation | Open |
 
-The index store also records no `overrideOf` relation for the underscored requirements of some SwiftUI protocols, namely `TextFieldStyle._body(configuration:)` and `ShapeStyle._apply(to:)`. Periphery retains these witnesses by name on conforming types, from a table in `SwiftUIRetainer`.
+The index store also records no `overrideOf` relation for the underscored requirements of some SwiftUI protocols, namely `TextFieldStyle._body(configuration:)` and `ShapeStyle._apply(to:)`. outskirts retains these witnesses by name on conforming types, from a table in `SwiftUIRetainer`.
 
 ## Credits
 
-Periphery is the work of [Ian Leitch](https://github.com/ileitch) ([peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived, MIT license). This fork is maintained by [tiny-earth-moon](https://github.com/tiny-earth-moon) since 2026-10-25. The original copyright notice is kept in [LICENSE.md](LICENSE.md).
+Periphery is the work of [Ian Leitch](https://github.com/ileitch) ([peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived, MIT license). This fork is maintained by [tiny-earth-moon](https://github.com/tiny-earth-moon) since 2026-10-25 and renamed outskirts in 3.16.0 (2026-11); the project history, the issues and the credits below are unchanged. The original copyright notice is kept in [LICENSE.md](LICENSE.md).
 
 Issues in this repository are imported from the upstream tracker and from periphery-pro/issues, keeping the original reference and reporter.
 
