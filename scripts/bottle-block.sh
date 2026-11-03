@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Reads the JSON written by `brew bottle --json` (artifact of .github/workflows/bottle.yml)
 # and prints, on stdout only, the `bottle do ... end` block to paste into
-# Formula/periphery.rb of the tiny-earth-moon/homebrew-tap tap, then the file name
+# Formula/outskirts.rb of the tiny-earth-moon/homebrew-tap tap, then the file name
 # the bottle must have on the GitHub release. Writes nothing else.
 #
-# Usage: scripts/bottle-block.sh <periphery--X.Y.Z.<tag>.bottle.json>
+# Usage: scripts/bottle-block.sh <outskirts--X.Y.Z.<tag>.bottle.json>
 set -euo pipefail
 
 if [[ $# -ne 1 ]]; then
