@@ -107,7 +107,7 @@ There is nothing to do: the rename to outskirts (3.16.0) breaks nothing.
 
 ### The `scan` Command
 
-The scan command is outskirts's primary function. To begin a guided setup, change to your project directory and run:
+The scan command is the primary function of outskirts. To begin a guided setup, change to your project directory and run:
 
 ```sh
 outskirts scan --setup
