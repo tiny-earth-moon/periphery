@@ -2,6 +2,7 @@ import Configuration
 import Foundation
 import Logger
 import Shared
+import Synchronization
 
 #if canImport(FoundationNetworking)
     import FoundationNetworking
@@ -13,9 +14,9 @@ final class UpdateChecker {
     private let configuration: Configuration
     private let urlSession: URLSession
     private let latestReleaseURL: URL
-    private var latestVersion: String?
     private let semaphore: DispatchSemaphore
-    private var error: Error?
+    /// Written on the URLSession callback queue, read on the caller's thread.
+    private let state = Mutex<(latestVersion: String?, error: Error?)>((nil, nil))
 
     required init(logger: Logger, configuration: Configuration) {
         self.logger = logger
@@ -45,7 +46,7 @@ final class UpdateChecker {
 
             if let error {
                 debugLogger.debug("error: \(error.localizedDescription)")
-                self.error = error
+                state.withLock { $0.error = error }
                 semaphore.signal()
                 return
             }
@@ -61,13 +62,13 @@ final class UpdateChecker {
                 }
 
                 let message = "Failed to identify latest release tag in: \(json)"
-                self.error = PeripheryError.updateCheckError(message: message)
+                state.withLock { $0.error = PeripheryError.updateCheckError(message: message) }
                 debugLogger.debug(message)
                 semaphore.signal()
                 return
             }
 
-            latestVersion = tagName
+            state.withLock { $0.latestVersion = tagName }
             semaphore.signal()
         }
 
@@ -75,7 +76,7 @@ final class UpdateChecker {
     }
 
     func notifyIfAvailable() {
-        guard let latestVersion else { return }
+        guard let latestVersion = state.withLock({ $0.latestVersion }) else { return }
 
         debugLogger.debug("latest: \(latestVersion)")
 
@@ -94,6 +95,7 @@ final class UpdateChecker {
 
     func wait() -> Result<String, PeripheryError> {
         let waitResult = semaphore.wait(timeout: .now() + 60)
+        let (latestVersion, error) = state.withLock { ($0.latestVersion, $0.error) }
 
         if let error {
             return .failure(.underlyingError(error))
