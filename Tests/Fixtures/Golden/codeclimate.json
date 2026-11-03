@@ -1,5 +1,9 @@
 [
   {
+    "categories" : [
+      "Bug Risk"
+    ],
+    "check_name" : "unused",
     "description" : "Unused class 'Widget'",
     "fingerprint" : "s:3Lib6WidgetC",
     "location" : {
@@ -8,9 +12,14 @@
       },
       "path" : "Project/Sources/Lib/Widget.swift"
     },
-    "severity" : "major"
+    "severity" : "major",
+    "type" : "issue"
   },
   {
+    "categories" : [
+      "Bug Risk"
+    ],
+    "check_name" : "redundantProtocol",
     "description" : "Redundant protocol 'Marker' (never used as an existential type), Redundant protocol conformance 'Marker' (replace with 'Base'), Redundant protocol conformance 'Marker' (replace with 'Base'), Redundant protocol conformance 'Marker' (replace with 'Base'), Redundant protocol conformance 'Marker' (replace with 'Base'), Redundant protocol conformance 'Marker' (replace with 'Base'), Redundant protocol conformance 'Marker' (replace with 'Base'), Redundant protocol conformance 'Marker' (replace with 'Base'), Redundant protocol conformance 'Marker' (replace with 'Base')",
     "fingerprint" : "s:4Demo6MarkerP",
     "location" : {
@@ -19,9 +28,14 @@
       },
       "path" : "Project/Sources/Demo/Marker.swift"
     },
-    "severity" : "major"
+    "severity" : "major",
+    "type" : "issue"
   },
   {
+    "categories" : [
+      "Bug Risk"
+    ],
+    "check_name" : "redundantPublicAccessibility",
     "description" : "Redundant public accessibility for function 'helper()' (not used outside of Alpha, Zeta)",
     "fingerprint" : "s:3Lib6helperyyF",
     "location" : {
@@ -30,9 +44,14 @@
       },
       "path" : "Project/Sources/Lib/Helper.swift"
     },
-    "severity" : "major"
+    "severity" : "major",
+    "type" : "issue"
   },
   {
+    "categories" : [
+      "Bug Risk"
+    ],
+    "check_name" : "unusedAssetCatalogColor",
     "description" : "Unused asset catalog color 'AccentColor' (Project/App/Assets.xcassets/AccentColor.colorset)",
     "fingerprint" : "s:accent",
     "location" : {
@@ -41,6 +60,7 @@
       },
       "path" : "DerivedSources/GeneratedAssetSymbols.swift"
     },
-    "severity" : "major"
+    "severity" : "major",
+    "type" : "issue"
   }
 ]
