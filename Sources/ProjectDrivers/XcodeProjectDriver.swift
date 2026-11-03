@@ -102,7 +102,7 @@
             guard !configuration.skipBuild else { return }
 
             if configuration.cleanBuild {
-                try xcodebuild.removeDerivedData(for: project, allSchemes: Array(schemes))
+                try xcodebuild.removeDerivedData(for: project, allSchemes: Array(schemes), buildArguments: configuration.buildArguments)
             }
 
             for scheme in schemes {
@@ -122,13 +122,14 @@
             let indexStorePaths: Set<FilePath> = if !configuration.indexStorePath.isEmpty {
                 Set(configuration.indexStorePath)
             } else {
-                try [xcodebuild.indexStorePath(project: project, schemes: Array(schemes), skipBuild: configuration.skipBuild)]
+                try [xcodebuild.indexStorePath(project: project, schemes: Array(schemes), buildArguments: configuration.buildArguments, skipBuild: configuration.skipBuild)]
             }
 
             if configuration.indexStorePath.isEmpty {
                 let evicted = try xcodebuild.refreshCache(
                     project: project,
                     schemes: Array(schemes),
+                    buildArguments: configuration.buildArguments,
                     maxAgeDays: configuration.cacheMaxAgeDays
                 )
                 for entry in evicted {
