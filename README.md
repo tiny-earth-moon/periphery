@@ -15,11 +15,12 @@
 >
 > Periphery was created by [Ian Leitch](https://github.com/ileitch), whom we thank for years of excellent work and for keeping the project open source. See [Credits](#credits) for the full attribution, including the sibling fork [agoodkind/periphery](https://github.com/agoodkind/periphery).
 >
-> The original author now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. This fork takes nothing from it; outskirts also installs a `periphery` alias for compatibility, so install one or the other (the Homebrew formulae conflict on purpose). This fork is not affiliated with, nor endorsed by, the original author or Periphery Pro. The `periphery` name is kept as an alias and for the configuration file and comment commands for compatibility; it is not a claim on the Periphery brand.
+> The original author now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. This fork takes nothing from it; outskirts installs a `periphery` alias for compatibility, so its Homebrew formula conflicts on purpose with the Periphery formulae (`periphery` from homebrew-core and from the original tap): install one or the other. This fork is not affiliated with, nor endorsed by, the original author or Periphery Pro. The `periphery` name is kept as an alias and for the configuration file and comment commands for compatibility; it is not a claim on the Periphery brand.
 
 ## Contents
 
 - [Installation](#installation)
+    - [Requirements](#requirements)
 - [Migrating from Periphery](#migrating-from-periphery)
 - [How To Use](#how-to-use)
     - [The `scan` Command](#the-scan-command)
@@ -63,19 +64,27 @@
 
 ## Installation
 
+### Requirements
+
+- **Build from source** (Homebrew without a bottle, Mint or `swift build`): macOS 15 or later (`Package.swift`), Swift 6.1.2 or later (checked at every scan) and Xcode 26.0 or later (required by the Homebrew formula). Xcode or the Command Line Tools must be installed, as outskirts loads `libIndexStore.dylib` from the toolchain.
+- **Homebrew bottle**: Apple silicon with macOS 27 or later, built with Xcode 27.2. It loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools.
+- **Linux**: Swift Package Manager projects only, see [Platforms](#platforms).
+
 ### [Homebrew](https://brew.sh/)
 
 ```sh
 brew install tiny-earth-moon/tap/outskirts
 ```
 
-On Apple silicon with macOS 27 or later, Homebrew pours a prebuilt bottle; on other systems it builds from source. The bottle loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools; with neither, build from source with `brew install --build-from-source tiny-earth-moon/tap/outskirts`. Installing by the full name trusts the formula under Homebrew's [tap trust](https://docs.brew.sh/Tap-Trust); after `brew tap tiny-earth-moon/tap`, a short-name install needs `brew trust --formula tiny-earth-moon/tap/outskirts` first.
+On a system that meets the bottle [requirements](#requirements), Homebrew pours a prebuilt bottle; on other systems it builds from source. With neither Xcode nor the Command Line Tools, the bottle cannot find `libIndexStore.dylib`: build from source with `brew install --build-from-source tiny-earth-moon/tap/outskirts`. Installing by the full name trusts the formula under Homebrew's [tap trust](https://docs.brew.sh/Tap-Trust); after `brew tap tiny-earth-moon/tap`, a short-name install needs `brew trust --formula tiny-earth-moon/tap/outskirts` first.
 
 ### [Mint](https://github.com/yonaskolb/mint)
 
 ```sh
 mint install tiny-earth-moon/outskirts
 ```
+
+`Package.swift` declares two executable products, `outskirts` and `periphery`, both built from the same target. Mint links the executable products of a package, so both commands are available after the install; `outskirts` is the one to use, `periphery` is the compatibility alias. Pin a release with `tiny-earth-moon/outskirts@<version>`.
 
 ### From source
 
@@ -84,6 +93,8 @@ git clone https://github.com/tiny-earth-moon/outskirts.git
 cd outskirts
 swift build -c release --product outskirts
 ```
+
+The executable is written to `.build/release/outskirts`. Xcode or the Command Line Tools must be installed: outskirts links `libIndexStore.dylib` through an rpath to the toolchain that built it.
 
 ## Migrating from Periphery
 
@@ -104,6 +115,8 @@ The scan command is the primary function of outskirts. To begin a guided setup, 
 ```sh
 outskirts scan --setup
 ```
+
+Run it at the root of your project.
 
 The guided setup will detect your project type and configure a few options. After answering a few questions, outskirts will print out the full scan command and execute it.
 
@@ -880,7 +893,7 @@ outskirts scan --generic-project-config config.json
 
 outskirts supports both macOS and Linux. macOS supports both Xcode and Swift Package Manager (SPM) projects, whereas only SPM projects are supported on Linux.
 
-Linux is built and tested in CI on Ubuntu, in the official Swift container. Minimum versions: macOS 15 and Swift 6.1.2. The Homebrew formula requires Xcode 26.0 or later.
+Linux is built and tested in CI on Ubuntu, in the official Swift container. Minimum versions: see [Requirements](#requirements).
 
 ## Troubleshooting
 
