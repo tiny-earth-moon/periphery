@@ -1,6 +1,23 @@
 // swift-tools-version:5.10
 import PackageDescription
 
+// Fixtures that need SwiftUI, SwiftData or the Objective-C runtime; their tests are macOS-only.
+#if os(Linux)
+let retentionFixturesExcludedOnLinux = [
+    "AssetCatalogs",
+    "testDetectsUnusedAssetCatalogColors.swift",
+    "testObjcOptionalProtocolMembersInExtension.swift",
+    "testRetainsMacroStatePropertyInitializedViaBackingStorage.swift",
+    "testRetainsMacroStatePropertyReferencedOnlyViaBackingStorage.swift",
+    "testRetainsMacroStatePropertyReferencedOnlyViaProjectedValue.swift",
+    "testRetainsPropertyWrapperPropertiesReferencedOnlyViaProjectedValue.swift",
+    "testRetainsSoleInitializerOfMacroModelClass.swift",
+    "testRetainsViewExtensionMembersCalledInPostfixPlatformConditionalBlock.swift",
+]
+#else
+let retentionFixturesExcludedOnLinux: [String] = []
+#endif
+
 var targets: [PackageDescription.Target] = [
     .target(
         name: "ExternalModuleFixtures"
@@ -81,7 +98,8 @@ var targets: [PackageDescription.Target] = [
         dependencies: [
             .target(name: "ExternalModuleFixtures"),
             .target(name: "UnusedModuleFixtures")
-        ]
+        ],
+        exclude: retentionFixturesExcludedOnLinux
     ),
     .target(
         name: "UnusedParameterFixtures",
