@@ -12,6 +12,10 @@ public final class OutputDeclarationFilter {
     /// The baseline entries that no result matched in the last call to ``filter(_:with:)``, sorted.
     public private(set) var staleBaselineEntries: [String] = []
 
+    /// The results that the baseline matched in the last call to ``filter(_:with:)``, before `report_include` and
+    /// `report_exclude` were applied.
+    public private(set) var baselineMatchedResults: [ScanResult] = []
+
     public required init(configuration: Configuration, logger: Logger) {
         self.configuration = configuration
         self.logger = logger
@@ -26,12 +30,14 @@ public final class OutputDeclarationFilter {
             var didFilterDeclaration = false
             var didMatchLegacyId = false
             var matchedEntries: Set<String> = []
+            var matchedResults: [ScanResult] = []
 
             declarations = declarations.filter {
                 guard let match = matcher.match($0) else { return true }
 
                 didFilterDeclaration = true
                 matchedEntries.formUnion(matcher.entries(matchedBy: $0))
+                matchedResults.append($0)
                 didMatchLegacyId = didMatchLegacyId || match == .legacy
                 return false
             }
@@ -40,6 +46,7 @@ public final class OutputDeclarationFilter {
                 logger.warn("No results were filtered by the baseline.")
             }
 
+            baselineMatchedResults = matchedResults
             staleBaselineEntries = matcher.staleEntries(given: matchedEntries)
 
             if !staleBaselineEntries.isEmpty {

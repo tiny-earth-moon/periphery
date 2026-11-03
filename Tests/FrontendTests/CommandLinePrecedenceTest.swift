@@ -184,6 +184,13 @@ final class CommandLinePrecedenceTest: XCTestCase {
         XCTAssertEqual(configuration.writeBaseline?.string, "out.json")
     }
 
+    func testPruneBaseline_commandLineOverridesTheFile() throws {
+        XCTAssertTrue(try merge(["--prune-baseline"], file: "prune_baseline: false").pruneBaseline)
+        XCTAssertFalse(try merge(["--no-prune-baseline"], file: "prune_baseline: true").pruneBaseline)
+        XCTAssertTrue(try merge([], file: "prune_baseline: true").pruneBaseline)
+        XCTAssertFalse(try merge([], file: nil).pruneBaseline)
+    }
+
     func testWithoutAFileTheCommandLineAndTheDefaultsApply() throws {
         let configuration = try merge(["--strict", "--format", "json"], file: nil)
 

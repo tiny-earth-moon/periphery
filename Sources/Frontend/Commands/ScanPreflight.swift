@@ -18,6 +18,8 @@ enum ScanPreflight {
 
     /// Checks the baseline and the output destinations, and returns the decoded baseline for filtering.
     static func validatePaths(of configuration: Configuration) throws -> Baseline? {
+        try validateBaselineOptions(of: configuration)
+
         let baseline = try configuration.baseline.map { try loadBaseline(at: $0) }
 
         if let path = configuration.writeBaseline {
@@ -32,6 +34,17 @@ enum ScanPreflight {
     }
 
     // MARK: - Private
+
+    private static func validateBaselineOptions(of configuration: Configuration) throws {
+        if configuration.pruneBaseline {
+            guard configuration.baseline != nil else {
+                throw PeripheryError.usageError("The '--prune-baseline' option requires '--baseline', the file to prune.")
+            }
+            guard configuration.writeBaseline == nil else {
+                throw PeripheryError.usageError("The '--prune-baseline' option rewrites the file given to '--baseline', it cannot be combined with '--write-baseline'.")
+            }
+        }
+    }
 
     private static func loadBaseline(at path: FilePath) throws -> Baseline {
         let normalized = path.lexicallyNormalized()

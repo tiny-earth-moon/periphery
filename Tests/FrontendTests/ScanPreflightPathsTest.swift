@@ -31,12 +31,14 @@ final class ScanPreflightPathsTest: XCTestCase {
     private func configuration(
         baseline: FilePath? = nil,
         writeBaseline: FilePath? = nil,
-        writeResults: FilePath? = nil
+        writeResults: FilePath? = nil,
+        pruneBaseline: Bool = false
     ) -> Configuration {
         let configuration = Configuration()
         configuration.baseline = baseline
         configuration.writeBaseline = writeBaseline
         configuration.writeResults = writeResults
+        configuration.pruneBaseline = pruneBaseline
         return configuration
     }
 
@@ -58,6 +60,28 @@ final class ScanPreflightPathsTest: XCTestCase {
     }
 
     // MARK: - Baseline
+
+    func testPruneBaseline_withoutBaseline_isRejected() {
+        XCTAssertEqual(
+            message(of: configuration(pruneBaseline: true)),
+            "The '--prune-baseline' option requires '--baseline', the file to prune."
+        )
+    }
+
+    func testPruneBaseline_withWriteBaseline_isRejected() throws {
+        let path = try write(#"{"v1":{"usrs":[]}}"#, to: "baseline.json")
+
+        XCTAssertEqual(
+            message(of: configuration(baseline: path, writeBaseline: directory.appending("out.json"), pruneBaseline: true)),
+            "The '--prune-baseline' option rewrites the file given to '--baseline', it cannot be combined with '--write-baseline'."
+        )
+    }
+
+    func testPruneBaseline_withBaseline_isAccepted() throws {
+        let path = try write(#"{"v1":{"usrs":[]}}"#, to: "baseline.json")
+
+        XCTAssertNotNil(try ScanPreflight.validatePaths(of: configuration(baseline: path, pruneBaseline: true)))
+    }
 
     func testBaseline_missingFile_namesTheOptionAndTheReason() {
         let path = directory.appending("missing.json")

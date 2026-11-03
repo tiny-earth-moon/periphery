@@ -14,6 +14,11 @@ public enum Baseline: Codable {
         }
     }
 
+    /// The baseline that keeps only the entries of the results that a baseline matched.
+    public static func pruned(keeping matchedResults: [ScanResult]) -> Baseline {
+        .v1(usrs: matchedResults.flatMapSet(\.usrs).sorted())
+    }
+
     /// Reads a baseline file, reporting the key at fault when the file is not a baseline.
     public static func load(from path: FilePath) throws -> Baseline {
         let data = try Data(contentsOf: path.url)

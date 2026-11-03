@@ -358,4 +358,46 @@ final class BaselineTest: XCTestCase {
 
         XCTAssertTrue(filter.staleBaselineEntries.isEmpty)
     }
+
+    // MARK: - Prune
+
+    func testPrunedBaseline_keepsOnlyTheEntriesOfMatchedResults() throws {
+        let baseline = Baseline.v1(usrs: [importId, extensionId, "s:3Lib10unusedFuncyyF"])
+        let filter = OutputDeclarationFilter(configuration: configuration(root: rootA), logger: quietLogger)
+
+        _ = try filter.filter(scanLib(root: rootA, extensionLines: []), with: baseline)
+
+        XCTAssertEqual(Baseline.pruned(keeping: filter.baselineMatchedResults).usrs, [importId])
+        XCTAssertEqual(filter.staleBaselineEntries, [extensionId, "s:3Lib10unusedFuncyyF"].sorted())
+    }
+
+    func testPrunedBaseline_doesNotAddResultsTheBaselineDidNotMatch() throws {
+        let baseline = Baseline.v1(usrs: [importId])
+        let filter = OutputDeclarationFilter(configuration: configuration(root: rootA), logger: quietLogger)
+
+        _ = try filter.filter(scanLib(root: rootA), with: baseline)
+
+        XCTAssertEqual(Baseline.pruned(keeping: filter.baselineMatchedResults).usrs, [importId])
+    }
+
+    func testPrunedBaseline_keepsTheEntriesOfExcludedFiles() throws {
+        let baseline = try writeBaseline(from: scanLib(root: rootA))
+        let configuration = configuration(root: rootA)
+        configuration.reportExclude = [.pattern("**/Lib.swift")]
+        configuration.buildFilenameMatchers()
+        let filter = OutputDeclarationFilter(configuration: configuration, logger: quietLogger)
+
+        _ = try filter.filter(scanLib(root: rootA), with: baseline)
+
+        XCTAssertEqual(Baseline.pruned(keeping: filter.baselineMatchedResults).usrs, baseline.usrs)
+    }
+
+    func testPrunedBaseline_rewritesLegacyEntriesWithCurrentIds() throws {
+        let baseline = Baseline.v1(usrs: ["import-Util-Sources/Lib/Lib.swift:2:1"])
+        let filter = OutputDeclarationFilter(configuration: configuration(root: rootA), logger: quietLogger)
+
+        _ = try filter.filter(scanLib(root: rootA), with: baseline)
+
+        XCTAssertEqual(Baseline.pruned(keeping: filter.baselineMatchedResults).usrs, [importId])
+    }
 }

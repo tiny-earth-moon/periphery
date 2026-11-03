@@ -199,6 +199,9 @@ struct ScanCommand: ParsableCommand {
     @Option(help: "Baseline file path where results are written. Pass the same path to '--baseline' in subsequent scans to exclude the results recorded in the baseline.")
     var writeBaseline: FilePath?
 
+    @Flag(inversion: .prefixedNo, help: "Rewrite the file given to '--baseline' keeping only the entries that still match a result. Requires '--baseline'")
+    var pruneBaseline: Bool?
+
     @Option(help: "File path where formatted results are written.")
     var writeResults: FilePath?
 
@@ -289,6 +292,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$jsonPackageManifestPath, jsonPackageManifestPath)
         configuration.apply(\.$baseline, baseline)
         configuration.apply(\.$writeBaseline, writeBaseline)
+        configuration.apply(\.$pruneBaseline, pruneBaseline)
         configuration.apply(\.$writeResults, writeResults)
         configuration.apply(\.$skipStdoutResults, skipStdoutResults)
         configuration.apply(\.$genericProjectConfig, genericProjectConfig)
@@ -353,7 +357,13 @@ struct ScanCommand: ParsableCommand {
         let results = scanOutput.results
         let interval = logger.beginInterval("result:output")
 
-        let filteredResults = try OutputDeclarationFilter(configuration: configuration, logger: logger).filter(results, with: baseline)
+        let outputFilter = OutputDeclarationFilter(configuration: configuration, logger: logger)
+        let filteredResults = try outputFilter.filter(results, with: baseline)
+
+        if configuration.pruneBaseline, let baselinePath = configuration.baseline {
+            try Self.writeBaseline(.pruned(keeping: outputFilter.baselineMatchedResults), to: baselinePath)
+            logger.info("Pruned \(outputFilter.staleBaselineEntries.count) stale entries from \(baselinePath.string)")
+        }
 
         if let baselinePath = configuration.writeBaseline {
             let usrs = filteredResults
