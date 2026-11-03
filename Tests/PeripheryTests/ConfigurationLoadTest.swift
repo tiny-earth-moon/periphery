@@ -78,13 +78,13 @@ final class ConfigurationLoadTest: XCTestCase {
     // MARK: - Enums
 
     func testInvalidEnumValuesWarnOnceAndKeepTheDefault() throws {
-        for value in ["sarif", "JSON", "jsno"] {
+        for value in ["xml", "JSON", "jsno"] {
             let (configuration, warnings, file) = try load("format: \(value)\n")
 
             XCTAssertEqual(configuration.outputFormat, .xcode, value)
             XCTAssertEqual(
                 warnings,
-                ["\(file): 'format' has invalid value '\(value)' (expected one of xcode, csv, json, checkstyle, codeclimate, github-actions, github-markdown, gitlab-codequality); using default 'xcode'"],
+                ["\(file): 'format' has invalid value '\(value)' (expected one of xcode, csv, json, checkstyle, codeclimate, github-actions, github-markdown, gitlab-codequality, sarif); using default 'xcode'"],
                 value
             )
         }
