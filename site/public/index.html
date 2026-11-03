@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>outskirts: find what lies at the outskirts of your Swift code</title>
+<meta name="description" content="outskirts is an open-source tool that finds unused code in Swift projects: declarations nothing reaches, assign-only properties, unused imports and more. A community-maintained fork of Periphery.">
+<link rel="canonical" href="https://outskirts.dev/">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/style.css">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="outskirts">
+<meta property="og:title" content="outskirts: find what lies at the outskirts of your Swift code">
+<meta property="og:description" content="Explore your Swift project and report the code nothing reaches. Open source, community-maintained fork of Periphery.">
+<meta property="og:url" content="https://outskirts.dev/">
+<meta property="og:image" content="https://outskirts.dev/social-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="outskirts: find what lies at the outskirts of your Swift code">
+<meta name="twitter:description" content="Explore your Swift project and report the code nothing reaches.">
+<meta name="twitter:image" content="https://outskirts.dev/social-preview.png">
+</head>
+<body>
+<header>
+<h1>
+<picture>
+<source srcset="/outskirts-logo-dark.svg" media="(prefers-color-scheme: dark)">
+<img src="/outskirts-logo.svg" alt="outskirts" width="922" height="256">
+</picture>
+</h1>
+<p class="pitch">Find what lies at the outskirts of your Swift code: the declarations nothing reaches.</p>
+<p>outskirts explores your project, builds a map of what refers to what, and reports the code that sits beyond every entry point. Open source, for Xcode projects and Swift packages.</p>
+</header>
+<main>
+<section>
+<h2>What it finds</h2>
+<ul>
+<li>Unused declarations: classes, structs, enums, protocols, functions and properties</li>
+<li>Assign-only properties, written but never read</li>
+<li>Unused imports</li>
+<li>Redundant <code>public</code> accessibility</li>
+<li>Unused function parameters</li>
+<li>Redundant protocol conformances</li>
+</ul>
+<p>Results can be reported as <code>xcode</code>, <code>json</code>, <code>csv</code>, <code>github-actions</code>, <code>codeclimate</code> or <code>sarif</code>, among others.</p>
+</section>
+<section>
+<h2>Install</h2>
+<pre><code>brew install tiny-earth-moon/tap/outskirts</code></pre>
+<p>Or build from source:</p>
+<pre><code>git clone https://github.com/tiny-earth-moon/outskirts
+cd outskirts
+swift build -c release --product outskirts</code></pre>
+</section>
+<section>
+<h2>Quick start</h2>
+<p>From the root of your project, a guided setup detects the project type and prints the full command:</p>
+<pre><code>outskirts scan --setup</code></pre>
+<p>Then scan an Xcode project, or a Swift package:</p>
+<pre><code>outskirts scan --project MyApp.xcodeproj --schemes MyApp
+outskirts scan</code></pre>
+<p>Keep your options in a <code>.outskirts.yml</code> file at the project root. To keep a declaration on purpose, add a <code>// outskirts:ignore</code> comment above it.</p>
+</section>
+<section>
+<h2>Coming from Periphery</h2>
+<ul>
+<li>A <code>.periphery.yml</code> is still read; <code>.outskirts.yml</code> takes its place when you are ready.</li>
+<li>Baseline files keep working.</li>
+<li><code>periphery</code> remains as a deprecated alias in 3.x.</li>
+<li><code>// periphery:ignore</code> comments are still honoured.</li>
+</ul>
+</section>
+<section>
+<h2>In CI</h2>
+<pre><code>outskirts scan --write-baseline baseline.json              # record today's results
+outskirts scan --baseline baseline.json --strict           # only new results fail
+outskirts scan --format github-actions                     # annotations on pull requests</code></pre>
+</section>
+</main>
+<footer>
+<p><a href="https://github.com/tiny-earth-moon/outskirts">GitHub</a> · MIT license · a community-maintained fork.</p>
+<p>outskirts continues <a href="https://github.com/peripheryapp/periphery">Periphery</a>, created by <a href="https://github.com/ileitch">Ian Leitch</a>, whom we thank for years of excellent open-source work. It is not affiliated with, or endorsed by, the original author or Periphery Pro.</p>
+</footer>
+</body>
+</html>
