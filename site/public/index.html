@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>outskirts: find what lies at the outskirts of your Swift code</title>
-<meta name="description" content="outskirts is an open-source tool that finds unused code in Swift projects: declarations nothing reaches, assign-only properties, unused imports and more. A community-maintained fork of Periphery.">
+<title>outskirts: find unused code in Swift and Xcode projects</title>
+<meta name="description" content="outskirts is an open-source tool that finds unused code in Swift projects: declarations nothing reaches, assign-only properties, unused imports and more. The community-maintained successor of Periphery, for Xcode projects and Swift packages on macOS and Linux.">
 <link rel="canonical" href="https://outskirts.dev/">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -13,14 +13,17 @@
 <link rel="stylesheet" href="/style.css">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="outskirts">
-<meta property="og:title" content="outskirts: find what lies at the outskirts of your Swift code">
+<meta property="og:title" content="outskirts: find unused code in Swift and Xcode projects">
 <meta property="og:description" content="Explore your Swift project and report the code nothing reaches. Open source, community-maintained fork of Periphery.">
 <meta property="og:url" content="https://outskirts.dev/">
 <meta property="og:image" content="https://outskirts.dev/social-preview.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="outskirts: find what lies at the outskirts of your Swift code">
+<meta name="twitter:title" content="outskirts: find unused code in Swift and Xcode projects">
 <meta name="twitter:description" content="Explore your Swift project and report the code nothing reaches.">
 <meta name="twitter:image" content="https://outskirts.dev/social-preview.png">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"outskirts","alternateName":"Periphery","description":"Finds unused code in Swift projects: unused declarations, assign-only properties, unused imports, redundant public accessibility and protocol conformances.","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux","softwareVersion":"3.16.0","license":"https://opensource.org/licenses/MIT","url":"https://outskirts.dev/","downloadUrl":"https://github.com/tiny-earth-moon/outskirts/releases","codeRepository":"https://github.com/tiny-earth-moon/outskirts","isBasedOn":"https://github.com/peripheryapp/periphery","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+</script>
 </head>
 <body>
 <header>
@@ -44,6 +47,7 @@
 <li>Unused function parameters</li>
 <li>Redundant protocol conformances</li>
 </ul>
+<p>A lot of this code is not dead weight to throw away: it is often a feature that was never wired up, a leftover from a refactor, or an API waiting for its first caller. outskirts shows you where it is, and you decide.</p>
 <p>Results can be reported as <code>xcode</code>, <code>json</code>, <code>csv</code>, <code>github-actions</code>, <code>codeclimate</code> or <code>sarif</code>, among others.</p>
 </section>
 <section>
@@ -53,6 +57,7 @@
 <pre><code>git clone https://github.com/tiny-earth-moon/outskirts
 cd outskirts
 swift build -c release --product outskirts</code></pre>
+<p>Requirements: macOS 15 and Xcode 26 for Xcode projects and Swift packages, or Linux with Swift 6.1.2 for Swift packages.</p>
 </section>
 <section>
 <h2>Quick start</h2>
@@ -68,19 +73,36 @@ outskirts scan</code></pre>
 <ul>
 <li>A <code>.periphery.yml</code> is still read; <code>.outskirts.yml</code> takes its place when you are ready.</li>
 <li>Baseline files keep working.</li>
-<li><code>periphery</code> remains as a deprecated alias in 3.x.</li>
+<li>The <code>periphery</code> command keeps working as an alias of <code>outskirts</code>.</li>
 <li><code>// periphery:ignore</code> comments are still honoured.</li>
+<li>Installed from <code>tiny-earth-moon/tap/periphery</code>? <code>brew upgrade</code> moves you to <code>outskirts</code>.</li>
 </ul>
+<p>The full guide: <a href="https://github.com/tiny-earth-moon/outskirts#migrating-from-periphery">migrating from Periphery</a>.</p>
 </section>
 <section>
 <h2>In CI</h2>
-<pre><code>outskirts scan --write-baseline baseline.json              # record today's results
-outskirts scan --baseline baseline.json --strict           # only new results fail
-outskirts scan --format github-actions                     # annotations on pull requests</code></pre>
+<pre><code># record today's results
+outskirts scan --write-baseline baseline.json
+
+# only new results fail
+outskirts scan --baseline baseline.json --strict
+
+# annotations on pull requests
+outskirts scan --format github-actions</code></pre>
+<p>Recipes for GitHub Actions, GitLab and other CI services: <a href="https://github.com/tiny-earth-moon/outskirts#continuous-integration">continuous integration</a>.</p>
+</section>
+<section>
+<h2>Documentation</h2>
+<ul>
+<li><a href="https://github.com/tiny-earth-moon/outskirts#installation">Installation</a> and <a href="https://github.com/tiny-earth-moon/outskirts#how-to-use">usage</a></li>
+<li><a href="https://github.com/tiny-earth-moon/outskirts#comment-commands">Comment commands</a> and <a href="https://github.com/tiny-earth-moon/outskirts#excluding-files">excluding files</a></li>
+<li><a href="https://github.com/tiny-earth-moon/outskirts#troubleshooting">Troubleshooting</a></li>
+<li><a href="https://github.com/tiny-earth-moon/outskirts/blob/master/CHANGELOG.md">Changelog</a> and <a href="https://github.com/tiny-earth-moon/outskirts/releases">releases</a></li>
+</ul>
 </section>
 </main>
 <footer>
-<p><a href="https://github.com/tiny-earth-moon/outskirts">GitHub</a> · MIT license · a community-maintained fork.</p>
+<p><a href="https://github.com/tiny-earth-moon/outskirts">GitHub</a> · <a href="https://github.com/tiny-earth-moon/outskirts/issues">Issues</a> · <a href="https://github.com/tiny-earth-moon/outskirts/security/policy">Report a vulnerability</a> · <a href="https://github.com/tiny-earth-moon/outskirts/blob/master/LICENSE.md">MIT license</a></p>
 <p>outskirts continues <a href="https://github.com/peripheryapp/periphery">Periphery</a>, created by <a href="https://github.com/ileitch">Ian Leitch</a>, whom we thank for years of excellent open-source work. It is not affiliated with, or endorsed by, the original author or Periphery Pro.</p>
 </footer>
 </body>
