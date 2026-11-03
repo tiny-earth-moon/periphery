@@ -7,14 +7,6 @@
 
 <p align="center">Find unused code at the outskirts of your Swift project. A community-maintained fork of Periphery 3.x.</p>
 
-<p align="center">
-<a href="https://github.com/tiny-earth-moon/outskirts/releases/latest">
-<img src="https://img.shields.io/github/release/tiny-earth-moon/outskirts.svg?color=008DFF"/></a>
-<img src="https://img.shields.io/badge/platform-macOS%20|%20Linux-008DFF">
-<br>
-<br>
-</p>
-
 > [!NOTE]
 >
 > outskirts is the new name, since 3.16.0 (2026-11), of the community-maintained successor of [peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived in August 2026. It continues the open-source 3.x line with bug fixes, support for current Xcode/Swift toolchains and new features. Nothing breaks: see [Migrating from Periphery](#migrating-from-periphery).
@@ -23,21 +15,23 @@
 >
 > Periphery was created by [Ian Leitch](https://github.com/ileitch), whom we thank for years of excellent work and for keeping the project open source. See [Credits](#credits) for the full attribution, including the sibling fork [agoodkind/periphery](https://github.com/agoodkind/periphery).
 >
-> The original author now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. This fork takes nothing from it; outskirts also installs a `periphery` alias for compatibility, so install one or the other (the Homebrew formulae conflict on purpose). This fork is not affiliated with, nor endorsed by, the original author or Periphery Pro. The `periphery` name is kept as an alias and for the configuration file and comment commands for compatibility; it is not a claim on the Periphery brand.
+> The original author now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. This fork takes nothing from it; outskirts installs a `periphery` alias for compatibility, so its Homebrew formula conflicts on purpose with the Periphery formulae (`periphery` from homebrew-core and from the original tap): install one or the other. This fork is not affiliated with, nor endorsed by, the original author or Periphery Pro. The `periphery` name is kept as an alias and for the configuration file and comment commands for compatibility; it is not a claim on the Periphery brand.
 
 ## Contents
 
 - [Installation](#installation)
+    - [Requirements](#requirements)
 - [Migrating from Periphery](#migrating-from-periphery)
 - [How To Use](#how-to-use)
     - [The `scan` Command](#the-scan-command)
     - [Configuration](#configuration)
+    - [Options Reference](#options-reference)
     - [Output Formats](#output-formats)
     - [Exit Status](#exit-status)
 - [Analysis](#analysis)
     - [Function Parameters](#function-parameters)
     - [Generic Type Parameters](#generic-type-parameters)
-    - [Protocols](#protocols-1)
+    - [Protocols](#protocols)
     - [Enumerations](#enumerations)
     - [Assign-only Properties](#assign-only-properties)
     - [Unassigned Optional Analysis](#unassigned-optional-analysis)
@@ -71,19 +65,27 @@
 
 ## Installation
 
+### Requirements
+
+- **Build from source** (Homebrew without a bottle, Mint or `swift build`): macOS 15 or later (`Package.swift`), Swift 6.1.2 or later (checked at every scan) and Xcode 26.0 or later (required by the Homebrew formula). Xcode or the Command Line Tools must be installed, as outskirts loads `libIndexStore.dylib` from the toolchain.
+- **Homebrew bottle**: Apple silicon with macOS 27 or later, built with Xcode 27.2. It loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools.
+- **Linux**: Swift Package Manager projects only, see [Platforms](#platforms).
+
 ### [Homebrew](https://brew.sh/)
 
 ```sh
 brew install tiny-earth-moon/tap/outskirts
 ```
 
-On Apple silicon with macOS 27 or later, Homebrew pours a prebuilt bottle; on other systems it builds from source. The bottle loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools; with neither, build from source with `brew install --build-from-source tiny-earth-moon/tap/outskirts`. Installing by the full name trusts the formula under Homebrew's [tap trust](https://docs.brew.sh/Tap-Trust); after `brew tap tiny-earth-moon/tap`, a short-name install needs `brew trust --formula tiny-earth-moon/tap/outskirts` first.
+On a system that meets the bottle [requirements](#requirements), Homebrew pours a prebuilt bottle; on other systems it builds from source. With neither Xcode nor the Command Line Tools, the bottle cannot find `libIndexStore.dylib`: build from source with `brew install --build-from-source tiny-earth-moon/tap/outskirts`. Installing by the full name trusts the formula under Homebrew's [tap trust](https://docs.brew.sh/Tap-Trust); after `brew tap tiny-earth-moon/tap`, a short-name install needs `brew trust --formula tiny-earth-moon/tap/outskirts` first.
 
 ### [Mint](https://github.com/yonaskolb/mint)
 
 ```sh
 mint install tiny-earth-moon/outskirts
 ```
+
+`Package.swift` declares two executable products, `outskirts` and `periphery`, both built from the same target. Mint links the executable products of a package, so both commands are available after the install; `outskirts` is the one to use, `periphery` is the compatibility alias. Pin a release with `tiny-earth-moon/outskirts@<version>`.
 
 ### From source
 
@@ -92,6 +94,8 @@ git clone https://github.com/tiny-earth-moon/outskirts.git
 cd outskirts
 swift build -c release --product outskirts
 ```
+
+The executable is written to `.build/release/outskirts`. Xcode or the Command Line Tools must be installed: outskirts links `libIndexStore.dylib` through an rpath to the toolchain that built it.
 
 ## Migrating from Periphery
 
@@ -113,6 +117,8 @@ The scan command is the primary function of outskirts. To begin a guided setup, 
 outskirts scan --setup
 ```
 
+Run it at the root of your project.
+
 The guided setup will detect your project type and configure a few options. After answering a few questions, outskirts will print out the full scan command and execute it.
 
 The guided setup is only intended for introductory purposes. Once you are familiar with outskirts, you can try some more advanced options, all of which can be seen with `outskirts help scan`.
@@ -124,7 +130,7 @@ To get the most from outskirts, it’s important to understand how it works. out
 
 If your project consists of one or more standalone frameworks that do not also contain some kind of application that consumes their interfaces, you need to tell outskirts to assume that all public declarations are used with the `--retain-public` option.
 
-The results are written to stdout. With any `--format` other than `xcode`, progress and `--verbose` messages go to stderr, so stdout carries only the report, e.g. `outskirts scan --format json > report.json`. `--write-results <file>` also writes the report to a file, and `--skip-stdout-results` then stops it from being printed to stdout. Interrupting a scan with Ctrl-C (`SIGINT`) or `SIGTERM` stops the running build and exits with status 130 or 143.
+The results are written to stdout. With any `--format` other than `xcode`, progress and `--verbose` messages go to stderr, so stdout carries only the report, e.g. `outskirts scan --format json > report.json`. `--write-results <file>` also writes the report to a file, and `--skip-stdout-results` then stops it from being printed to stdout. Interrupting a scan with Ctrl-C (`SIGINT`) or `SIGTERM` stops the running build and exits with status 130 or 143, see [Exit Status](#exit-status).
 
 For projects that are mixed Objective-C & Swift, it's highly recommended you [read about the implications](#objective-c) this can have on your results.
 
@@ -135,6 +141,93 @@ Once you've settled upon the appropriate options for your project, you may wish 
 Values are checked when the file is loaded. A value that does not suit its key, such as a number for a boolean (`strict: 1`), a format that does not exist (`format: xml`) or a quoted number for an integer, is reported on stderr as `<file>: '<key>' expects a boolean, got the integer 1`, and the default is kept. A key that is not an option is reported too, with the closest option when there is one (`invalid key 'retain_pubic' (did you mean 'retain_public'?)`). The file only has to be a mapping, otherwise the scan stops with an error. Two shapes are accepted in place of the exact one: a single value for an option that takes a list (`exclude_targets: Demo` is `exclude_targets: [Demo]`), and the strings `"true"` and `"false"` for a boolean, which is also reported.
 
 The command line takes precedence over the configuration file, which takes precedence over the defaults. An option given on the command line wins even when its value is the default (`--format xcode` over `format: json` in the file), and an option that is not given leaves the value of the file untouched. Every boolean option has a `--no-` form to switch off, for one run, what the file enables (`--no-strict`, `--no-retain-public`, `--no-quiet`...). A list given on the command line replaces the list of the file; the default `index_exclude` patterns are always kept.
+
+### Options Reference
+
+Every option of the `scan` command, with its key in the configuration file and its default (see `outskirts help scan` for the full help). Options marked "none" in the key column cannot be set in the configuration file. Every option that takes no value, except `--setup` and `--skip-stdout-results`, also has a `--no-` form, e.g. `--no-strict`. Options that take a list accept several values after one flag. See [Excluding Files](#excluding-files) and [Analysis](#analysis) for the options in context.
+
+| Option | Configuration key | Default | Meaning |
+|--------|-------------------|---------|---------|
+| `-- <args>` | `build_arguments` | empty | Arguments passed to the underlying build tool (`swift build` or `xcodebuild`), after a `--` separator |
+| none | `xcode_list_arguments` | empty | Extra arguments for the `xcodebuild -list` call that lists schemes (guided setup) |
+| `--setup` | none | none | Guided setup, run at the project root |
+| `--project-root` | none | none | Root directory of the project, from which relative paths are resolved (default: the current directory) |
+| `--config` | none | none | Configuration file (default: `.outskirts.yml`, else `.periphery.yml`, in the project root) |
+| `--project` | `project` | none | Path to the `.xcodeproj` or `.xcworkspace` |
+| `--schemes` | `schemes` | empty | Schemes to build |
+| `--format` | `format` | `xcode` | Output format: `xcode`, `csv`, `json`, `checkstyle`, `codeclimate`, `github-actions`, `github-markdown`, `gitlab-codequality` or `sarif` |
+| `--exclude-tests` | `exclude_tests` | `false` | Exclude test targets from indexing |
+| `--exclude-targets` | `exclude_targets` | empty | Targets to exclude from indexing |
+| `--index-exclude` | `index_exclude` | `["**/*?.build/**/*", "**/SourcePackages/checkouts/**"]` | Source file globs to leave out of indexing, added to the defaults |
+| `--report-exclude` | `report_exclude` | empty | Source file globs to leave out of the results, optionally per result kind with `<glob>:kind1,kind2`; the files are still indexed |
+| `--report-include` | `report_include` | empty | Source file globs to keep in the results; supersedes `--report-exclude`; the other files are still indexed |
+| `--retain-files` | `retain_files` | empty | Source file globs for which all containing declarations will be retained |
+| `--index-store-path` | `index_store_path` | empty | Index store paths; implies `--skip-build` |
+| `--retain-public` | `retain_public` | `false` | Retain all public declarations, recommended for framework/library projects |
+| `--no-retain-spi` | `no_retain_spi` | empty | Public SPIs to analyze even when `--retain-public` is enabled |
+| `--disable-platform-conditional-retention` | `disable_platform_conditional_retention` | `false` | Do not retain declarations unavailable on a platform or referenced from platform conditional compilation blocks |
+| `--disable-redundant-public-analysis` | `disable_redundant_public_analysis` | `false` | Disable identification of redundant public accessibility |
+| `--enable-redundant-public-members` | `enable_redundant_public_members` | `false` | Also find redundant public accessibility on the members of public types and extensions |
+| `--enable-open-final-analysis` | `enable_open_final_analysis` | `false` | Find redundant `open` accessibility and classes or members that could be `final` |
+| `--enable-empty-extension-analysis` | `enable_empty_extension_analysis` | `false` | Find extensions that declare no member and no conformance |
+| `--enable-redundant-access-level-analysis` | `enable_redundant_access_level_analysis` | `false` | Find access modifiers identical to the default of their enclosing context |
+| `--report-unused-type-parameters` | `report_unused_type_parameters` | `false` | Also report unused generic parameters of types, ignored by default as they may be phantom types |
+| `--disable-unused-import-analysis` | `disable_unused_import_analysis` | `false` | Turn off the analysis of unused imports |
+| `--enable-unused-system-imports` | `enable_unused_system_imports` | `false` | Also analyze imports of system frameworks (experimental) |
+| `--superfluous-ignore-comments` | `superfluous_ignore_comments` | `true` | Report ignore comments that ignore nothing |
+| `--disable-unused-localized-string-analysis` | `disable_unused_localized_string_analysis` | `false` | Turn off the analysis of unused String Catalog (xcstrings) keys |
+| `--localized-string-catalog-exclude` | `localized_string_catalog_exclude` | `["**/InfoPlist.xcstrings", "**/AppShortcuts.xcstrings"]` | String Catalog globs left out of the localized strings analysis |
+| `--localized-string-key-patterns` | `localized_string_key_patterns` | empty | Key patterns (globs, or regular expressions between slashes) of keys used dynamically, retained from String Catalogs |
+| `--localized-string-key-literal-match` | `localized_string_key_literal_match` | `false` | Retain keys equal to any string literal of the source |
+| `--retain-runtime-localized-keys` | `retain_runtime_localized_keys` | `false` | Retain every key that a key built at runtime without a literal prefix may look up |
+| `--retain-unused-imported-modules` | `retain_unused_imported_modules` | empty | Names of imported modules to retain even when unused |
+| `--retain-assign-only-properties` | `retain_assign_only_properties` | `false` | Retain properties that are assigned but never read |
+| `--retain-assign-only-property-types` | `retain_assign_only_property_types` | empty | Property types to retain when assigned but never read |
+| `--enable-unassigned-optional-analysis` | `enable_unassigned_optional_analysis` | `false` | Find optional properties that are read but never assigned (always `nil`) |
+| `--external-encodable-protocols` | `external_encodable_protocols` | empty | External protocols that inherit `Encodable`; the properties and `CodingKey` enums of conforming types are retained |
+| `--external-codable-protocols` | `external_codable_protocols` | empty | External protocols that inherit `Codable`; the properties and `CodingKey` enums of conforming types are retained |
+| `--external-test-case-classes` | `external_test_case_classes` | empty | `XCTestCase` subclasses that live in external targets |
+| `--retain-objc-accessible` | `retain_objc_accessible` | `false` | Retain declarations exposed to Objective-C, implicitly (`NSObject` subclasses) or with `@objc` / `@objcMembers` |
+| `--retain-js-accessible` | `retain_js_accessible` | `false` | Retain protocols that inherit `JSExport`, their members and the members of conforming types that satisfy them |
+| `--retain-objc-annotated` | `retain_objc_annotated` | `false` | Retain declarations exposed to Objective-C with `@objc` / `@objcMembers` only |
+| `--retain-unused-protocol-func-params` | `retain_unused_protocol_func_params` | `false` | Retain unused protocol function parameters, even if unused in all conforming functions |
+| `--retain-unused-parameters-without-default` | `retain_unused_parameters_without_default` | `false` | Retain unused function parameters that have no default value |
+| `--retain-swift-ui-previews` | `retain_swift_ui_previews` | `false` | Retain SwiftUI previews |
+| `--retain-codable-properties` | `retain_codable_properties` | `false` | Retain properties on Codable types (including Encodable and Decodable) |
+| `--retain-encodable-properties` | `retain_encodable_properties` | `false` | Retain properties on Encodable types only |
+| `--retain-equatable-properties` | `retain_equatable_properties` | `false` | Retain properties on Equatable types, including Hashable types |
+| `--retain-hashable-properties` | `retain_hashable_properties` | `false` | Retain properties on Hashable types |
+| `--clean-build` | `clean_build` | `false` | Remove existing build artifacts before building |
+| `--skip-build` | `skip_build` | `false` | Skip the project build step |
+| `--skip-schemes-validation` | `skip_schemes_validation` | `false` | Do not check that the schemes exist |
+| `--relative-results` | `relative_results` | `false` | Report paths relative to the project root, or to `--relative-to` |
+| `--relative-to` | `relative_results_base` | none | Directory the result paths are relative to when `--relative-results` is in effect; a relative value is resolved from `--project-root` |
+| `--strict` | `strict` | `false` | Exit with status 1 if any result is reported |
+| `--disable-update-check` | `disable_update_check` | `false` | Do not check for a new version |
+| `--verbose` | `verbose` | `false` | Enable verbose logging |
+| `--quiet` | `quiet` | `false` | Print only the results |
+| `--color` | `color` | `auto` | Colored output: `auto`, `always` or `never` (`--no-color` is a hidden alias of `--color never`) |
+| `--json-package-manifest-path` | `json_package_manifest_path` | none | Package manifest as JSON (from `swift package describe --type json`, or written by hand) |
+| `--cache-max-age-days` | `cache_max_age_days` | `14` | Age in days after which unused Xcode build caches are evicted at the end of a scan; `0` disables eviction |
+| `--baseline` | `baseline` | none | Baseline file whose entries are hidden from the results |
+| `--write-baseline` | `write_baseline` | none | Write the results to a baseline file, keeping the entries of `--baseline` |
+| `--prune-baseline` | `prune_baseline` | `false` | Rewrite the `--baseline` file keeping only the entries that still match a result; requires `--baseline` |
+| `--strict-baseline` | `strict_baseline` | `false` | Exit with status 1 if the baseline holds entries that no longer match; requires `--baseline` |
+| `--write-results` | `write_results` | none | Also write the formatted results to a file |
+| `--skip-stdout-results` | `skip_stdout_results` | `false` | Do not print the results to stdout; requires `--write-results` |
+| `--generic-project-config` | `generic_project_config` | none | Project configuration file for other build systems, see [Other](#other) |
+| `--retain-synthesized-uses` | `retain_synthesized_uses` | `false` | Retain stored properties of types whose values are described through reflection (`print`, `dump`, `String(describing:)`, interpolation) |
+| `--retain-attributes` | `retain_attributes` | empty | Retain declarations that have one of the given attributes (without the `@`), optionally per declaration kind with `<attribute>:kind1,kind2` |
+| `--detect-unused-asset-catalog-colors` | `detect_unused_asset_catalog_colors` | `false` | Find unused colors of Xcode asset catalogs |
+| `--detect-unused-asset-catalog-images` | `detect_unused_asset_catalog_images` | `false` | Find unused images of Xcode asset catalogs |
+
+Other commands:
+
+| Command | Meaning |
+|---------|---------|
+| `outskirts check-update` | Check whether a newer version is available. |
+| `outskirts clear-cache` | Clear the build cache of outskirts. |
+| `outskirts version` | Print the version of outskirts. |
 
 ### Output Formats
 
@@ -159,8 +252,10 @@ Select a format with `--format` (`format` in the configuration file). The defaul
 | Status | Meaning |
 |--------|---------|
 | 0 | The scan completed (results may have been reported). |
-| 1 | `--strict` and at least one result was reported, `--strict-baseline` and the baseline holds entries that no longer match, or the scan failed (build error, invalid configuration, unreadable file...). |
-| 64 | Usage error: unknown or invalid command line option. |
+| 1 | `--strict` and at least one result was reported, `--strict-baseline` and the baseline holds entries that no longer match, or the scan failed (build error, invalid configuration, unreadable file, options that cannot be combined such as `--skip-stdout-results` without `--write-results`...). |
+| 64 | The command line could not be parsed: unknown option, missing or invalid value. |
+| 130 | Interrupted with Ctrl-C (`SIGINT`); the running build is stopped first. |
+| 143 | Terminated with `SIGTERM`; the running build is stopped first. |
 
 ## Analysis
 
@@ -172,7 +267,7 @@ outskirts can also identify more advanced instances of unused code. The followin
 
 outskirts can identify unused function parameters. Instances of unused parameters can also be identified in protocols and their conforming declarations, as well as parameters in overridden methods. Both of these scenarios are explained further below.
 
-#### Protocols
+#### Protocol Function Parameters
 
 An unused parameter of a protocol function will only be reported as unused if the parameter is also unused in all implementations.
 
@@ -676,7 +771,7 @@ Copy and paste your outskirts command into the script input.
 
 #### Ready-to-paste script
 
-Instead of a bare `outskirts scan` command, this script builds the project itself into a project-local DerivedData with the index store enabled, then scans that index store. Results appear as warnings in Xcode. Adjust `PROJECT` (or switch to `-workspace`) and `SCHEME` to match your project.
+Instead of a bare `outskirts scan` command, this script builds the project itself into a project-local DerivedData with the index store enabled, then scans that index store. Results appear as warnings in Xcode. Edit these parts to match your project: `PROJECT`, the path of your `.xcodeproj` relative to `$PROJECT_DIR` (for a workspace, set it to your `.xcworkspace` and replace `-project` with `-workspace` in the `xcodebuild` call); `SCHEME`, the scheme to build; optionally `DESTINATION`; and, on the last command, the [options](#options-reference) your project needs, e.g. `--retain-public` for a framework. The script does not depend on the default DerivedData location, as it builds into its own folder and passes `--index-store-path`.
 
 ```sh
 set -eu
@@ -729,7 +824,7 @@ xcodebuild build \
   --format xcode
 ```
 
-Since 3.12.2, `--skip-build` without `--index-store-path` finds the DataStore in DerivedData on its own (#91). If the project is built in the default DerivedData location, the last command can be shortened to:
+Since 3.12.2, `--skip-build` without `--index-store-path` finds the DataStore in DerivedData on its own (#91). The shortened form depends on the default DerivedData location: outskirts looks for `~/Library/Developer/Xcode/DerivedData/<ProjectName>-*/Index.noindex/DataStore` (or `Index/DataStore`), using the most recently modified match, so the project must have been built by Xcode there. If it is, the last command can be shortened to:
 
 ```sh
 "$OUTSKIRTS" scan --skip-build --format xcode
@@ -739,7 +834,7 @@ Since 3.12.2, `--skip-build` without `--index-store-path` finds the DataStore in
 
 You must disable **User Script Sandboxing** for the Run Script phase. outskirts requires access to your project's index store and source files, which are blocked by Xcode's default sandbox. To disable sandboxing, set the `ENABLE_USER_SCRIPT_SANDBOXING` option to `No` in the Build Settings for the outskirts aggregate target.
 
-![Step 4](assets/xcode-integration/5.png)
+![Disabling User Script Sandboxing](assets/xcode-integration/5.png)
 
 ### Step 4: Select & Run
 
@@ -748,11 +843,11 @@ You're ready to roll. You should now see the new scheme in the dropdown. Select 
 > [!TIP]
 > If you'd like others on your team to be able to use the scheme, you'll need to mark it as _Shared_. This can be done by selecting _Manage Schemes..._ and selecting the _Shared_ checkbox next to the new scheme. The scheme definition can now be checked into source control.
 
-![Step 5](assets/xcode-integration/6.png)
+![Selecting the scheme and running it](assets/xcode-integration/6.png)
 
 ## Excluding Files
 
-Both exclusion options described below accept a Bash v4-style path glob, either absolute or relative to your project directory. You can delimit multiple globs with a space, e.g., `--option "Sources/Single.swift" "**/Generated/*.swift" "**/*.{xib,storyboard}"`.
+Both exclusion options described below accept a Bash v4-style path glob, either absolute or relative to your project directory. You can delimit multiple globs with a space, e.g., `--report-exclude "Sources/Single.swift" "**/Generated/*.swift" "**/*.{xib,storyboard}"`.
 
 ### Excluding Results
 
@@ -784,13 +879,13 @@ To retain all declarations in files, pass the `--retain-files <globs>` option to
 
 ## Continuous Integration
 
-When integrating outskirts into a CI pipeline, you can potentially skip the build phase if your pipeline has already done so, e.g., to run tests. This can be achieved using the `--skip-build` option. However, you also need to tell outskirts the location of the index store using `--index-store-path`. This location is dependent on your project type.
+When integrating outskirts into a CI pipeline, you can potentially skip the build phase if your pipeline has already done so, e.g., to run tests. This can be achieved using the `--skip-build` option. However, you also need to tell outskirts the location of the index store using `--index-store-path`. This location is dependent on your project type: replace `<path>` in the examples below with the index store directory of your build, found as described in [Xcode](#xcode) and [SwiftPM](#swiftpm).
 
 The `github-actions`, `gitlab-codequality`, `codeclimate` and `sarif` output formats always report paths relative to the project root, as if `--relative-results` was passed, because the CI services that read them match results to files in the repository. The other formats (`xcode`, `csv`, `json`, `checkstyle` and `github-markdown`) report absolute paths unless `--relative-results` is passed.
 
 ### GitHub Code Scanning
 
-The `sarif` format writes a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html) log that GitHub code scanning turns into alerts, which are tracked across commits, can be dismissed with a reason and decorate pull requests. Each result carries a `peripheryResult/v1` fingerprint (a SHA-256 of the rule and the ids of the declaration) that GitHub uses to recognise the same alert in the next run. Paths are relative to the project root and resolved against the `%SRCROOT%` base id.
+The `sarif` format writes a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html) log that GitHub code scanning turns into alerts, which are tracked across commits, can be dismissed with a reason and decorate pull requests. Each result carries a `peripheryResult/v1` fingerprint (a SHA-256 of the rule and the ids of the declaration) that GitHub uses to recognise the same alert in the next run. The key keeps its former `peripheryResult/v1` name on purpose, so that the alerts already tracked by code scanning keep matching after the rename. Paths are relative to the project root and resolved against the `%SRCROOT%` base id.
 
 ```yaml
 - run: outskirts scan --skip-build --index-store-path <path> --format sarif --write-results outskirts.sarif --skip-stdout-results
@@ -888,7 +983,7 @@ outskirts scan --generic-project-config config.json
 
 outskirts supports both macOS and Linux. macOS supports both Xcode and Swift Package Manager (SPM) projects, whereas only SPM projects are supported on Linux.
 
-Linux is built and tested in CI on Ubuntu, in the official Swift container. Minimum versions: macOS 15 and Swift 6.1.2. The Homebrew formula requires Xcode 26.0 or later.
+Linux is built and tested in CI on Ubuntu, in the official Swift container. Minimum versions: see [Requirements](#requirements).
 
 ## Troubleshooting
 
