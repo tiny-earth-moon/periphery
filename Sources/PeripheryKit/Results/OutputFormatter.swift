@@ -7,7 +7,7 @@ import SystemPackage
 public protocol OutputFormatter: AnyObject {
     var configuration: Configuration { get }
     var logger: Logger { get }
-    var currentFilePath: FilePath { get }
+    var currentFilePath: FilePath { get set }
 
     /// Whether the output only makes sense with paths relative to the project root, whatever `relativeResults` says.
     static var requiresRelativePaths: Bool { get }
@@ -141,6 +141,11 @@ extension OutputFormatter {
         return description
     }
 
+    /// The directory that result paths are made relative to: `relative_results_base`, or the project root.
+    var relativeResultsBase: FilePath {
+        configuration.relativeResultsBase?.makeAbsolute(relativeTo: currentFilePath) ?? currentFilePath
+    }
+
     func outputPath(_ location: Location) -> FilePath {
         outputPath(location.file.path)
     }
@@ -149,7 +154,7 @@ extension OutputFormatter {
         var path = file.lexicallyNormalized()
 
         if configuration.relativeResults || Self.requiresRelativePaths, path.isAbsolute {
-            path = path.relativeTo(currentFilePath).removingRoot()
+            path = path.relativeTo(relativeResultsBase).removingRoot()
         }
 
         return path

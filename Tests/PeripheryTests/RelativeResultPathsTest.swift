@@ -75,4 +75,62 @@ final class RelativeResultPathsTest: XCTestCase {
             XCTAssertTrue(output.contains(absolutePath), "\(format): \(output)")
         }
     }
+
+    // MARK: - Relative results base
+
+    private func configuration(base: String?) -> Configuration {
+        let configuration = Configuration()
+        configuration.relativeResults = true
+        configuration.relativeResultsBase = base.map { FilePath($0) }
+        return configuration
+    }
+
+    private func format(_ format: OutputFormat, base: String?) throws -> String {
+        let formatter = format.formatter.init(configuration: configuration(base: base), logger: logger)
+        formatter.currentFilePath = projectRoot
+        return try XCTUnwrap(formatter.format([result()], colored: false), "\(format)")
+    }
+
+    func testEveryFormatter_withTheBaseSetToTheParentOfTheProjectRoot_emitsThePathFromThatBase() throws {
+        for format in OutputFormat.allCases {
+            let output = try self.format(format, base: "/work")
+
+            XCTAssertTrue(output.contains("project/\(relativePath)"), "\(format): \(output)")
+            XCTAssertFalse(output.contains("/work/"), "\(format): \(output)")
+        }
+    }
+
+    func testEveryFormatter_withoutABase_emitsThePathFromTheProjectRoot() throws {
+        for format in OutputFormat.allCases {
+            let output = try self.format(format, base: nil)
+
+            XCTAssertTrue(output.contains(relativePath), "\(format): \(output)")
+            XCTAssertFalse(output.contains("project/\(relativePath)"), "\(format): \(output)")
+        }
+    }
+
+    func testRelativeBase_isResolvedFromTheProjectRoot() throws {
+        let output = try format(.codeclimate, base: "..")
+
+        XCTAssertEqual(try jsonLocationPath(of: output), "project/\(relativePath)")
+    }
+
+    func testRelativeBase_withTheProjectRootAsBase_matchesTheDefault() throws {
+        XCTAssertEqual(try format(.json, base: "/work/project"), try format(.json, base: nil))
+    }
+
+    func testBaseOutsideAnyResultPath_keepsParentComponents() throws {
+        let output = try format(.codeclimate, base: "/work/other")
+
+        XCTAssertEqual(try jsonLocationPath(of: output), "../project/\(relativePath)")
+    }
+
+    func testBaseIsIgnored_whenResultsAreNotRelative() throws {
+        let configuration = Configuration()
+        configuration.relativeResultsBase = FilePath("/work")
+        let formatter = JsonFormatter(configuration: configuration, logger: logger)
+        formatter.currentFilePath = projectRoot
+
+        XCTAssertTrue(try XCTUnwrap(formatter.format([result()], colored: false)).contains(absolutePath))
+    }
 }
