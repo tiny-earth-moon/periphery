@@ -744,6 +744,8 @@ When integrating Periphery into a CI pipeline, you can potentially skip the buil
 
 The `github-actions`, `gitlab-codequality` and `codeclimate` output formats always report paths relative to the project root, as if `--relative-results` was passed, because the CI services that read them match results to files in the repository. The other formats (`xcode`, `csv`, `json`, `checkstyle` and `github-markdown`) report absolute paths unless `--relative-results` is passed.
 
+Relative paths are made relative to the project root (`--project-root`). In a repository that holds several projects, CI services need paths from the repository root: pass it with `--relative-to` (configuration key `relative_results_base`), e.g. `--relative-to "$GITHUB_WORKSPACE"` on GitHub Actions or `--relative-to "$CI_PROJECT_DIR"` on GitLab CI. With `--project-root pkg`, a result reported as `Sources/Demo/main.swift` becomes `pkg/Sources/Demo/main.swift`. A relative `--relative-to` value is resolved from the project root, like the other path options (`--config`, `--baseline`, `--index-store-path`, `--write-baseline`, `--write-results`), which are all resolved from `--project-root` rather than from the directory the command was typed in.
+
 ### Baseline ratchet
 
 A baseline hides the results that exist today so that CI only fails on new ones. Without care it only grows: an entry stays after its code is fixed or deleted, and hides the declaration if it is added back with the same id. Periphery logs `N baseline entries no longer match any result` on every scan with a baseline, and lists them with `--verbose`.

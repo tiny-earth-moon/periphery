@@ -22,7 +22,7 @@ struct ScanCommand: ParsableCommand {
     @Option(help: "Path to the root directory of your project")
     var projectRoot: FilePath = projectRootDefault
 
-    @Option(help: "Path to configuration file. By default Periphery will look for .periphery.yml in the current directory")
+    @Option(help: "Path to configuration file, relative paths being resolved from '--project-root'. By default Periphery will look for .periphery.yml in the project root")
     var config: FilePath?
 
     @Option(help: "Path to your project's .xcodeproj or .xcworkspace")
@@ -52,7 +52,7 @@ struct ScanCommand: ParsableCommand {
     @Option(parsing: .upToNextOption, help: "Source file globs for which all containing declarations will be retained")
     var retainFiles: [String] = defaultConfiguration.$retainFiles.defaultValue
 
-    @Option(parsing: .upToNextOption, help: "Index store paths. Implies '--skip-build'")
+    @Option(parsing: .upToNextOption, help: "Index store paths, relative paths being resolved from '--project-root'. Implies '--skip-build'")
     var indexStorePath: [FilePath] = defaultConfiguration.$indexStorePath.defaultValue
 
     @Flag(inversion: .prefixedNo, help: "Retain all public declarations, recommended for framework/library projects")
@@ -166,8 +166,11 @@ struct ScanCommand: ParsableCommand {
     @Flag(inversion: .prefixedNo, help: "Skip schemes validation")
     var skipSchemesValidation: Bool?
 
-    @Flag(inversion: .prefixedNo, help: "Output result paths relative to the current directory")
+    @Flag(inversion: .prefixedNo, help: "Output result paths relative to the project root, or to '--relative-to'")
     var relativeResults: Bool?
+
+    @Option(help: "Directory that result paths are relative to when '--relative-results' is in effect, e.g. $GITHUB_WORKSPACE or $CI_PROJECT_DIR in a monorepo. A relative path is resolved from '--project-root' (default: the project root)")
+    var relativeTo: FilePath?
 
     @Flag(inversion: .prefixedNo, help: "Exit with non-zero status if any unused code is found")
     var strict: Bool?
@@ -187,16 +190,16 @@ struct ScanCommand: ParsableCommand {
     @Flag(name: .customLong("no-color"), help: .hidden)
     var noColor: Bool = false
 
-    @Option(help: "JSON package manifest path (obtained using `swift package describe --type json` or manually)")
+    @Option(help: "JSON package manifest path (obtained using `swift package describe --type json` or manually). A relative path is resolved from '--project-root'")
     var jsonPackageManifestPath: FilePath?
 
     @Option(help: "Maximum age in days of unused Xcode build caches before they are evicted at the end of a scan. 0 disables eviction (default: 14)")
     var cacheMaxAgeDays: Int?
 
-    @Option(help: "Baseline file path used to filter results")
+    @Option(help: "Baseline file path used to filter results. A relative path is resolved from '--project-root'")
     var baseline: FilePath?
 
-    @Option(help: "Baseline file path where results are written, in a readable format that lists the kind, name and file of each entry. Entries of the baseline given to '--baseline' are kept. Pass the same path to '--baseline' in subsequent scans to exclude the results recorded in the baseline.")
+    @Option(help: "Baseline file path where results are written, in a readable format that lists the kind, name and file of each entry. Entries of the baseline given to '--baseline' are kept. Pass the same path to '--baseline' in subsequent scans to exclude the results recorded in the baseline. A relative path is resolved from '--project-root'.")
     var writeBaseline: FilePath?
 
     @Flag(inversion: .prefixedNo, help: "Rewrite the file given to '--baseline' keeping only the entries that still match a result. Requires '--baseline'")
@@ -205,13 +208,13 @@ struct ScanCommand: ParsableCommand {
     @Flag(inversion: .prefixedNo, help: "Exit with non-zero status (1, like '--strict') if the baseline holds entries that no longer match any result. Requires '--baseline'. Not applied when '--prune-baseline' removes the entries")
     var strictBaseline: Bool?
 
-    @Option(help: "File path where formatted results are written.")
+    @Option(help: "File path where formatted results are written. A relative path is resolved from '--project-root'.")
     var writeResults: FilePath?
 
     @Flag(help: "Do not print the results to stdout. Requires '--write-results'")
     var skipStdoutResults: Bool = defaultConfiguration.$skipStdoutResults.defaultValue
 
-    @Option(help: "Project configuration for non-Apple build systems")
+    @Option(help: "Project configuration for non-Apple build systems. A relative path is resolved from '--project-root'")
     var genericProjectConfig: FilePath?
 
     @Flag(inversion: .prefixedNo, help: "Retain stored properties of types whose values are described through reflection, e.g. passed to print, dump, String(describing:) or string interpolation")
@@ -288,6 +291,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$cacheMaxAgeDays, cacheMaxAgeDays)
         configuration.apply(\.$buildArguments, given(buildArguments))
         configuration.apply(\.$relativeResults, relativeResults)
+        configuration.apply(\.$relativeResultsBase, relativeTo)
         configuration.apply(\.$retainCodableProperties, retainCodableProperties)
         configuration.apply(\.$retainEncodableProperties, retainEncodableProperties)
         configuration.apply(\.$retainEquatableProperties, retainEquatableProperties)
