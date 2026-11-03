@@ -176,6 +176,9 @@ public final class Configuration {
     @Setting(key: "relative_results", defaultValue: false)
     public var relativeResults: Bool
 
+    @Setting(key: "relative_results_base", defaultValue: nil, convert: SettingConverter.filePath)
+    public var relativeResultsBase: FilePath?
+
     @Setting(key: "json_package_manifest_path", defaultValue: nil, convert: SettingConverter.filePath)
     public var jsonPackageManifestPath: FilePath?
 
@@ -375,7 +378,7 @@ public final class Configuration {
         $disablePlatformConditionalRetention, $disableUnusedImportAnalysis, $enableUnusedSystemImports, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $retainRuntimeLocalizedKeys, $superfluousIgnoreComments, $retainUnusedImportedModules,
         $externalEncodableProtocols, $externalCodableProtocols, $externalTestCaseClasses, $verbose, $quiet, $color,
         $disableUpdateCheck, $strict, $indexStorePath,
-        $skipBuild, $skipSchemesValidation, $cleanBuild, $cacheMaxAgeDays, $buildArguments, $xcodeListArguments, $relativeResults,
+        $skipBuild, $skipSchemesValidation, $cleanBuild, $cacheMaxAgeDays, $buildArguments, $xcodeListArguments, $relativeResults, $relativeResultsBase,
         $jsonPackageManifestPath, $retainCodableProperties, $retainEncodableProperties, $retainEquatableProperties,
         $retainHashableProperties, $baseline, $writeBaseline,
         $writeResults, $skipStdoutResults, $genericProjectConfig,
