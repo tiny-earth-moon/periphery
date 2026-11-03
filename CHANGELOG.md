@@ -12,6 +12,22 @@
 
 - None.
 
+## 3.15.0 (2026-11-03)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- New `--relative-to <dir>` option (configuration key `relative_results_base`): the base of the paths emitted with `--relative-results`, and of the `github-actions`, `gitlab-codequality`, `codeclimate` and `sarif` outputs. It defaults to the project root, so existing output is unchanged; in a repository that holds several projects, `--relative-to "$GITHUB_WORKSPACE"` or `--relative-to "$CI_PROJECT_DIR"` attaches annotations to files. [#225](https://github.com/tiny-earth-moon/periphery/issues/225)
+- Baselines can now only shrink: entries that no longer match any result are logged (listed with `--verbose`), `--prune-baseline` (`prune_baseline`) rewrites the baseline without them, and `--strict-baseline` (`strict_baseline`) fails the scan when there are any. Baselines are written in a readable, sorted `v2` format that lists the kind, name and file of each entry; `v1` files are still read. [#215](https://github.com/tiny-earth-moon/periphery/issues/215)
+- New `sarif` output format (SARIF 2.1.0) for GitHub Code Scanning and other SARIF consumers, with one rule per result kind, stable fingerprints and the redundant conformances as related locations. [#213](https://github.com/tiny-earth-moon/periphery/issues/213)
+
+##### Bug Fixes
+
+- None.
+
 ## 3.14.1 (2026-11-03)
 
 ##### Breaking
