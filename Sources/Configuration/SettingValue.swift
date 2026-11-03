@@ -49,7 +49,7 @@ struct SettingConversion<Value> {
 
 /// The conversions from the value of a YAML document to the value of a setting, by type.
 enum SettingConverter {
-    typealias Conversion<Value> = (Any) throws(SettingValueError) -> SettingConversion<Value>
+    typealias Conversion<Value> = @Sendable (Any) throws(SettingValueError) -> SettingConversion<Value>
 
     /// Booleans, and the strings `true` and `false` that a quoted value yields.
     static let bool: Conversion<Bool> = { value throws(SettingValueError) in
@@ -89,7 +89,7 @@ enum SettingConverter {
         SettingConversion(try strings(value).map { FilePath($0) })
     }
 
-    static func rawValue<Value: RawRepresentable & CaseIterable>(of _: Value.Type) -> Conversion<Value> where Value.RawValue == String {
+    static func rawValue<Value: RawRepresentable & CaseIterable & Sendable>(of _: Value.Type) -> Conversion<Value> where Value.RawValue == String {
         let allowed = Value.allCases.map(\.rawValue)
 
         return { value throws(SettingValueError) in

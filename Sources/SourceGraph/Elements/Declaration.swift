@@ -1,7 +1,7 @@
 import Foundation
 
 public final class Declaration {
-    public enum Kind: String, RawRepresentable, CaseIterable {
+    public enum Kind: String, RawRepresentable, CaseIterable, Sendable {
         case `associatedtype`
         case `class`
         case `enum`
@@ -82,7 +82,7 @@ public final class Declaration {
             rawValue.hasPrefix("var")
         }
 
-        static var globalKinds: Set<Kind> = [
+        static let globalKinds: Set<Kind> = [
             .class,
             .protocol,
             .enum,

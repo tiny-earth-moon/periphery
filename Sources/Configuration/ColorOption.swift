@@ -1,4 +1,4 @@
-public enum ColorOption: String, CaseIterable, Equatable {
+public enum ColorOption: String, CaseIterable, Equatable, Sendable {
     case auto
     case always
     case never

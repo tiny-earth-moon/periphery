@@ -1,50 +1,58 @@
 import Foundation
 import Synchronization
 
-public struct JobPool<Job> {
+public struct JobPool<Job: Sendable>: Sendable {
     let jobs: [Job]
 
     public init(jobs: [Job]) {
         self.jobs = jobs
     }
 
-    public func forEach(_ block: @escaping (Job) throws -> Void) throws {
-        var error: Error?
+    public func forEach(_ block: @escaping @Sendable (Job) throws -> Void) throws {
+        let firstError = Mutex<Error?>(nil)
 
         DispatchQueue.concurrentPerform(iterations: jobs.count) { idx in
-            guard error == nil else { return }
+            guard firstError.withLock({ $0 == nil }) else { return }
 
             do {
                 let job = jobs[idx]
                 try block(job)
             } catch let e {
-                error = e
+                firstError.withLock {
+                    if $0 == nil {
+                        $0 = e
+                    }
+                }
             }
         }
 
-        if let error {
+        if let error = firstError.withLock({ $0 }) {
             throw error
         }
     }
 
     /// Throwing variant
-    public func flatMap<Result>(_ block: @escaping (Job) throws -> [Result]) throws -> [Result] {
-        var error: Error?
+    public func flatMap<Result: Sendable>(_ block: @escaping @Sendable (Job) throws -> [Result]) throws -> [Result] {
+        let firstError = Mutex<Error?>(nil)
         let results = Mutex<[Result]>([])
 
         DispatchQueue.concurrentPerform(iterations: jobs.count) { idx in
-            guard error == nil else { return }
+            guard firstError.withLock({ $0 == nil }) else { return }
 
             do {
                 let job = jobs[idx]
                 let result = try block(job)
                 results.withLock { $0.append(contentsOf: result) }
             } catch let e {
-                error = e
+                firstError.withLock {
+                    if $0 == nil {
+                        $0 = e
+                    }
+                }
             }
         }
 
-        if let error {
+        if let error = firstError.withLock({ $0 }) {
             throw error
         }
 
@@ -52,7 +60,7 @@ public struct JobPool<Job> {
     }
 
     /// Non-throwing variant
-    public func flatMap<Result>(_ block: @escaping (Job) -> [Result]) -> [Result] {
+    public func flatMap<Result: Sendable>(_ block: @escaping @Sendable (Job) -> [Result]) -> [Result] {
         let results = Mutex<[Result]>([])
 
         DispatchQueue.concurrentPerform(iterations: jobs.count) { idx in

@@ -1,6 +1,7 @@
 import Foundation
 import Logger
 import Shared
+import Synchronization
 import SystemPackage
 
 public final class Xcodebuild {
@@ -12,15 +13,15 @@ public final class Xcodebuild {
         self.logger = logger
     }
 
-    private static var version: String?
+    private static let cachedVersion = Mutex<String?>(nil)
 
     public func version() throws -> String {
-        if let version = Xcodebuild.version {
+        if let version = Self.cachedVersion.withLock({ $0 }) {
             return version
         }
 
         let version = try shell.exec(["xcodebuild", "-version"]).trimmed
-        Xcodebuild.version = version
+        Self.cachedVersion.withLock { $0 = version }
         return version
     }
 

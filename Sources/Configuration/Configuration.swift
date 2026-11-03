@@ -7,7 +7,7 @@ import SystemPackage
 import Yams
 
 public final class Configuration {
-    public static var defaultConfigurationFile = FilePath(".periphery.yml")
+    public static let defaultConfigurationFile = FilePath(".periphery.yml")
 
     public init() {}
 

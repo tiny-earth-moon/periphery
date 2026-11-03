@@ -31,6 +31,9 @@ var projectDriverDependencies: [PackageDescription.Target.Dependency] = [
     projectDriverDependencies.append(.target(name: "XcodeSupport"))
 #endif
 
+/// Targets converted to the Swift 6 language mode; the others still build in the Swift 5 mode.
+let swift6: [SwiftSetting] = [.swiftLanguageMode(.v6)]
+
 var targets: [PackageDescription.Target] = [
     .executableTarget(
         name: "Frontend",
@@ -53,16 +56,18 @@ var targets: [PackageDescription.Target] = [
             .product(name: "Yams", package: "Yams"),
             .product(name: "SystemPackage", package: "swift-system"),
             .product(name: "FilenameMatcher", package: "swift-filename-matcher"),
-        ]
+        ],
+        swiftSettings: swift6
     ),
     .target(
         name: "Extensions",
         dependencies: [
             .product(name: "SystemPackage", package: "swift-system"),
             .product(name: "FilenameMatcher", package: "swift-filename-matcher"),
-        ]
+        ],
+        swiftSettings: swift6
     ),
-    .target(name: "Logger"),
+    .target(name: "Logger", swiftSettings: swift6),
     .target(
         name: "PeripheryKit",
         dependencies: [
@@ -115,7 +120,8 @@ var targets: [PackageDescription.Target] = [
             .target(name: "Logger"),
             .product(name: "SystemPackage", package: "swift-system"),
             .product(name: "FilenameMatcher", package: "swift-filename-matcher"),
-        ]
+        ],
+        swiftSettings: swift6
     ),
     .target(
         name: "TestShared",
