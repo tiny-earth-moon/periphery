@@ -40,7 +40,7 @@ public final class Xcodebuild {
             "-\(project.type)", project.path.lexicallyNormalized().string,
             "-scheme", scheme,
             "-parallelizeTargets",
-            "-derivedDataPath", derivedDataPath(for: project, schemes: allSchemes).string,
+            "-derivedDataPath", derivedDataPath(for: project, schemes: allSchemes, buildArguments: additionalArguments).string,
             "-quiet",
             "build-for-testing",
             "CODE_SIGNING_ALLOWED=NO",
@@ -54,8 +54,8 @@ public final class Xcodebuild {
     }
 
     /// removes the DerivedData folder used to build the specified schemes
-    public func removeDerivedData(for project: XcodeProjectlike, allSchemes: [String]) throws {
-        let path = try derivedDataPath(for: project, schemes: allSchemes)
+    public func removeDerivedData(for project: XcodeProjectlike, allSchemes: [String], buildArguments: [String] = []) throws {
+        let path = try derivedDataPath(for: project, schemes: allSchemes, buildArguments: buildArguments)
         guard path.exists else { return }
 
         try FileManager.default.removeItem(atPath: path.string)
@@ -64,10 +64,11 @@ public final class Xcodebuild {
     public func indexStorePath(
         project: XcodeProjectlike,
         schemes: [String],
+        buildArguments: [String] = [],
         skipBuild: Bool = false,
         xcodeDerivedDataRoot: FilePath = Xcodebuild.defaultXcodeDerivedDataRoot
     ) throws -> FilePath {
-        let derivedDataPath = try derivedDataPath(for: project, schemes: schemes)
+        let derivedDataPath = try derivedDataPath(for: project, schemes: schemes, buildArguments: buildArguments)
         let relativePaths = ["Index.noindex/DataStore", "Index/DataStore"]
         let pathsToTry = relativePaths.map { derivedDataPath.appending($0) }
         if let path = pathsToTry.first(where: { $0.exists }) {
@@ -168,23 +169,30 @@ public final class Xcodebuild {
         }
     }
 
-    func derivedDataPath(for project: XcodeProjectlike, schemes: [String]) throws -> FilePath {
+    func derivedDataPath(for project: XcodeProjectlike, schemes: [String], buildArguments: [String] = []) throws -> FilePath {
         try derivedDataPath(
             projectIdentifier: project.path.lexicallyNormalized().string,
-            schemes: schemes
+            schemes: schemes,
+            buildArguments: buildArguments
         )
     }
 
-    private func derivedDataPath(projectIdentifier: String, schemes: [String]) throws -> FilePath {
+    private func derivedDataPath(projectIdentifier: String, schemes: [String], buildArguments: [String] = []) throws -> FilePath {
         // Given a project with two schemes: A and B, a scenario can arise where the index store contains conflicting
         // data. If scheme A is built, then the source file modified and then scheme B built, the index store will
         // contain two records for that source file. One reflects the state of the file when scheme A was built, and the
         // other when B was built. We must therefore key the DerivedData path with the full list of schemes being built.
+        // The build arguments (destination, configuration, flags…) change what is compiled and indexed, so they are part
+        // of the key too, in the order given. Output and report options are deliberately not inputs: scans that differ
+        // only by those share the same incremental build.
         var name = "DerivedData"
         name += "-\(try version().djb2Hex)"
         name += "-\(projectIdentifier.djb2Hex)"
         if !schemes.isEmpty {
             name += "-\(schemes.sorted().joined().djb2Hex)"
+        }
+        if !buildArguments.isEmpty {
+            name += "-\(buildArguments.joined(separator: "\n").djb2Hex)"
         }
         return try Constants.cachePath().appending(name)
     }

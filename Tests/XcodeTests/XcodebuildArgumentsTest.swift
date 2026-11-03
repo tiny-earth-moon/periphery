@@ -55,7 +55,7 @@ final class XcodebuildArgumentsTest: XCTestCase {
 
         try xcodebuild.build(project: project, scheme: scheme, allSchemes: [scheme], additionalArguments: buildArguments)
 
-        let derivedDataPath = try xcodebuild.derivedDataPath(for: project, schemes: [scheme]).string
+        let derivedDataPath = try xcodebuild.derivedDataPath(for: project, schemes: [scheme], buildArguments: buildArguments).string
         XCTAssertEqual(shell.commands.last, [
             "xcodebuild",
             "-project", "/tmp/My \"App\" $(touch x)/App.xcodeproj",
