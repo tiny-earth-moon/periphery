@@ -137,6 +137,14 @@ final class ScanPreflightPathsTest: XCTestCase {
         XCTAssertEqual(baseline?.usrs, ["s:3Lib6TaggedC", "s:3Lib5OtherC"])
     }
 
+    func testBaseline_versionTwo_isReturnedForFiltering() throws {
+        let path = try write(#"{"v2":{"entries":[{"id":"s:3Lib6TaggedC","kind":"class","name":"Tagged","file":"Sources/Lib/Tagged.swift"},{"id":"s:3Lib5OtherC"}]}}"#, to: "baseline.json")
+
+        let baseline = try ScanPreflight.validatePaths(of: configuration(baseline: path))
+
+        XCTAssertEqual(baseline?.usrs, ["s:3Lib6TaggedC", "s:3Lib5OtherC"])
+    }
+
     func testBaseline_validWithNoUsrs_isAccepted() throws {
         let path = try write(#"{"v1":{"usrs":[]}}"#, to: "baseline.json")
 

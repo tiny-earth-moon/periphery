@@ -65,7 +65,7 @@ final class BaselineTest: XCTestCase {
 
     /// What `--write-baseline` followed by `--baseline` does to the file.
     private func writeBaseline(from results: [ScanResult]) throws -> Baseline {
-        try roundTrip(Baseline.written(from: results, union: nil))
+        try roundTrip(Baseline.written(from: results, union: nil, projectRoot: FilePath(rootA)))
     }
 
     private func roundTrip(_ baseline: Baseline) throws -> Baseline {
@@ -370,7 +370,7 @@ final class BaselineTest: XCTestCase {
 
         _ = try filter.filter(scanLib(root: rootA, extensionLines: []), with: baseline)
 
-        XCTAssertEqual(Baseline.pruned(keeping: filter.baselineMatchedResults).usrs, [importId])
+        XCTAssertEqual(Baseline.pruned(keeping: filter.baselineMatchedResults, projectRoot: FilePath(rootA)).usrs, [importId])
         XCTAssertEqual(filter.staleBaselineEntries, [extensionId, "s:3Lib10unusedFuncyyF"].sorted())
     }
 
@@ -380,7 +380,7 @@ final class BaselineTest: XCTestCase {
 
         _ = try filter.filter(scanLib(root: rootA), with: baseline)
 
-        XCTAssertEqual(Baseline.pruned(keeping: filter.baselineMatchedResults).usrs, [importId])
+        XCTAssertEqual(Baseline.pruned(keeping: filter.baselineMatchedResults, projectRoot: FilePath(rootA)).usrs, [importId])
     }
 
     func testPrunedBaseline_keepsTheEntriesOfExcludedFiles() throws {
@@ -392,7 +392,7 @@ final class BaselineTest: XCTestCase {
 
         _ = try filter.filter(scanLib(root: rootA), with: baseline)
 
-        XCTAssertEqual(Baseline.pruned(keeping: filter.baselineMatchedResults).usrs, baseline.usrs)
+        XCTAssertEqual(Baseline.pruned(keeping: filter.baselineMatchedResults, projectRoot: FilePath(rootA)).usrs, baseline.usrs)
     }
 
     func testPrunedBaseline_rewritesLegacyEntriesWithCurrentIds() throws {
@@ -401,20 +401,20 @@ final class BaselineTest: XCTestCase {
 
         _ = try filter.filter(scanLib(root: rootA), with: baseline)
 
-        XCTAssertEqual(Baseline.pruned(keeping: filter.baselineMatchedResults).usrs, [importId])
+        XCTAssertEqual(Baseline.pruned(keeping: filter.baselineMatchedResults, projectRoot: FilePath(rootA)).usrs, [importId])
     }
 
     // MARK: - Written file
 
     func testWriteBaseline_keepsTheEntriesOfTheBaselineItWasGiven() throws {
         let previous = Baseline.v1(usrs: ["s:3Lib10unusedFuncyyF", importId])
-        let written = Baseline.written(from: scanLib(root: rootA), union: previous)
+        let written = Baseline.written(from: scanLib(root: rootA), union: previous, projectRoot: FilePath(rootA))
 
         XCTAssertEqual(written.usrs, [importId, extensionId, "s:3Lib10unusedFuncyyF"])
     }
 
     func testWriteBaseline_withoutABaseline_holdsTheResults() throws {
-        XCTAssertEqual(Baseline.written(from: scanLib(root: rootA), union: nil).usrs, [importId, extensionId])
+        XCTAssertEqual(Baseline.written(from: scanLib(root: rootA), union: nil, projectRoot: FilePath(rootA)).usrs, [importId, extensionId])
     }
 
     func testEncodedBaseline_isPrettyPrintedSortedUnescapedAndNewlineTerminated() throws {
@@ -445,5 +445,84 @@ final class BaselineTest: XCTestCase {
 
         XCTAssertEqual(try Baseline.load(from: path).usrs, ["s:3Lib1aV"])
         XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: directory.string), ["baseline.json"])
+    }
+
+    // MARK: - Version 2
+
+    private let versionOneFile = #"{"v1":{"usrs":["empty-extension-Used-Sources\/Lib\/Lib.swift","import-Util-Sources\/Lib\/Lib.swift","s:3Lib10unusedFuncyyF"]}}"#
+
+    func testVersionOneFile_isStillRead() throws {
+        let baseline = try JSONDecoder().decode(Baseline.self, from: Data(versionOneFile.utf8))
+
+        XCTAssertEqual(baseline, .v1(usrs: [extensionId, importId, "s:3Lib10unusedFuncyyF"]))
+        XCTAssertEqual(try filter(scanLib(root: rootA), with: baseline, root: rootA).count, 0)
+    }
+
+    func testWriteBaseline_writesVersionTwoWithKindNameAndRelativeFile() throws {
+        let written = Baseline.written(from: scanLib(root: rootA), union: nil, projectRoot: FilePath(rootA))
+
+        XCTAssertEqual(written, .v2(entries: [
+            .init(id: extensionId, kind: "extension", name: "Used", file: "Sources/Lib/Lib.swift"),
+            .init(id: importId, kind: "module", name: "Util", file: "Sources/Lib/Lib.swift"),
+        ]))
+    }
+
+    func testWriteBaseline_ofAVersionOneBaseline_keepsItsEntriesInVersionTwo() throws {
+        let previous = try JSONDecoder().decode(Baseline.self, from: Data(versionOneFile.utf8))
+        let written = Baseline.written(from: scanLib(root: rootA, importLines: [], extensionLines: []), union: previous, projectRoot: FilePath(rootA))
+
+        XCTAssertEqual(written.usrs, previous.usrs)
+        XCTAssertEqual(written.entries.first?.kind, nil)
+    }
+
+    func testVersionTwoFile_roundTripsByteStable() throws {
+        let written = Baseline.written(from: scanLib(root: rootA), union: Baseline.v1(usrs: ["s:3Lib10unusedFuncyyF"]), projectRoot: FilePath(rootA))
+        let data = try written.encoded()
+        let decoded = try JSONDecoder().decode(Baseline.self, from: data)
+
+        XCTAssertEqual(decoded, written)
+        XCTAssertEqual(try decoded.encoded(), data)
+        XCTAssertEqual(try Baseline.written(from: scanLib(root: rootA), union: decoded, projectRoot: FilePath(rootA)).encoded(), try Baseline.written(from: scanLib(root: rootA), union: Baseline.v1(usrs: ["s:3Lib10unusedFuncyyF"]), projectRoot: FilePath(rootA)).encoded())
+    }
+
+    func testVersionTwoFile_isReadableAndMatchesById() throws {
+        let text = try XCTUnwrap(String(bytes: Baseline.written(from: scanLib(root: rootA), union: nil, projectRoot: FilePath(rootA)).encoded(), encoding: .utf8))
+
+        XCTAssertEqual(text, """
+        {
+          "v2" : {
+            "entries" : [
+              {
+                "file" : "Sources/Lib/Lib.swift",
+                "id" : "empty-extension-Used-Sources/Lib/Lib.swift",
+                "kind" : "extension",
+                "name" : "Used"
+              },
+              {
+                "file" : "Sources/Lib/Lib.swift",
+                "id" : "import-Util-Sources/Lib/Lib.swift",
+                "kind" : "module",
+                "name" : "Util"
+              }
+            ]
+          }
+        }
+
+        """)
+
+        let baseline = try JSONDecoder().decode(Baseline.self, from: Data(text.utf8))
+        XCTAssertEqual(try filter(scanLib(root: rootA, importLines: [7], extensionLines: [9]), with: baseline, root: rootA).count, 0)
+    }
+
+    func testPrunedBaseline_isWrittenInVersionTwoWithCurrentMetadata() throws {
+        let baseline = Baseline.v1(usrs: [importId, "s:3Lib10unusedFuncyyF"])
+        let filter = OutputDeclarationFilter(configuration: configuration(root: rootA), logger: quietLogger)
+
+        _ = try filter.filter(scanLib(root: rootA, extensionLines: []), with: baseline)
+
+        XCTAssertEqual(
+            Baseline.pruned(keeping: filter.baselineMatchedResults, projectRoot: FilePath(rootA)),
+            .v2(entries: [.init(id: importId, kind: "module", name: "Util", file: "Sources/Lib/Lib.swift")])
+        )
     }
 }

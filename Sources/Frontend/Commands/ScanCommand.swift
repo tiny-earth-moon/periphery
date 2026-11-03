@@ -196,7 +196,7 @@ struct ScanCommand: ParsableCommand {
     @Option(help: "Baseline file path used to filter results")
     var baseline: FilePath?
 
-    @Option(help: "Baseline file path where results are written. Pass the same path to '--baseline' in subsequent scans to exclude the results recorded in the baseline.")
+    @Option(help: "Baseline file path where results are written, in a readable format that lists the kind, name and file of each entry. Entries of the baseline given to '--baseline' are kept. Pass the same path to '--baseline' in subsequent scans to exclude the results recorded in the baseline.")
     var writeBaseline: FilePath?
 
     @Flag(inversion: .prefixedNo, help: "Rewrite the file given to '--baseline' keeping only the entries that still match a result. Requires '--baseline'")
@@ -365,12 +365,12 @@ struct ScanCommand: ParsableCommand {
         let filteredResults = try outputFilter.filter(results, with: baseline)
 
         if configuration.pruneBaseline, let baselinePath = configuration.baseline {
-            try Self.writeBaseline(.pruned(keeping: outputFilter.baselineMatchedResults), to: baselinePath)
+            try Self.writeBaseline(.pruned(keeping: outputFilter.baselineMatchedResults, projectRoot: configuration.projectRoot), to: baselinePath)
             logger.info("Pruned \(outputFilter.staleBaselineEntries.count) stale entries from \(baselinePath.string)")
         }
 
         if let baselinePath = configuration.writeBaseline {
-            try Self.writeBaseline(.written(from: filteredResults, union: baseline), to: baselinePath)
+            try Self.writeBaseline(.written(from: filteredResults, union: baseline, projectRoot: configuration.projectRoot), to: baselinePath)
         }
 
         let outputFormat = configuration.outputFormat
