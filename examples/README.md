@@ -1,6 +1,6 @@
 # Configuration examples
 
-Commented `.periphery.yml` files for common scenarios. Each header states the scenario and the expected result. Every key exists in `Sources/Configuration/Configuration.swift` (checked against 3.12.8). Use one with `periphery scan --config examples/<file>`, or copy it to `.periphery.yml` at the project root.
+Commented `.periphery.yml` files for common scenarios. Each header states the scenario and the expected result. Every key exists in `Sources/Configuration/Configuration.swift` (checked against 3.15.0). Use one with `periphery scan --config examples/<file>`, or copy it to `.periphery.yml` at the project root.
 
 | File | Scenario |
 |------|----------|
