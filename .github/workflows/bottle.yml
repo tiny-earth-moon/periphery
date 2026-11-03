@@ -65,7 +65,7 @@ jobs:
         env:
           TAG: ${{ inputs.tag || (github.ref_type == 'tag' && github.ref_name) || '' }}
         run: |
-          source_version=$(sed -nE 's/^let PeripheryVersion = "([0-9.]+)"$/\1/p' Sources/Shared/Version.swift)
+          source_version=$(sed -nE 's/^(public )?let PeripheryVersion = "([0-9.]+)"$/\2/p' Sources/Shared/Version.swift)
           if [[ -z $source_version ]]; then
             echo "::error file=Sources/Shared/Version.swift::PeripheryVersion not found"
             exit 1
