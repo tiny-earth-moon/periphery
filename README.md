@@ -30,7 +30,7 @@
 - [Analysis](#analysis)
     - [Function Parameters](#function-parameters)
     - [Generic Type Parameters](#generic-type-parameters)
-    - [Protocols](#protocols-1)
+    - [Protocols](#protocols)
     - [Enumerations](#enumerations)
     - [Assign-only Properties](#assign-only-properties)
     - [Unassigned Optional Analysis](#unassigned-optional-analysis)
@@ -129,7 +129,7 @@ To get the most from outskirts, it’s important to understand how it works. out
 
 If your project consists of one or more standalone frameworks that do not also contain some kind of application that consumes their interfaces, you need to tell outskirts to assume that all public declarations are used with the `--retain-public` option.
 
-The results are written to stdout. With any `--format` other than `xcode`, progress and `--verbose` messages go to stderr, so stdout carries only the report, e.g. `outskirts scan --format json > report.json`. `--write-results <file>` also writes the report to a file, and `--skip-stdout-results` then stops it from being printed to stdout. Interrupting a scan with Ctrl-C (`SIGINT`) or `SIGTERM` stops the running build and exits with status 130 or 143.
+The results are written to stdout. With any `--format` other than `xcode`, progress and `--verbose` messages go to stderr, so stdout carries only the report, e.g. `outskirts scan --format json > report.json`. `--write-results <file>` also writes the report to a file, and `--skip-stdout-results` then stops it from being printed to stdout. Interrupting a scan with Ctrl-C (`SIGINT`) or `SIGTERM` stops the running build and exits with status 130 or 143, see [Exit Status](#exit-status).
 
 For projects that are mixed Objective-C & Swift, it's highly recommended you [read about the implications](#objective-c) this can have on your results.
 
@@ -164,8 +164,10 @@ Select a format with `--format` (`format` in the configuration file). The defaul
 | Status | Meaning |
 |--------|---------|
 | 0 | The scan completed (results may have been reported). |
-| 1 | `--strict` and at least one result was reported, `--strict-baseline` and the baseline holds entries that no longer match, or the scan failed (build error, invalid configuration, unreadable file...). |
-| 64 | Usage error: unknown or invalid command line option. |
+| 1 | `--strict` and at least one result was reported, `--strict-baseline` and the baseline holds entries that no longer match, or the scan failed (build error, invalid configuration, unreadable file, options that cannot be combined such as `--skip-stdout-results` without `--write-results`...). |
+| 64 | The command line could not be parsed: unknown option, missing or invalid value. |
+| 130 | Interrupted with Ctrl-C (`SIGINT`); the running build is stopped first. |
+| 143 | Terminated with `SIGTERM`; the running build is stopped first. |
 
 ## Analysis
 
@@ -177,7 +179,7 @@ outskirts can also identify more advanced instances of unused code. The followin
 
 outskirts can identify unused function parameters. Instances of unused parameters can also be identified in protocols and their conforming declarations, as well as parameters in overridden methods. Both of these scenarios are explained further below.
 
-#### Protocols
+#### Protocol Function Parameters
 
 An unused parameter of a protocol function will only be reported as unused if the parameter is also unused in all implementations.
 
@@ -681,7 +683,7 @@ Copy and paste your outskirts command into the script input.
 
 #### Ready-to-paste script
 
-Instead of a bare `outskirts scan` command, this script builds the project itself into a project-local DerivedData with the index store enabled, then scans that index store. Results appear as warnings in Xcode. Adjust `PROJECT` (or switch to `-workspace`) and `SCHEME` to match your project.
+Instead of a bare `outskirts scan` command, this script builds the project itself into a project-local DerivedData with the index store enabled, then scans that index store. Results appear as warnings in Xcode. Edit these parts to match your project: `PROJECT`, the path of your `.xcodeproj` relative to `$PROJECT_DIR` (for a workspace, set it to your `.xcworkspace` and replace `-project` with `-workspace` in the `xcodebuild` call); `SCHEME`, the scheme to build; optionally `DESTINATION`; and, on the last command, the [options](#options-reference) your project needs, e.g. `--retain-public` for a framework. The script does not depend on the default DerivedData location, as it builds into its own folder and passes `--index-store-path`.
 
 ```sh
 set -eu
@@ -734,7 +736,7 @@ xcodebuild build \
   --format xcode
 ```
 
-Since 3.12.2, `--skip-build` without `--index-store-path` finds the DataStore in DerivedData on its own (#91). If the project is built in the default DerivedData location, the last command can be shortened to:
+Since 3.12.2, `--skip-build` without `--index-store-path` finds the DataStore in DerivedData on its own (#91). The shortened form depends on the default DerivedData location: outskirts looks for `~/Library/Developer/Xcode/DerivedData/<ProjectName>-*/Index.noindex/DataStore` (or `Index/DataStore`), using the most recently modified match, so the project must have been built by Xcode there. If it is, the last command can be shortened to:
 
 ```sh
 "$OUTSKIRTS" scan --skip-build --format xcode
@@ -744,7 +746,7 @@ Since 3.12.2, `--skip-build` without `--index-store-path` finds the DataStore in
 
 You must disable **User Script Sandboxing** for the Run Script phase. outskirts requires access to your project's index store and source files, which are blocked by Xcode's default sandbox. To disable sandboxing, set the `ENABLE_USER_SCRIPT_SANDBOXING` option to `No` in the Build Settings for the outskirts aggregate target.
 
-![Step 4](assets/xcode-integration/5.png)
+![Disabling User Script Sandboxing](assets/xcode-integration/5.png)
 
 ### Step 4: Select & Run
 
@@ -753,11 +755,11 @@ You're ready to roll. You should now see the new scheme in the dropdown. Select 
 > [!TIP]
 > If you'd like others on your team to be able to use the scheme, you'll need to mark it as _Shared_. This can be done by selecting _Manage Schemes..._ and selecting the _Shared_ checkbox next to the new scheme. The scheme definition can now be checked into source control.
 
-![Step 5](assets/xcode-integration/6.png)
+![Selecting the scheme and running it](assets/xcode-integration/6.png)
 
 ## Excluding Files
 
-Both exclusion options described below accept a Bash v4-style path glob, either absolute or relative to your project directory. You can delimit multiple globs with a space, e.g., `--option "Sources/Single.swift" "**/Generated/*.swift" "**/*.{xib,storyboard}"`.
+Both exclusion options described below accept a Bash v4-style path glob, either absolute or relative to your project directory. You can delimit multiple globs with a space, e.g., `--report-exclude "Sources/Single.swift" "**/Generated/*.swift" "**/*.{xib,storyboard}"`.
 
 ### Excluding Results
 
@@ -789,13 +791,13 @@ To retain all declarations in files, pass the `--retain-files <globs>` option to
 
 ## Continuous Integration
 
-When integrating outskirts into a CI pipeline, you can potentially skip the build phase if your pipeline has already done so, e.g., to run tests. This can be achieved using the `--skip-build` option. However, you also need to tell outskirts the location of the index store using `--index-store-path`. This location is dependent on your project type.
+When integrating outskirts into a CI pipeline, you can potentially skip the build phase if your pipeline has already done so, e.g., to run tests. This can be achieved using the `--skip-build` option. However, you also need to tell outskirts the location of the index store using `--index-store-path`. This location is dependent on your project type: replace `<path>` in the examples below with the index store directory of your build, found as described in [Xcode](#xcode) and [SwiftPM](#swiftpm).
 
 The `github-actions`, `gitlab-codequality`, `codeclimate` and `sarif` output formats always report paths relative to the project root, as if `--relative-results` was passed, because the CI services that read them match results to files in the repository. The other formats (`xcode`, `csv`, `json`, `checkstyle` and `github-markdown`) report absolute paths unless `--relative-results` is passed.
 
 ### GitHub Code Scanning
 
-The `sarif` format writes a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html) log that GitHub code scanning turns into alerts, which are tracked across commits, can be dismissed with a reason and decorate pull requests. Each result carries a `peripheryResult/v1` fingerprint (a SHA-256 of the rule and the ids of the declaration) that GitHub uses to recognise the same alert in the next run. Paths are relative to the project root and resolved against the `%SRCROOT%` base id.
+The `sarif` format writes a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html) log that GitHub code scanning turns into alerts, which are tracked across commits, can be dismissed with a reason and decorate pull requests. Each result carries a `peripheryResult/v1` fingerprint (a SHA-256 of the rule and the ids of the declaration) that GitHub uses to recognise the same alert in the next run. The key keeps its former `peripheryResult/v1` name on purpose, so that the alerts already tracked by code scanning keep matching after the rename. Paths are relative to the project root and resolved against the `%SRCROOT%` base id.
 
 ```yaml
 - run: outskirts scan --skip-build --index-store-path <path> --format sarif --write-results outskirts.sarif --skip-stdout-results
