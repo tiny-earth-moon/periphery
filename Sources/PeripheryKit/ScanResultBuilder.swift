@@ -67,6 +67,10 @@ public enum ScanResultBuilder {
             .init(declaration: $0, annotation: .emptyExtension)
         }
 
+        let annotatedMissingMetalFunctions: [ScanResult] = graph.missingMetalFunctions.map {
+            .init(declaration: $0, annotation: .missingMetalFunction)
+        }
+
         let annotatedSuperfluousIgnoreCommands: [ScanResult] = {
             guard configuration.superfluousIgnoreComments else { return [] }
 
@@ -96,6 +100,7 @@ public enum ScanResultBuilder {
             annotatedMissingFinal +
             annotatedRedundantAccessLevel +
             annotatedEmptyExtensions +
+            annotatedMissingMetalFunctions +
             annotatedSuperfluousIgnoreCommands
 
         return allAnnotatedDeclarations

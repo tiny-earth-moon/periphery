@@ -1,11 +1,14 @@
 import SystemPackage
 
-/// Identifiers of the results that no USR identifies: an unused import, an empty extension and a String Catalog key.
+/// Identifiers of the results that no USR identifies: an unused import, an empty extension, a String Catalog key, a
+/// Metal function and a Swift literal naming a Metal function that no `.metal` file declares.
 ///
 /// A baseline stores them, so they hold neither a position nor an absolute path. They survive an edit above the
 /// declaration, a move of the file's lines, and another checkout of the project.
 public enum SyntheticUsr {
     public static let localizedStringPrefix = "xcstrings:"
+    public static let metalFunctionPrefix = "metal:"
+    public static let missingMetalFunctionPrefix = "metal-missing:"
 
     public static func moduleImport(_ module: String, in file: FilePath, projectRoot: FilePath) -> String {
         "import-\(module)-\(relativePath(of: file, to: projectRoot))"
@@ -17,6 +20,14 @@ public enum SyntheticUsr {
 
     public static func localizedString(_ key: String, in catalog: FilePath, projectRoot: FilePath) -> String {
         "\(localizedStringPrefix)\(relativePath(of: catalog, to: projectRoot)):\(key)"
+    }
+
+    public static func metalFunction(_ name: String, in file: FilePath, projectRoot: FilePath) -> String {
+        "\(metalFunctionPrefix)\(relativePath(of: file, to: projectRoot)):\(name)"
+    }
+
+    public static func missingMetalFunction(_ name: String, in file: FilePath, projectRoot: FilePath) -> String {
+        "\(missingMetalFunctionPrefix)\(relativePath(of: file, to: projectRoot)):\(name)"
     }
 
     /// The id of the `occurrence`th result (counting from 1) that shares an id with others in a file. The first one

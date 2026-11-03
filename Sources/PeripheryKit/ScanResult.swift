@@ -15,6 +15,7 @@ public struct ScanResult {
         case emptyExtension
         case superfluousIgnoreCommand
         case unusedAssetCatalogSymbol(AssetCatalogSymbol)
+        case missingMetalFunction
     }
 
     let declaration: Declaration

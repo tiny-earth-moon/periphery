@@ -39,6 +39,8 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         retainAttributes: [String] = [],
         detectUnusedAssetCatalogColors: Bool = false,
         detectUnusedAssetCatalogImages: Bool = false,
+        detectUnusedMetalFunctions: Bool = false,
+        projectRoot: FilePath? = nil,
         testBlock: () throws -> Void
     ) rethrows -> [ScanResult] {
         let configuration = Configuration()
@@ -66,6 +68,11 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         configuration.retainAttributes = retainAttributes
         configuration.detectUnusedAssetCatalogColors = detectUnusedAssetCatalogColors
         configuration.detectUnusedAssetCatalogImages = detectUnusedAssetCatalogImages
+        configuration.detectUnusedMetalFunctions = detectUnusedMetalFunctions
+
+        if let projectRoot {
+            configuration.projectRoot = projectRoot
+        }
 
         configuration.buildFilenameMatchers()
 

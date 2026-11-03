@@ -46,6 +46,7 @@ public final class SourceGraphMutatorRunner {
         UnusedParameterRetainer.self,
         AssetReferenceRetainer.self,
         LocalizedStringRetainer.self,
+        MetalFunctionRetainer.self,
         EntryPointAttributeRetainer.self,
         AttributeRetainer.self,
         AssetCatalogSymbolRetainer.self,

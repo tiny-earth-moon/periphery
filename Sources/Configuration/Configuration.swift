@@ -220,6 +220,9 @@ public final class Configuration {
     @Setting(key: "detect_unused_asset_catalog_images", defaultValue: false)
     public var detectUnusedAssetCatalogImages: Bool
 
+    @Setting(key: "detect_unused_metal_functions", defaultValue: false)
+    public var detectUnusedMetalFunctions: Bool
+
     // Non user facing.
     public var guidedSetup: Bool = false
     public var projectRoot: FilePath = .init()
@@ -391,6 +394,7 @@ public final class Configuration {
         $retainHashableProperties, $baseline, $writeBaseline, $pruneBaseline, $strictBaseline,
         $writeResults, $skipStdoutResults, $genericProjectConfig,
         $retainSynthesizedUses, $retainAttributes, $detectUnusedAssetCatalogColors, $detectUnusedAssetCatalogImages,
+        $detectUnusedMetalFunctions,
     ]
 
     public func buildFilenameMatchers(with patterns: [String]) -> [FilenameMatcher] {
