@@ -36,6 +36,9 @@ final class CodeClimateFormatter: OutputFormatter {
             let fingerprint = result.declaration.usrs.sorted().joined(separator: ".")
 
             let object: [AnyHashable: Any] = [
+                "type": "issue",
+                "check_name": describe(result.annotation),
+                "categories": ["Bug Risk"],
                 "description": description,
                 "fingerprint": fingerprint,
                 "severity": "major",
