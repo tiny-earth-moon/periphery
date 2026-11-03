@@ -28,11 +28,14 @@ final class UnusedSystemImportTest: SPMSourceGraphTestCase {
         }
     }
 
-    func testUnusedSystemImportIsReported() {
-        indexFixtures(enableUnusedSystemImports: true)
+    // System module detection relies on the Darwin SDK layout; not reported on Linux yet.
+    #if os(macOS)
+        func testUnusedSystemImportIsReported() {
+            indexFixtures(enableUnusedSystemImports: true)
 
-        XCTAssertEqual(unusedImportedModules(inFileNamed: "UnusedFoundationImport.swift"), ["Foundation"])
-    }
+            XCTAssertEqual(unusedImportedModules(inFileNamed: "UnusedFoundationImport.swift"), ["Foundation"])
+        }
+    #endif
 
     func testSystemImportUsedThroughReexportedModuleIsNotReported() {
         indexFixtures(enableUnusedSystemImports: true)

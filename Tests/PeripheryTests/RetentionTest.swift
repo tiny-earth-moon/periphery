@@ -387,14 +387,16 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
-    func testObjcOptionalProtocolMembersInExtension() {
-        analyze(retainPublic: true) {
-            assertReferenced(.class("FixtureClass1114")) {
-                self.assertReferenced(.functionMethodInstance("optionalRequirement()"))
-                self.assertReferenced(.functionMethodInstance("requiredRequirement()"))
+    #if os(macOS)
+        func testObjcOptionalProtocolMembersInExtension() {
+            analyze(retainPublic: true) {
+                assertReferenced(.class("FixtureClass1114")) {
+                    self.assertReferenced(.functionMethodInstance("optionalRequirement()"))
+                    self.assertReferenced(.functionMethodInstance("requiredRequirement()"))
+                }
             }
         }
-    }
+    #endif
 
     func testRetainsProtocolMethodImplementedInExtension() {
         analyze(retainPublic: true) {
@@ -954,14 +956,16 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
-    func testRetainsViewExtensionMembersCalledInPostfixPlatformConditionalBlock() {
-        analyze(retainPublic: true) {
-            assertReferenced(.extensionProtocol("View")) {
-                self.assertReferenced(.functionMethodInstance("fixtureSyntax15Style()"))
-                self.assertReferenced(.functionMethodInstance("fixtureSyntax15Other()"))
+    #if os(macOS)
+        func testRetainsViewExtensionMembersCalledInPostfixPlatformConditionalBlock() {
+            analyze(retainPublic: true) {
+                assertReferenced(.extensionProtocol("View")) {
+                    self.assertReferenced(.functionMethodInstance("fixtureSyntax15Style()"))
+                    self.assertReferenced(.functionMethodInstance("fixtureSyntax15Other()"))
+                }
             }
         }
-    }
+    #endif
 
     func testRetainsMembersCalledInInterpolationClosureAndSelfInPlatformConditionalBlock() {
         analyze(retainPublic: true) {
@@ -1148,52 +1152,60 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
-    func testRetainsMacroStatePropertyReferencedOnlyViaProjectedValue() {
-        analyze(retainPublic: true) {
-            assertReferenced(.struct("FixtureStruct228")) {
-                self.assertReferenced(.varInstance("onlyProjected"))
-                self.assertNotReferenced(.varInstance("unusedState"))
+    #if os(macOS)
+        func testRetainsMacroStatePropertyReferencedOnlyViaProjectedValue() {
+            analyze(retainPublic: true) {
+                assertReferenced(.struct("FixtureStruct228")) {
+                    self.assertReferenced(.varInstance("onlyProjected"))
+                    self.assertNotReferenced(.varInstance("unusedState"))
+                }
             }
         }
-    }
+    #endif
 
-    func testRetainsMacroStatePropertyReferencedOnlyViaBackingStorage() {
-        analyze(retainPublic: true) {
-            assertReferenced(.struct("FixtureStruct229")) {
-                self.assertReferenced(.varInstance("onlyBacking"))
-                self.assertNotReferenced(.varInstance("unusedState"))
+    #if os(macOS)
+        func testRetainsMacroStatePropertyReferencedOnlyViaBackingStorage() {
+            analyze(retainPublic: true) {
+                assertReferenced(.struct("FixtureStruct229")) {
+                    self.assertReferenced(.varInstance("onlyBacking"))
+                    self.assertNotReferenced(.varInstance("unusedState"))
+                }
             }
         }
-    }
+    #endif
 
-    /// Under Xcode 27 only `@State` is an attached macro in SwiftUI; `@Environment`, `@FocusState`, `@AppStorage`,
-    /// `@SceneStorage`, `@StateObject` and `@Binding` remain property wrappers, whose `$foo` references
-    /// resolve to the wrapped property. Pinned so a toolchain change surfaces here.
-    func testRetainsPropertyWrapperPropertiesReferencedOnlyViaProjectedValue() {
-        analyze(retainPublic: true) {
-            assertReferenced(.struct("FixtureStruct230")) {
-                self.assertReferenced(.varInstance("dismiss"))
-                self.assertReferenced(.varInstance("focused"))
-                self.assertReferenced(.varInstance("stored"))
-                self.assertReferenced(.varInstance("scene"))
-                self.assertReferenced(.varInstance("model"))
-                self.assertReferenced(.varInstance("binding"))
-                self.assertNotReferenced(.varInstance("unusedEnvironment"))
-                self.assertNotReferenced(.varInstance("unusedFocus"))
-                self.assertNotReferenced(.varInstance("unusedStored"))
+    #if os(macOS)
+        /// Under Xcode 27 only `@State` is an attached macro in SwiftUI; `@Environment`, `@FocusState`, `@AppStorage`,
+        /// `@SceneStorage`, `@StateObject` and `@Binding` remain property wrappers, whose `$foo` references
+        /// resolve to the wrapped property. Pinned so a toolchain change surfaces here.
+        func testRetainsPropertyWrapperPropertiesReferencedOnlyViaProjectedValue() {
+            analyze(retainPublic: true) {
+                assertReferenced(.struct("FixtureStruct230")) {
+                    self.assertReferenced(.varInstance("dismiss"))
+                    self.assertReferenced(.varInstance("focused"))
+                    self.assertReferenced(.varInstance("stored"))
+                    self.assertReferenced(.varInstance("scene"))
+                    self.assertReferenced(.varInstance("model"))
+                    self.assertReferenced(.varInstance("binding"))
+                    self.assertNotReferenced(.varInstance("unusedEnvironment"))
+                    self.assertNotReferenced(.varInstance("unusedFocus"))
+                    self.assertNotReferenced(.varInstance("unusedStored"))
+                }
             }
         }
-    }
+    #endif
 
-    /// Assigning the backing storage (`_foo = State(wrappedValue:)`) under Xcode 27 `@State` still retains `foo`,
-    /// so there is no false negative for the explicit-initializer pattern. Pinned to detect toolchain changes.
-    func testRetainsMacroStatePropertyInitializedViaBackingStorage() {
-        analyze(retainPublic: true) {
-            assertReferenced(.struct("FixtureStruct231")) {
-                self.assertReferenced(.varInstance("assignedViaBacking"))
+    #if os(macOS)
+        /// Assigning the backing storage (`_foo = State(wrappedValue:)`) under Xcode 27 `@State` still retains `foo`,
+        /// so there is no false negative for the explicit-initializer pattern. Pinned to detect toolchain changes.
+        func testRetainsMacroStatePropertyInitializedViaBackingStorage() {
+            analyze(retainPublic: true) {
+                assertReferenced(.struct("FixtureStruct231")) {
+                    self.assertReferenced(.varInstance("assignedViaBacking"))
+                }
             }
         }
-    }
+    #endif
 
     func testDoesNotRetainPlatformConditionalDeclarationsWhenDisabled() {
         analyze(retainPublic: true, disablePlatformConditionalRetention: true) {
@@ -1227,19 +1239,21 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
-    func testRetainsSoleInitializerOfMacroModelClass() {
-        analyze(retainPublic: true) {
-            assertReferenced(.enum("FixtureMacroModelSchema")) {
-                self.assertReferenced(.class("FixtureMacroModelSoleInitializer")) {
-                    self.assertReferenced(.functionConstructor("init(text:)"))
-                }
-                self.assertReferenced(.class("FixtureMacroModelSecondInitializer")) {
-                    self.assertNotReferenced(.functionConstructor("init(text:)"))
-                    self.assertNotReferenced(.functionConstructor("init(other:)"))
+    #if os(macOS)
+        func testRetainsSoleInitializerOfMacroModelClass() {
+            analyze(retainPublic: true) {
+                assertReferenced(.enum("FixtureMacroModelSchema")) {
+                    self.assertReferenced(.class("FixtureMacroModelSoleInitializer")) {
+                        self.assertReferenced(.functionConstructor("init(text:)"))
+                    }
+                    self.assertReferenced(.class("FixtureMacroModelSecondInitializer")) {
+                        self.assertNotReferenced(.functionConstructor("init(text:)"))
+                        self.assertNotReferenced(.functionConstructor("init(other:)"))
+                    }
                 }
             }
         }
-    }
+    #endif
 
     func testRetainPublicMacroAndMiscKinds() {
         analyze(retainPublic: true) {
@@ -2002,7 +2016,11 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
-    func testRetainsPropertyUsedAsDictionaryKey() {
+    func testRetainsPropertyUsedAsDictionaryKey() throws {
+        #if compiler(<6.2)
+            // The index store of older toolchains records no read of the key property.
+            throw XCTSkip("needs the index store of Swift 6.2 or later")
+        #endif
         analyze(retainPublic: true) {
             assertReferenced(.struct("FixtureStruct1200")) {
                 self.assertReferenced(.varInstance("path"))
@@ -2054,38 +2072,40 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
-    func testDetectsUnusedAssetCatalogColors() {
-        let generatedSymbols = FixturesProjectPath.appending("Sources/RetentionFixtures/AssetCatalogs/GeneratedAssetSymbols.swift")
-        let catalog = FixturesProjectPath.appending("AssetCatalogs/FixtureAssets.xcassets")
+    #if os(macOS)
+        func testDetectsUnusedAssetCatalogColors() {
+            let generatedSymbols = FixturesProjectPath.appending("Sources/RetentionFixtures/AssetCatalogs/GeneratedAssetSymbols.swift")
+            let catalog = FixturesProjectPath.appending("AssetCatalogs/FixtureAssets.xcassets")
 
-        func assetCatalogResults(_ results: [ScanResult]) -> [(Declaration, AssetCatalogSymbol)] {
-            results.compactMap { result in
-                guard case let .unusedAssetCatalogSymbol(symbol) = result.annotation else { return nil }
+            func assetCatalogResults(_ results: [ScanResult]) -> [(Declaration, AssetCatalogSymbol)] {
+                results.compactMap { result in
+                    guard case let .unusedAssetCatalogSymbol(symbol) = result.annotation else { return nil }
 
-                return (result.declaration, symbol)
+                    return (result.declaration, symbol)
+                }
             }
+
+            let xib = FixturesProjectPath.appending("AssetCatalogs/FixtureView.xib")
+            let results = analyze(retainPublic: true, additionalFilesToIndex: [generatedSymbols], xibPaths: [xib], detectUnusedAssetCatalogColors: true) {
+                assertReferenced(.struct("FixtureStruct1400"))
+            }
+            let colors = assetCatalogResults(results)
+
+            XCTAssertEqual(colors.map(\.1), [
+                AssetCatalogSymbol(kind: .color, assetName: "FixtureUnusedColor", assetPaths: [catalog.appending("FixtureUnusedColor.colorset")]),
+            ])
+            // FixtureNamedColor is used by name from Swift, FixtureXibColor from a xib, AccentColor as the default global accent color.
+            XCTAssertEqual(colors.first?.0.name, "fixtureUnusedColor")
+            XCTAssertEqual(colors.first?.0.parent?.name, "ColorResource")
+            XCTAssertEqual(results.filter { $0.declaration.location.file.path == generatedSymbols }.count, 1, "only the unused color is reported from the generated file")
+
+            let defaultResults = analyze(retainPublic: true, additionalFilesToIndex: [generatedSymbols]) {
+                assertReferenced(.struct("FixtureStruct1400"))
+            }
+
+            XCTAssertTrue(assetCatalogResults(defaultResults).isEmpty)
         }
-
-        let xib = FixturesProjectPath.appending("AssetCatalogs/FixtureView.xib")
-        let results = analyze(retainPublic: true, additionalFilesToIndex: [generatedSymbols], xibPaths: [xib], detectUnusedAssetCatalogColors: true) {
-            assertReferenced(.struct("FixtureStruct1400"))
-        }
-        let colors = assetCatalogResults(results)
-
-        XCTAssertEqual(colors.map(\.1), [
-            AssetCatalogSymbol(kind: .color, assetName: "FixtureUnusedColor", assetPaths: [catalog.appending("FixtureUnusedColor.colorset")]),
-        ])
-        // FixtureNamedColor is used by name from Swift, FixtureXibColor from a xib, AccentColor as the default global accent color.
-        XCTAssertEqual(colors.first?.0.name, "fixtureUnusedColor")
-        XCTAssertEqual(colors.first?.0.parent?.name, "ColorResource")
-        XCTAssertEqual(results.filter { $0.declaration.location.file.path == generatedSymbols }.count, 1, "only the unused color is reported from the generated file")
-
-        let defaultResults = analyze(retainPublic: true, additionalFilesToIndex: [generatedSymbols]) {
-            assertReferenced(.struct("FixtureStruct1400"))
-        }
-
-        XCTAssertTrue(assetCatalogResults(defaultResults).isEmpty)
-    }
+    #endif
 
     func testRetainsSynthesizedUses() {
         analyze(retainPublic: true, retainSynthesizedUses: false) {

@@ -1,5 +1,4 @@
 import Configuration
-import CryptoKit
 import Foundation
 import Logger
 import Shared
@@ -132,6 +131,6 @@ final class SarifFormatter: OutputFormatter {
 
     private func fingerprint(ruleId: String, ids: Set<String>) -> String {
         let input = ([ruleId] + ids.sorted()).joined(separator: "\n")
-        return SHA256.hash(data: Data(input.utf8)).map { String(format: "%02x", $0) }.joined()
+        return SHA256.hexDigest(of: Data(input.utf8))
     }
 }

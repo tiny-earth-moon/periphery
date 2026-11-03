@@ -1,6 +1,34 @@
 // swift-tools-version:5.10
 import PackageDescription
 
+// Fixtures that need SwiftUI, SwiftData or the Objective-C runtime; their tests are macOS-only.
+#if os(Linux)
+let retentionFixturesExcludedOnLinux = [
+    "AssetCatalogs",
+    "testDetectsUnusedAssetCatalogColors.swift",
+    "testObjcOptionalProtocolMembersInExtension.swift",
+    "testRetainsMacroStatePropertyInitializedViaBackingStorage.swift",
+    "testRetainsMacroStatePropertyReferencedOnlyViaBackingStorage.swift",
+    "testRetainsMacroStatePropertyReferencedOnlyViaProjectedValue.swift",
+    "testRetainsPropertyWrapperPropertiesReferencedOnlyViaProjectedValue.swift",
+    "testRetainsSoleInitializerOfMacroModelClass.swift",
+    "testRetainsViewExtensionMembersCalledInPostfixPlatformConditionalBlock.swift",
+]
+#else
+let retentionFixturesExcludedOnLinux: [String] = []
+#endif
+
+// `@c`, `@section` and `@used` need Swift 6.2; their tests are macOS-only.
+#if compiler(>=6.2)
+let linkageFixturesNeedingSwift62: [String] = []
+#else
+let linkageFixturesNeedingSwift62 = [
+    "testRetainsCFunction.swift",
+    "testRetainsSectionGlobal.swift",
+    "testRetainsUsedGlobal.swift",
+]
+#endif
+
 var targets: [PackageDescription.Target] = [
     .target(
         name: "ExternalModuleFixtures"
@@ -81,7 +109,8 @@ var targets: [PackageDescription.Target] = [
         dependencies: [
             .target(name: "ExternalModuleFixtures"),
             .target(name: "UnusedModuleFixtures")
-        ]
+        ],
+        exclude: retentionFixturesExcludedOnLinux
     ),
     .target(
         name: "UnusedParameterFixtures",
@@ -103,6 +132,7 @@ var targets: [PackageDescription.Target] = [
     ),
     .target(
         name: "LinkageRetentionFixtures",
+        exclude: linkageFixturesNeedingSwift62,
         swiftSettings: [
             .unsafeFlags(["-enable-experimental-feature", "Extern"]) // For the @_extern(c) declarations.
         ]

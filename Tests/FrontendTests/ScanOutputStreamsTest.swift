@@ -1,4 +1,5 @@
 import Foundation
+@testable import TestShared
 import XCTest
 
 /// Runs the `periphery` executable on a small package and checks which stream carries what.
@@ -135,16 +136,6 @@ final class ScanOutputStreamsTest: XCTestCase {
     }
 
     private func peripheryExecutable() throws -> URL {
-        #if os(macOS)
-            let products = Bundle(for: Self.self).bundleURL.deletingLastPathComponent()
-        #else
-            let products = Bundle.main.bundleURL.deletingLastPathComponent()
-        #endif
-        let url = products.appendingPathComponent("periphery")
-        guard FileManager.default.isExecutableFile(atPath: url.path) else {
-            throw CocoaError(.fileNoSuchFile, userInfo: [NSFilePathErrorKey: url.path, NSLocalizedDescriptionKey: "Build the 'periphery' product before running this test"])
-        }
-
-        return url
+        try locatePeripheryExecutable(near: Self.self)
     }
 }

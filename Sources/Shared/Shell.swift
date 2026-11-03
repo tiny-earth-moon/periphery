@@ -44,7 +44,8 @@ public protocol Shell: Sendable {
 public final class ShellImpl: Shell {
     private let logger: ContextualLogger
     private let store: ShellProcessStore
-    private let signalSources: [DispatchSourceSignal]
+    /// Only kept alive here, never read; `DispatchSourceSignal` is not Sendable on Linux.
+    private nonisolated(unsafe) let signalSources: [DispatchSourceSignal]
 
     /// `sigintHandler` runs when `SIGINT` or `SIGTERM` is received, before the running processes are stopped. The
     /// program then exits with the conventional status of the signal, 130 for `SIGINT` and 143 for `SIGTERM`.

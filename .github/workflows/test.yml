@@ -38,3 +38,46 @@ jobs:
         run: swift build
       - name: Test
         run: swift test
+  linux:
+    name: Linux (Swift 6.4)
+    # Same image family as docker/Dockerfile-Linux (swift:6.4.x), which `mise run scan-linux` uses locally.
+    runs-on: ubuntu-latest
+    container: swift:6.4-noble
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Cache SwiftPM
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .build
+          key: ${{ runner.os }}-swift-6.4-spm-${{ hashFiles('Package.swift', 'Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-swift-6.4-spm-
+      - name: Build
+        run: swift build
+      # The Xcode project tests are macOS-only and excluded from the package on Linux by Package.swift;
+      # every other target, including the SwiftPM fixture scans, runs here.
+      - name: Test
+        run: swift test
+      # Swift 6.4 builds with the swiftbuild backend, whose index store is `.build/out`: Periphery finds it itself.
+      - name: Self-scan
+        # Advisory until the baseline is regenerated on Linux (#219): a stale baseline fails here without failing the job.
+        continue-on-error: true
+        run: .build/debug/periphery scan --skip-build --baseline baselines/linux.json --strict --disable-update-check
+  linux-minimum:
+    name: Linux (Swift 6.1, minimum toolchain)
+    # The minimum supported toolchain is `minimumVersion` in Sources/Shared/SwiftVersion.swift (6.1.2).
+    runs-on: ubuntu-latest
+    container: swift:6.1-noble
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Cache SwiftPM
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .build
+          key: ${{ runner.os }}-swift-6.1-spm-${{ hashFiles('Package.swift', 'Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-swift-6.1-spm-
+      - name: Build
+        run: swift build
+      - name: Test
+        run: swift test

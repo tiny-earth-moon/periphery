@@ -53,13 +53,16 @@ final class UnusedImportPlatformConditionalTest: SPMSourceGraphTestCase {
         XCTAssertEqual(unusedImportedModules(inFileNamed: "PlatformSystemUse.swift"), [])
     }
 
-    func testSystemImportIsReportedWhenPlatformConditionalNamesOnlyScannedDeclarations() {
-        let configuration = Configuration()
-        configuration.enableUnusedSystemImports = true
-        indexFixtures(configuration: configuration)
+    // System module detection relies on the Darwin SDK layout; not reported on Linux yet.
+    #if os(macOS)
+        func testSystemImportIsReportedWhenPlatformConditionalNamesOnlyScannedDeclarations() {
+            let configuration = Configuration()
+            configuration.enableUnusedSystemImports = true
+            indexFixtures(configuration: configuration)
 
-        XCTAssertEqual(unusedImportedModules(inFileNamed: "PlatformBlockWithoutSystemUse.swift"), ["Foundation"])
-    }
+            XCTAssertEqual(unusedImportedModules(inFileNamed: "PlatformBlockWithoutSystemUse.swift"), ["Foundation"])
+        }
+    #endif
 
     // MARK: - Private
 

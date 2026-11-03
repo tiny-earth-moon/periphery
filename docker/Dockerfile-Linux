@@ -1,3 +1,4 @@
+# Local Linux scan image (`mise run scan-linux`); CI (.github/workflows/test.yml) builds and tests in the same official swift image family.
 FROM swift:6.4.2
 WORKDIR /workspace
 COPY . /workspace

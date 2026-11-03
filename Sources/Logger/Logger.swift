@@ -1,3 +1,4 @@
+import CStdio
 import Foundation
 
 #if canImport(os)
@@ -89,23 +90,23 @@ public struct Logger: Sendable {
     /// Writes the primary output of the program, e.g. the formatted results, to stdout. It is neither silenced by
     /// `quiet` nor redirected by `messagesToStderr`.
     public func output(_ text: String) {
-        log(text, output: stdout)
+        log(text, output: standardOutput)
     }
 
     public func warn(_ text: String, newlinePrefix: Bool = false) {
         guard !quiet else { return }
 
         if newlinePrefix {
-            log("", output: stderr)
+            log("", output: standardError)
         }
         let text = colorize("warning: ", .boldYellow) + text
-        log(text, output: stderr)
+        log(text, output: standardError)
     }
 
     // periphery:ignore
     public func error(_ text: String) {
         let text = colorize("error: ", .boldRed) + text
-        log(text, output: stderr)
+        log(text, output: standardError)
     }
 
     public func beginInterval(_ name: StaticString) -> SignpostInterval {
@@ -127,7 +128,7 @@ public struct Logger: Sendable {
     // MARK: - Private
 
     private var messageStream: UnsafeMutablePointer<FILE> {
-        messagesToStderr ? stderr : stdout
+        messagesToStderr ? standardError : standardOutput
     }
 
     func log(_ line: String, output: UnsafeMutablePointer<FILE>) {
@@ -137,7 +138,7 @@ public struct Logger: Sendable {
     private var isColorOutputCapable: Bool = {
         guard let term = ProcessInfo.processInfo.environment["TERM"],
               term.lowercased() != "dumb",
-              isatty(fileno(stdout)) != 0
+              isatty(fileno(standardOutput)) != 0
         else {
             return false
         }
@@ -182,3 +183,11 @@ public struct ContextualLogger: Sendable {
         init() {}
     }
 #endif
+
+private var standardOutput: UnsafeMutablePointer<FILE> {
+    periphery_stdout()!
+}
+
+private var standardError: UnsafeMutablePointer<FILE> {
+    periphery_stderr()!
+}

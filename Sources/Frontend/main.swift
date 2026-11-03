@@ -1,4 +1,5 @@
 import ArgumentParser
+import CStdio
 import Foundation
 
 /// When stdout is a pipe, enable line buffering so output is flushed after each
@@ -7,8 +8,8 @@ var info = stat()
 fstat(STDOUT_FILENO, &info)
 
 if (info.st_mode & S_IFMT) == S_IFIFO {
-    setlinebuf(stdout)
-    setlinebuf(stderr)
+    setlinebuf(periphery_stdout())
+    setlinebuf(periphery_stderr())
 }
 
 struct PeripheryCommand: ParsableCommand {

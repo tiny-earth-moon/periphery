@@ -1,6 +1,15 @@
 // swift-tools-version:5.10
 import PackageDescription
 
+// InlineArray (`[2 of Element]`) needs Swift 6.2.
+#if compiler(>=6.2)
+let targetAFilesNeedingSwift62: [String] = []
+let mainTargetFilesNeedingSwift62: [String] = []
+#else
+let targetAFilesNeedingSwift62 = ["PublicTypesUsedAsInlineArrayAndPackElements.swift"]
+let mainTargetFilesNeedingSwift62 = ["InlineArrayAndPackUsage.swift"]
+#endif
+
 let package = Package(
     name: "AccessibilityProject",
     platforms: [.macOS(.v13)],
@@ -13,13 +22,15 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "MainTarget",
-            dependencies: ["TargetA"]),
+            dependencies: ["TargetA"],
+            exclude: mainTargetFilesNeedingSwift62),
         .target(
             name: "ExternalTarget",
             dependencies: []),
         .target(
             name: "TargetA",
-            dependencies: ["ExternalTarget"]),
+            dependencies: ["ExternalTarget"],
+            exclude: targetAFilesNeedingSwift62),
         .testTarget(
             name: "TestTarget",
             dependencies: ["MainTarget", "TargetA"])
