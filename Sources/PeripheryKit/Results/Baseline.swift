@@ -19,6 +19,26 @@ public enum Baseline: Codable {
         .v1(usrs: matchedResults.flatMapSet(\.usrs).sorted())
     }
 
+    /// The baseline `--write-baseline` writes: the results, and the entries of the baseline that was read, which are
+    /// never dropped.
+    public static func written(from results: [ScanResult], union existing: Baseline?) -> Baseline {
+        .v1(usrs: results.flatMapSet(\.usrs).union(existing?.usrs ?? []).sorted())
+    }
+
+    /// The file contents: pretty-printed with sorted keys, slashes left unescaped and a trailing newline, so that
+    /// a diff shows what changed and the same baseline always gives the same bytes.
+    public func encoded() throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        return try encoder.encode(self) + Data("\n".utf8)
+    }
+
+    /// Writes the file atomically: the contents go to a temporary file that replaces the destination, so that an
+    /// interrupted run never leaves a truncated baseline.
+    public func write(to path: FilePath) throws {
+        try encoded().write(to: path.url, options: .atomic)
+    }
+
     /// Reads a baseline file, reporting the key at fault when the file is not a baseline.
     public static func load(from path: FilePath) throws -> Baseline {
         let data = try Data(contentsOf: path.url)

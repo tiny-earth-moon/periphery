@@ -65,8 +65,11 @@ final class BaselineTest: XCTestCase {
 
     /// What `--write-baseline` followed by `--baseline` does to the file.
     private func writeBaseline(from results: [ScanResult]) throws -> Baseline {
-        let data = try JSONEncoder().encode(Baseline.v1(usrs: usrs(of: results)))
-        return try JSONDecoder().decode(Baseline.self, from: data)
+        try roundTrip(Baseline.written(from: results, union: nil))
+    }
+
+    private func roundTrip(_ baseline: Baseline) throws -> Baseline {
+        try JSONDecoder().decode(Baseline.self, from: baseline.encoded())
     }
 
     private func filter(_ results: [ScanResult], with baseline: Baseline, root: String, logger: Logger? = nil) throws -> [ScanResult] {
@@ -399,5 +402,48 @@ final class BaselineTest: XCTestCase {
         _ = try filter.filter(scanLib(root: rootA), with: baseline)
 
         XCTAssertEqual(Baseline.pruned(keeping: filter.baselineMatchedResults).usrs, [importId])
+    }
+
+    // MARK: - Written file
+
+    func testWriteBaseline_keepsTheEntriesOfTheBaselineItWasGiven() throws {
+        let previous = Baseline.v1(usrs: ["s:3Lib10unusedFuncyyF", importId])
+        let written = Baseline.written(from: scanLib(root: rootA), union: previous)
+
+        XCTAssertEqual(written.usrs, [importId, extensionId, "s:3Lib10unusedFuncyyF"])
+    }
+
+    func testWriteBaseline_withoutABaseline_holdsTheResults() throws {
+        XCTAssertEqual(Baseline.written(from: scanLib(root: rootA), union: nil).usrs, [importId, extensionId])
+    }
+
+    func testEncodedBaseline_isPrettyPrintedSortedUnescapedAndNewlineTerminated() throws {
+        let data = try Baseline.v1(usrs: ["s:3Lib1bV", "import-Util-Sources/Lib/Lib.swift"]).encoded()
+        let text = try XCTUnwrap(String(bytes: data, encoding: .utf8))
+
+        XCTAssertEqual(text, """
+        {
+          "v1" : {
+            "usrs" : [
+              "s:3Lib1bV",
+              "import-Util-Sources/Lib/Lib.swift"
+            ]
+          }
+        }
+
+        """)
+        XCTAssertFalse(text.contains("\\/"))
+    }
+
+    func testWrittenFile_replacesTheDestinationAndLeavesNoTemporaryFile() throws {
+        let directory = try makeCheckoutDirectory("out")
+        try FileManager.default.createDirectory(atPath: directory.string, withIntermediateDirectories: true)
+        let path = directory.appending("baseline.json")
+        try Data("stale".utf8).write(to: path.url)
+
+        try Baseline.v1(usrs: ["s:3Lib1aV"]).write(to: path)
+
+        XCTAssertEqual(try Baseline.load(from: path).usrs, ["s:3Lib1aV"])
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: directory.string), ["baseline.json"])
     }
 }

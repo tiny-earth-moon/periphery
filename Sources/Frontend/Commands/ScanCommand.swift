@@ -370,10 +370,7 @@ struct ScanCommand: ParsableCommand {
         }
 
         if let baselinePath = configuration.writeBaseline {
-            let usrs = filteredResults
-                .flatMapSet { $0.usrs }
-                .union(baseline?.usrs ?? [])
-            try Self.writeBaseline(.v1(usrs: usrs.sorted()), to: baselinePath)
+            try Self.writeBaseline(.written(from: filteredResults, union: baseline), to: baselinePath)
         }
 
         let outputFormat = configuration.outputFormat
@@ -424,7 +421,7 @@ struct ScanCommand: ParsableCommand {
     }
 
     static func writeBaseline(_ baseline: Baseline, to path: FilePath) throws {
-        try JSONEncoder().encode(baseline).write(to: path.url, options: .atomic)
+        try baseline.write(to: path)
     }
 
     // MARK: - Private
