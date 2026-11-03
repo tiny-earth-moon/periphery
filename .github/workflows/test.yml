@@ -58,11 +58,11 @@ jobs:
       # every other target, including the SwiftPM fixture scans, runs here.
       - name: Test
         run: swift test
-      # Swift 6.4 builds with the swiftbuild backend, whose index store is `.build/out`: Periphery finds it itself.
+      # Swift 6.4 builds with the swiftbuild backend, whose index store is `.build/out`: outskirts finds it itself.
       - name: Self-scan
         # Advisory until the baseline is regenerated on Linux (#219): a stale baseline fails here without failing the job.
         continue-on-error: true
-        run: .build/debug/periphery scan --skip-build --baseline baselines/linux.json --strict --disable-update-check
+        run: .build/debug/outskirts scan --skip-build --baseline baselines/linux.json --strict --disable-update-check
   linux-minimum:
     name: Linux (Swift 6.1, minimum toolchain)
     # The minimum supported toolchain is `minimumVersion` in Sources/Shared/SwiftVersion.swift (6.1.2).
