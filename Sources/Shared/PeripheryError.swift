@@ -50,7 +50,7 @@ public enum PeripheryError: Error, LocalizedError, CustomStringConvertible {
         case let .sourceGraphIntegrityError(message):
             return message
         case let .guidedSetupError(message):
-            return "\(message). Please refer to the documentation for instructions on configuring Periphery manually - https://github.com/tiny-earth-moon/periphery#xcode-integration"
+            return "\(message). Please refer to the documentation for instructions on configuring outskirts manually - https://github.com/tiny-earth-moon/outskirts#xcode-integration"
         case let .updateCheckError(message):
             return message
         case .xcodebuildNotConfigured:
@@ -66,14 +66,14 @@ public enum PeripheryError: Error, LocalizedError, CustomStringConvertible {
         case let .swiftVersionParseError(fullVersion):
             return "Failed to parse Swift version from: \(fullVersion)"
         case let .swiftVersionUnsupportedError(version, minimumVersion):
-            return "This version of Periphery only supports Swift >= \(minimumVersion), you're using \(version)."
+            return "This version of outskirts only supports Swift >= \(minimumVersion), you're using \(version)."
         case let .jsonDeserializationError(error, json):
             return "JSON deserialization failed: \(describe(error))\nJSON:\n\(json)"
         case let .indexStoreNotFound(derivedDataPath):
             return "Failed to find index datastore at path: \(derivedDataPath)"
         case let .indexStoreNotFoundAfterSkippedBuild(tried):
             let paths = tried.map { "\n  - \($0)" }.joined()
-            return "Failed to locate the index store while '--skip-build' is set. Looked in:\(paths)\nBuild the project first (in Xcode or with 'periphery scan' without '--skip-build'), or pass the location of the index store with '--index-store-path'."
+            return "Failed to locate the index store while '--skip-build' is set. Looked in:\(paths)\nBuild the project first (in Xcode or with 'outskirts scan' without '--skip-build'), or pass the location of the index store with '--index-store-path'."
         case let .spmIndexStoreNotFound(tried):
             let paths = tried.map { "\n  - \($0)" }.joined()
             return "Failed to locate the SwiftPM index store. Looked for a 'v5' directory in:\(paths)\nBuild the package first (e.g. 'swift build --build-tests'), or pass the location of the index store with '--index-store-path'."

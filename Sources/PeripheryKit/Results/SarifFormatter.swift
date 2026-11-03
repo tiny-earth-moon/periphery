@@ -14,7 +14,7 @@ final class SarifFormatter: OutputFormatter {
     static let baseId = "%SRCROOT%"
     static let fingerprintKey = "peripheryResult/v1"
 
-    private static let informationUri = "https://github.com/tiny-earth-moon/periphery#readme"
+    private static let informationUri = "https://github.com/tiny-earth-moon/outskirts"
 
     private struct Rule {
         let id: String
@@ -65,14 +65,14 @@ final class SarifFormatter: OutputFormatter {
 
     private func driver() -> [String: Any] {
         [
-            "name": "Periphery",
+            "name": "outskirts",
             "version": PeripheryVersion,
             "informationUri": Self.informationUri,
             "rules": Self.rules.map { rule in
                 [
                     "id": rule.id,
                     "shortDescription": ["text": rule.description],
-                    "helpUri": "https://github.com/tiny-earth-moon/periphery#\(rule.anchor)",
+                    "helpUri": "https://github.com/tiny-earth-moon/outskirts#\(rule.anchor)",
                 ] as [String: Any]
             },
         ]

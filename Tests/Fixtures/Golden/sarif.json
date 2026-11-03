@@ -237,88 +237,88 @@
       ],
       "tool" : {
         "driver" : {
-          "informationUri" : "https://github.com/tiny-earth-moon/periphery#readme",
-          "name" : "Periphery",
+          "informationUri" : "https://github.com/tiny-earth-moon/outskirts",
+          "name" : "outskirts",
           "rules" : [
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/periphery#analysis",
+              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#analysis",
               "id" : "unused",
               "shortDescription" : {
                 "text" : "The declaration is never referenced"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/periphery#assign-only-properties",
+              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#assign-only-properties",
               "id" : "assignOnlyProperty",
               "shortDescription" : {
                 "text" : "The property is assigned, but never read"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/periphery#unassigned-optional-analysis",
+              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#unassigned-optional-analysis",
               "id" : "unassignedOptionalProperty",
               "shortDescription" : {
                 "text" : "The optional property is never assigned and is always nil"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/periphery#protocols-1",
+              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#protocols-1",
               "id" : "redundantProtocol",
               "shortDescription" : {
                 "text" : "The protocol is never used as an existential type"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/periphery#redundant-public-accessibility",
+              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#redundant-public-accessibility",
               "id" : "redundantPublicAccessibility",
               "shortDescription" : {
                 "text" : "The declaration is public but not used outside of its module"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/periphery#open--final-analysis",
+              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#open--final-analysis",
               "id" : "redundantOpenAccessibility",
               "shortDescription" : {
                 "text" : "The declaration is open but never subclassed or overridden outside of its module"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/periphery#open--final-analysis",
+              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#open--final-analysis",
               "id" : "missingFinal",
               "shortDescription" : {
                 "text" : "The class or member could be final"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/periphery#redundant-access-level-analysis",
+              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#redundant-access-level-analysis",
               "id" : "redundantAccessLevel",
               "shortDescription" : {
                 "text" : "The access level is already the default in its context"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/periphery#empty-extension-analysis",
+              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#empty-extension-analysis",
               "id" : "emptyExtension",
               "shortDescription" : {
                 "text" : "The extension declares nothing"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/periphery#comment-commands",
+              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#comment-commands",
               "id" : "superfluousIgnoreCommand",
               "shortDescription" : {
                 "text" : "The ignore comment is on a declaration that is referenced"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/periphery#asset-catalog-colors",
+              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#asset-catalog-colors",
               "id" : "unusedAssetCatalogColor",
               "shortDescription" : {
                 "text" : "The asset catalog color is never referenced"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/periphery#asset-catalog-images",
+              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#asset-catalog-images",
               "id" : "unusedAssetCatalogImage",
               "shortDescription" : {
                 "text" : "The asset catalog image is never referenced"
