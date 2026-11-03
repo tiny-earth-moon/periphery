@@ -135,16 +135,16 @@ final class ScanOutputStreamsTest: XCTestCase {
     }
 
     private func peripheryExecutable() throws -> URL {
-        #if os(macOS)
-            let products = Bundle(for: Self.self).bundleURL.deletingLastPathComponent()
-        #else
-            let products = Bundle.main.bundleURL.deletingLastPathComponent()
-        #endif
-        let url = products.appendingPathComponent("periphery")
-        guard FileManager.default.isExecutableFile(atPath: url.path) else {
-            throw CocoaError(.fileNoSuchFile, userInfo: [NSFilePathErrorKey: url.path, NSLocalizedDescriptionKey: "Build the 'periphery' product before running this test"])
+        // The test runner sits next to the `periphery` product, or inside it on macOS and the native build system.
+        let candidates = [
+            Bundle(for: Self.self).bundleURL.deletingLastPathComponent(),
+            Bundle.main.bundleURL,
+            Bundle.main.bundleURL.deletingLastPathComponent(),
+        ].map { $0.appendingPathComponent("periphery") }
+        if let url = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0.path) }) {
+            return url
         }
 
-        return url
+        throw CocoaError(.fileNoSuchFile, userInfo: [NSFilePathErrorKey: candidates[0].path, NSLocalizedDescriptionKey: "Build the 'periphery' product before running this test"])
     }
 }
