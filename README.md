@@ -26,6 +26,8 @@
 - [How To Use](#how-to-use)
     - [The `scan` Command](#the-scan-command)
     - [Configuration](#configuration)
+    - [Output Formats](#output-formats)
+    - [Exit Status](#exit-status)
 - [Analysis](#analysis)
     - [Function Parameters](#function-parameters)
     - [Generic Type Parameters](#generic-type-parameters)
@@ -117,6 +119,33 @@ Once you've settled upon the appropriate options for your project, you may wish 
 Values are checked when the file is loaded. A value that does not suit its key, such as a number for a boolean (`strict: 1`), a format that does not exist (`format: xml`) or a quoted number for an integer, is reported on stderr as `<file>: '<key>' expects a boolean, got the integer 1`, and the default is kept. A key that is not an option is reported too, with the closest option when there is one (`invalid key 'retain_pubic' (did you mean 'retain_public'?)`). The file only has to be a mapping, otherwise the scan stops with an error. Two shapes are accepted in place of the exact one: a single value for an option that takes a list (`exclude_targets: Demo` is `exclude_targets: [Demo]`), and the strings `"true"` and `"false"` for a boolean, which is also reported.
 
 The command line takes precedence over the configuration file, which takes precedence over the defaults. An option given on the command line wins even when its value is the default (`--format xcode` over `format: json` in the file), and an option that is not given leaves the value of the file untouched. Every boolean option has a `--no-` form to switch off, for one run, what the file enables (`--no-strict`, `--no-retain-public`, `--no-quiet`...). A list given on the command line replaces the list of the file; the default `index_exclude` patterns are always kept.
+
+### Output Formats
+
+Select a format with `--format` (`format` in the configuration file). The default is `xcode`.
+
+| Format | Consumer | Relative paths |
+|--------|----------|----------------|
+| `xcode` | Xcode build log and terminal, with colors | `--relative-results` |
+| `csv` | Spreadsheets and scripts | `--relative-results` |
+| `json` | Scripts, e.g. `jq` | `--relative-results` |
+| `checkstyle` | Tools that read Checkstyle XML | `--relative-results` |
+| `github-markdown` | Pull request comments and job summaries | `--relative-results` |
+| `github-actions` | GitHub Actions annotations | always |
+| `sarif` | GitHub code scanning | always |
+| `gitlab-codequality` | GitLab Code Quality report | always |
+| `codeclimate` | Code Climate JSON | always |
+
+"always" means paths are relative to the project root (or to `--relative-to`) without passing `--relative-results`; the other formats report absolute paths unless it is passed. See [Continuous Integration](#continuous-integration).
+
+### Exit Status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | The scan completed (results may have been reported). |
+| 1 | `--strict` and at least one result was reported, `--strict-baseline` and the baseline holds entries that no longer match, or the scan failed (build error, invalid configuration, unreadable file...). |
+| 64 | Usage error: unknown or invalid command line option. |
+| 130, 143 | The scan was interrupted by `SIGINT` or `SIGTERM`. |
 
 ## Analysis
 
@@ -486,7 +515,7 @@ Files inside Xcode 16+ synchronized folders (`PBXFileSystemSynchronizedRootGroup
 
 ### Asset Catalog Colors
 
-Xcode generates a Swift symbol for each color of an asset catalog (`ColorResource.accent`, `Color.accent`, `UIColor.accent`, ...) in a `GeneratedAssetSymbols.swift` file under DerivedData, which the default `--index-exclude` patterns exclude. Use `--detect-unused-asset-catalog-colors` (`detect_unused_asset_catalog_colors` in the configuration file) to index these files despite `--index-exclude` and report the colors that are never used. A color is used when any of its generated symbols is used, or when its name is referenced as a string: a string literal in the scanned Swift sources (e.g. `Color("Brand")` or `UIColor(named: "Brand")`), a named color of an Interface Builder file, or the global accent color (the `ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME` build setting of Xcode projects, `AccentColor` when no build setting names it). an unused color is reported once as `unusedAssetCatalogColor`, with its asset name and the `.colorset` directories found in the `*.xcassets` catalogs under the project directory (no path is given when none declares it). Every other declaration of the generated file is retained, and the file is left out of unused import analysis. Results are located in the generated file under DerivedData; the `.colorset` paths point to the asset to remove. To skip these results, use `--report-exclude "**/GeneratedAssetSymbols.swift:unusedAssetCatalogColor"`.
+Xcode generates a Swift symbol for each color of an asset catalog (`ColorResource.accent`, `Color.accent`, `UIColor.accent`, ...) in a `GeneratedAssetSymbols.swift` file under DerivedData, which the default `--index-exclude` patterns exclude. Use `--detect-unused-asset-catalog-colors` (`detect_unused_asset_catalog_colors` in the configuration file) to index these files despite `--index-exclude` and report the colors that are never used. A color is used when any of its generated symbols is used, or when its name is referenced as a string: a string literal in the scanned Swift sources (e.g. `Color("Brand")` or `UIColor(named: "Brand")`), a named color of an Interface Builder file, or the global accent color (the `ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME` build setting of Xcode projects, `AccentColor` when no build setting names it. An unused color is reported once as `unusedAssetCatalogColor`, with its asset name and the `.colorset` directories found in the `*.xcassets` catalogs under the project directory (no path is given when none declares it). Every other declaration of the generated file is retained, and the file is left out of unused import analysis. Results are located in the generated file under DerivedData; the `.colorset` paths point to the asset to remove. To skip these results, use `--report-exclude "**/GeneratedAssetSymbols.swift:unusedAssetCatalogColor"`.
 
 ### Asset Catalog Images
 
@@ -841,6 +870,8 @@ periphery scan --generic-project-config config.json
 ## Platforms
 
 Periphery supports both macOS and Linux. macOS supports both Xcode and Swift Package Manager (SPM) projects, whereas only SPM projects are supported on Linux.
+
+Linux is built and tested in CI on Ubuntu, in the official Swift container. Minimum versions: macOS 15 and Swift 6.1.2. The Homebrew formula requires Xcode 26.0 or later.
 
 ## Troubleshooting
 
