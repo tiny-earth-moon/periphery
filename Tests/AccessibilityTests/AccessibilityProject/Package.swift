@@ -4,8 +4,10 @@ import PackageDescription
 // InlineArray (`[2 of Element]`) needs Swift 6.2.
 #if compiler(>=6.2)
 let targetAFilesNeedingSwift62: [String] = []
+let mainTargetFilesNeedingSwift62: [String] = []
 #else
 let targetAFilesNeedingSwift62 = ["PublicTypesUsedAsInlineArrayAndPackElements.swift"]
+let mainTargetFilesNeedingSwift62 = ["InlineArrayAndPackUsage.swift"]
 #endif
 
 let package = Package(
@@ -20,7 +22,8 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "MainTarget",
-            dependencies: ["TargetA"]),
+            dependencies: ["TargetA"],
+            exclude: mainTargetFilesNeedingSwift62),
         .target(
             name: "ExternalTarget",
             dependencies: []),

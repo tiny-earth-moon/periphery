@@ -2016,7 +2016,11 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
-    func testRetainsPropertyUsedAsDictionaryKey() {
+    func testRetainsPropertyUsedAsDictionaryKey() throws {
+        #if compiler(<6.2)
+            // The index store of older toolchains records no read of the key property.
+            throw XCTSkip("needs the index store of Swift 6.2 or later")
+        #endif
         analyze(retainPublic: true) {
             assertReferenced(.struct("FixtureStruct1200")) {
                 self.assertReferenced(.varInstance("path"))
