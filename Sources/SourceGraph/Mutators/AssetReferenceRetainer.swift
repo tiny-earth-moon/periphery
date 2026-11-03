@@ -40,7 +40,7 @@ final class AssetReferenceRetainer: SourceGraphMutator {
                 let sources = Set(references.map(\.source))
 
                 if sources.contains(.xcDataModel) {
-                    // ValueTransformer subclasses are referenced by generated code that Periphery cannot analyze.
+                    // ValueTransformer subclasses are referenced by generated code that outskirts cannot analyze.
                     graph.unmarkRedundantPublicAccessibility(declaration)
                     declaration.descendentDeclarations.forEach { graph.unmarkRedundantPublicAccessibility($0) }
                 }

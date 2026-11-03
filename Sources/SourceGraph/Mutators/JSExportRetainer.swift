@@ -4,7 +4,7 @@ import Shared
 
 /// Retains protocols that inherit, directly or through another protocol, from JavaScriptCore's `JSExport`,
 /// their declared members, and the members of conforming types that satisfy those requirements.
-/// JavaScript can call all of them, which Periphery cannot observe.
+/// JavaScript can call all of them, which outskirts cannot observe.
 ///
 /// Must come before ProtocolConformanceReferenceBuilder, which inverts the references from
 /// conforming members to protocol requirements that this mutator relies on.

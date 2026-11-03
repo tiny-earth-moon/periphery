@@ -78,7 +78,7 @@ public final class Xcodebuild {
             throw PeripheryError.indexStoreNotFound(derivedDataPath: derivedDataPath.string)
         }
 
-        // With --skip-build, Periphery's own DerivedData is never populated, so fall back to the one Xcode uses.
+        // With --skip-build, outskirts' own DerivedData is never populated, so fall back to the one Xcode uses.
         let projectName = project.path.lexicallyNormalized().lastComponent?.stem ?? ""
         let xcodeCandidates = xcodeDerivedDataFolders(named: projectName, in: xcodeDerivedDataRoot)
             .flatMap { folder in relativePaths.map { folder.appending($0) } }

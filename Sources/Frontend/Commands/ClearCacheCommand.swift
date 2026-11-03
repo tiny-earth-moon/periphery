@@ -9,6 +9,6 @@ struct ClearCacheCommand: ParsableCommand {
     )
 
     func run() throws {
-        try CacheManager.clear(cacheDirectory: URL(fileURLWithPath: Constants.cachePath().string))
+        try CacheManager.clearIncludingLegacy()
     }
 }

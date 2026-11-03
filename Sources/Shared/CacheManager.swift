@@ -26,6 +26,12 @@ public struct EvictedCacheEntry: Equatable {
 public enum CacheManager {
     public static let derivedDataPrefix = "DerivedData-"
 
+    /// Clears the outskirts cache directory and the one left by releases that predate the rename.
+    public static func clearIncludingLegacy(cachesDirectory: URL? = nil, fileManager: FileManager = .default) throws {
+        try clear(cacheDirectory: URL(fileURLWithPath: Constants.cachePath(cachesDirectory: cachesDirectory).string), fileManager: fileManager)
+        try clear(cacheDirectory: URL(fileURLWithPath: Constants.legacyCachePath(cachesDirectory: cachesDirectory).string), fileManager: fileManager)
+    }
+
     /// Removes every entry of the cache directory, then the directory itself. Entries that have already
     /// vanished are ignored. Symbolic links are removed, never followed.
     public static func clear(cacheDirectory: URL, fileManager: FileManager = .default) throws {
