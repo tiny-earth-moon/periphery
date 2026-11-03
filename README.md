@@ -144,82 +144,80 @@ The command line takes precedence over the configuration file, which takes prece
 
 ### Options Reference
 
-Every option of the `scan` command, with its key in the configuration file and its default (see `outskirts help scan` for the full help). Options marked "none" in the key column cannot be set in the configuration file. Every option that takes no value, except `--setup` and `--skip-stdout-results`, also has a `--no-` form, e.g. `--no-strict`. Options that take a list accept several values after one flag. See [Excluding Files](#excluding-files) and [Analysis](#analysis) for the options in context.
+Every option of the `scan` command, with its key in the configuration file and its default (see `outskirts help scan` for the full help). Options marked "command line only" cannot be set in the configuration file. Every option that takes no value, except `--setup` and `--skip-stdout-results`, also has a `--no-` form, e.g. `--no-strict`. Options that take a list accept several values after one flag. See [Excluding Files](#excluding-files) and [Analysis](#analysis) for the options in context.
 
-| Option | Configuration key | Default | Meaning |
-|--------|-------------------|---------|---------|
-| `-- <args>` | `build_arguments` | empty | Arguments passed to the underlying build tool (`swift build` or `xcodebuild`), after a `--` separator |
-| none | `xcode_list_arguments` | empty | Extra arguments for the `xcodebuild -list` call that lists schemes (guided setup) |
-| `--setup` | none | none | Guided setup, run at the project root |
-| `--project-root` | none | none | Root directory of the project, from which relative paths are resolved (default: the current directory) |
-| `--config` | none | none | Configuration file (default: `.outskirts.yml`, else `.periphery.yml`, in the project root) |
-| `--project` | `project` | none | Path to the `.xcodeproj` or `.xcworkspace` |
-| `--schemes` | `schemes` | empty | Schemes to build |
-| `--format` | `format` | `xcode` | Output format: `xcode`, `csv`, `json`, `checkstyle`, `codeclimate`, `github-actions`, `github-markdown`, `gitlab-codequality` or `sarif` |
-| `--exclude-tests` | `exclude_tests` | `false` | Exclude test targets from indexing |
-| `--exclude-targets` | `exclude_targets` | empty | Targets to exclude from indexing |
-| `--index-exclude` | `index_exclude` | `["**/*?.build/**/*", "**/SourcePackages/checkouts/**"]` | Source file globs to leave out of indexing, added to the defaults |
-| `--report-exclude` | `report_exclude` | empty | Source file globs to leave out of the results, optionally per result kind with `<glob>:kind1,kind2`; the files are still indexed |
-| `--report-include` | `report_include` | empty | Source file globs to keep in the results; supersedes `--report-exclude`; the other files are still indexed |
-| `--retain-files` | `retain_files` | empty | Source file globs for which all containing declarations will be retained |
-| `--index-store-path` | `index_store_path` | empty | Index store paths; implies `--skip-build` |
-| `--retain-public` | `retain_public` | `false` | Retain all public declarations, recommended for framework/library projects |
-| `--no-retain-spi` | `no_retain_spi` | empty | Public SPIs to analyze even when `--retain-public` is enabled |
-| `--disable-platform-conditional-retention` | `disable_platform_conditional_retention` | `false` | Do not retain declarations unavailable on a platform or referenced from platform conditional compilation blocks |
-| `--disable-redundant-public-analysis` | `disable_redundant_public_analysis` | `false` | Disable identification of redundant public accessibility |
-| `--enable-redundant-public-members` | `enable_redundant_public_members` | `false` | Also find redundant public accessibility on the members of public types and extensions |
-| `--enable-open-final-analysis` | `enable_open_final_analysis` | `false` | Find redundant `open` accessibility and classes or members that could be `final` |
-| `--enable-empty-extension-analysis` | `enable_empty_extension_analysis` | `false` | Find extensions that declare no member and no conformance |
-| `--enable-redundant-access-level-analysis` | `enable_redundant_access_level_analysis` | `false` | Find access modifiers identical to the default of their enclosing context |
-| `--report-unused-type-parameters` | `report_unused_type_parameters` | `false` | Also report unused generic parameters of types, ignored by default as they may be phantom types |
-| `--disable-unused-import-analysis` | `disable_unused_import_analysis` | `false` | Turn off the analysis of unused imports |
-| `--enable-unused-system-imports` | `enable_unused_system_imports` | `false` | Also analyze imports of system frameworks (experimental) |
-| `--superfluous-ignore-comments` | `superfluous_ignore_comments` | `true` | Report ignore comments that ignore nothing |
-| `--disable-unused-localized-string-analysis` | `disable_unused_localized_string_analysis` | `false` | Turn off the analysis of unused String Catalog (xcstrings) keys |
-| `--localized-string-catalog-exclude` | `localized_string_catalog_exclude` | `["**/InfoPlist.xcstrings", "**/AppShortcuts.xcstrings"]` | String Catalog globs left out of the localized strings analysis |
-| `--localized-string-key-patterns` | `localized_string_key_patterns` | empty | Key patterns (globs, or regular expressions between slashes) of keys used dynamically, retained from String Catalogs |
-| `--localized-string-key-literal-match` | `localized_string_key_literal_match` | `false` | Retain keys equal to any string literal of the source |
-| `--retain-runtime-localized-keys` | `retain_runtime_localized_keys` | `false` | Retain every key that a key built at runtime without a literal prefix may look up |
-| `--retain-unused-imported-modules` | `retain_unused_imported_modules` | empty | Names of imported modules to retain even when unused |
-| `--retain-assign-only-properties` | `retain_assign_only_properties` | `false` | Retain properties that are assigned but never read |
-| `--retain-assign-only-property-types` | `retain_assign_only_property_types` | empty | Property types to retain when assigned but never read |
-| `--enable-unassigned-optional-analysis` | `enable_unassigned_optional_analysis` | `false` | Find optional properties that are read but never assigned (always `nil`) |
-| `--external-encodable-protocols` | `external_encodable_protocols` | empty | External protocols that inherit `Encodable`; the properties and `CodingKey` enums of conforming types are retained |
-| `--external-codable-protocols` | `external_codable_protocols` | empty | External protocols that inherit `Codable`; the properties and `CodingKey` enums of conforming types are retained |
-| `--external-test-case-classes` | `external_test_case_classes` | empty | `XCTestCase` subclasses that live in external targets |
-| `--retain-objc-accessible` | `retain_objc_accessible` | `false` | Retain declarations exposed to Objective-C, implicitly (`NSObject` subclasses) or with `@objc` / `@objcMembers` |
-| `--retain-js-accessible` | `retain_js_accessible` | `false` | Retain protocols that inherit `JSExport`, their members and the members of conforming types that satisfy them |
-| `--retain-objc-annotated` | `retain_objc_annotated` | `false` | Retain declarations exposed to Objective-C with `@objc` / `@objcMembers` only |
-| `--retain-unused-protocol-func-params` | `retain_unused_protocol_func_params` | `false` | Retain unused protocol function parameters, even if unused in all conforming functions |
-| `--retain-unused-parameters-without-default` | `retain_unused_parameters_without_default` | `false` | Retain unused function parameters that have no default value |
-| `--retain-swift-ui-previews` | `retain_swift_ui_previews` | `false` | Retain SwiftUI previews |
-| `--retain-codable-properties` | `retain_codable_properties` | `false` | Retain properties on Codable types (including Encodable and Decodable) |
-| `--retain-encodable-properties` | `retain_encodable_properties` | `false` | Retain properties on Encodable types only |
-| `--retain-equatable-properties` | `retain_equatable_properties` | `false` | Retain properties on Equatable types, including Hashable types |
-| `--retain-hashable-properties` | `retain_hashable_properties` | `false` | Retain properties on Hashable types |
-| `--clean-build` | `clean_build` | `false` | Remove existing build artifacts before building |
-| `--skip-build` | `skip_build` | `false` | Skip the project build step |
-| `--skip-schemes-validation` | `skip_schemes_validation` | `false` | Do not check that the schemes exist |
-| `--relative-results` | `relative_results` | `false` | Report paths relative to the project root, or to `--relative-to` |
-| `--relative-to` | `relative_results_base` | none | Directory the result paths are relative to when `--relative-results` is in effect; a relative value is resolved from `--project-root` |
-| `--strict` | `strict` | `false` | Exit with status 1 if any result is reported |
-| `--disable-update-check` | `disable_update_check` | `false` | Do not check for a new version |
-| `--verbose` | `verbose` | `false` | Enable verbose logging |
-| `--quiet` | `quiet` | `false` | Print only the results |
-| `--color` | `color` | `auto` | Colored output: `auto`, `always` or `never` (`--no-color` is a hidden alias of `--color never`) |
-| `--json-package-manifest-path` | `json_package_manifest_path` | none | Package manifest as JSON (from `swift package describe --type json`, or written by hand) |
-| `--cache-max-age-days` | `cache_max_age_days` | `14` | Age in days after which unused Xcode build caches are evicted at the end of a scan; `0` disables eviction |
-| `--baseline` | `baseline` | none | Baseline file whose entries are hidden from the results |
-| `--write-baseline` | `write_baseline` | none | Write the results to a baseline file, keeping the entries of `--baseline` |
-| `--prune-baseline` | `prune_baseline` | `false` | Rewrite the `--baseline` file keeping only the entries that still match a result; requires `--baseline` |
-| `--strict-baseline` | `strict_baseline` | `false` | Exit with status 1 if the baseline holds entries that no longer match; requires `--baseline` |
-| `--write-results` | `write_results` | none | Also write the formatted results to a file |
-| `--skip-stdout-results` | `skip_stdout_results` | `false` | Do not print the results to stdout; requires `--write-results` |
-| `--generic-project-config` | `generic_project_config` | none | Project configuration file for other build systems, see [Other](#other) |
-| `--retain-synthesized-uses` | `retain_synthesized_uses` | `false` | Retain stored properties of types whose values are described through reflection (`print`, `dump`, `String(describing:)`, interpolation) |
-| `--retain-attributes` | `retain_attributes` | empty | Retain declarations that have one of the given attributes (without the `@`), optionally per declaration kind with `<attribute>:kind1,kind2` |
-| `--detect-unused-asset-catalog-colors` | `detect_unused_asset_catalog_colors` | `false` | Find unused colors of Xcode asset catalogs |
-| `--detect-unused-asset-catalog-images` | `detect_unused_asset_catalog_images` | `false` | Find unused images of Xcode asset catalogs |
+- **`-- <args>`**: Arguments passed to the underlying build tool (`swift build` or `xcodebuild`), after a `--` separator. Key `build_arguments`, default empty.
+- **`xcode_list_arguments`** (configuration file only): Extra arguments for the `xcodebuild -list` call that lists schemes (guided setup). Default empty.
+- **`--setup`**: Guided setup, run at the project root. Command line only.
+- **`--project-root`**: Root directory of the project, from which relative paths are resolved (default: the current directory). Command line only.
+- **`--config`**: Configuration file (default: `.outskirts.yml`, else `.periphery.yml`, in the project root). Command line only.
+- **`--project`**: Path to the `.xcodeproj` or `.xcworkspace`. Key `project`.
+- **`--schemes`**: Schemes to build. Key `schemes`, default empty.
+- **`--format`**: Output format: `xcode`, `csv`, `json`, `checkstyle`, `codeclimate`, `github-actions`, `github-markdown`, `gitlab-codequality` or `sarif`. Key `format`, default `xcode`.
+- **`--exclude-tests`**: Exclude test targets from indexing. Key `exclude_tests`, default `false`.
+- **`--exclude-targets`**: Targets to exclude from indexing. Key `exclude_targets`, default empty.
+- **`--index-exclude`**: Source file globs to leave out of indexing, added to the defaults. Key `index_exclude`, default `["**/*?.build/**/*", "**/SourcePackages/checkouts/**"]`.
+- **`--report-exclude`**: Source file globs to leave out of the results, optionally per result kind with `<glob>:kind1,kind2`; the files are still indexed. Key `report_exclude`, default empty.
+- **`--report-include`**: Source file globs to keep in the results; supersedes `--report-exclude`; the other files are still indexed. Key `report_include`, default empty.
+- **`--retain-files`**: Source file globs for which all containing declarations will be retained. Key `retain_files`, default empty.
+- **`--index-store-path`**: Index store paths; implies `--skip-build`. Key `index_store_path`, default empty.
+- **`--retain-public`**: Retain all public declarations, recommended for framework/library projects. Key `retain_public`, default `false`.
+- **`--no-retain-spi`**: Public SPIs to analyze even when `--retain-public` is enabled. Key `no_retain_spi`, default empty.
+- **`--disable-platform-conditional-retention`**: Do not retain declarations unavailable on a platform or referenced from platform conditional compilation blocks. Key `disable_platform_conditional_retention`, default `false`.
+- **`--disable-redundant-public-analysis`**: Disable identification of redundant public accessibility. Key `disable_redundant_public_analysis`, default `false`.
+- **`--enable-redundant-public-members`**: Also find redundant public accessibility on the members of public types and extensions. Key `enable_redundant_public_members`, default `false`.
+- **`--enable-open-final-analysis`**: Find redundant `open` accessibility and classes or members that could be `final`. Key `enable_open_final_analysis`, default `false`.
+- **`--enable-empty-extension-analysis`**: Find extensions that declare no member and no conformance. Key `enable_empty_extension_analysis`, default `false`.
+- **`--enable-redundant-access-level-analysis`**: Find access modifiers identical to the default of their enclosing context. Key `enable_redundant_access_level_analysis`, default `false`.
+- **`--report-unused-type-parameters`**: Also report unused generic parameters of types, ignored by default as they may be phantom types. Key `report_unused_type_parameters`, default `false`.
+- **`--disable-unused-import-analysis`**: Turn off the analysis of unused imports. Key `disable_unused_import_analysis`, default `false`.
+- **`--enable-unused-system-imports`**: Also analyze imports of system frameworks (experimental). Key `enable_unused_system_imports`, default `false`.
+- **`--superfluous-ignore-comments`**: Report ignore comments that ignore nothing. Key `superfluous_ignore_comments`, default `true`.
+- **`--disable-unused-localized-string-analysis`**: Turn off the analysis of unused String Catalog (xcstrings) keys. Key `disable_unused_localized_string_analysis`, default `false`.
+- **`--localized-string-catalog-exclude`**: String Catalog globs left out of the localized strings analysis. Key `localized_string_catalog_exclude`, default `["**/InfoPlist.xcstrings", "**/AppShortcuts.xcstrings"]`.
+- **`--localized-string-key-patterns`**: Key patterns (globs, or regular expressions between slashes) of keys used dynamically, retained from String Catalogs. Key `localized_string_key_patterns`, default empty.
+- **`--localized-string-key-literal-match`**: Retain keys equal to any string literal of the source. Key `localized_string_key_literal_match`, default `false`.
+- **`--retain-runtime-localized-keys`**: Retain every key that a key built at runtime without a literal prefix may look up. Key `retain_runtime_localized_keys`, default `false`.
+- **`--retain-unused-imported-modules`**: Names of imported modules to retain even when unused. Key `retain_unused_imported_modules`, default empty.
+- **`--retain-assign-only-properties`**: Retain properties that are assigned but never read. Key `retain_assign_only_properties`, default `false`.
+- **`--retain-assign-only-property-types`**: Property types to retain when assigned but never read. Key `retain_assign_only_property_types`, default empty.
+- **`--enable-unassigned-optional-analysis`**: Find optional properties that are read but never assigned (always `nil`). Key `enable_unassigned_optional_analysis`, default `false`.
+- **`--external-encodable-protocols`**: External protocols that inherit `Encodable`; the properties and `CodingKey` enums of conforming types are retained. Key `external_encodable_protocols`, default empty.
+- **`--external-codable-protocols`**: External protocols that inherit `Codable`; the properties and `CodingKey` enums of conforming types are retained. Key `external_codable_protocols`, default empty.
+- **`--external-test-case-classes`**: `XCTestCase` subclasses that live in external targets. Key `external_test_case_classes`, default empty.
+- **`--retain-objc-accessible`**: Retain declarations exposed to Objective-C, implicitly (`NSObject` subclasses) or with `@objc` / `@objcMembers`. Key `retain_objc_accessible`, default `false`.
+- **`--retain-js-accessible`**: Retain protocols that inherit `JSExport`, their members and the members of conforming types that satisfy them. Key `retain_js_accessible`, default `false`.
+- **`--retain-objc-annotated`**: Retain declarations exposed to Objective-C with `@objc` / `@objcMembers` only. Key `retain_objc_annotated`, default `false`.
+- **`--retain-unused-protocol-func-params`**: Retain unused protocol function parameters, even if unused in all conforming functions. Key `retain_unused_protocol_func_params`, default `false`.
+- **`--retain-unused-parameters-without-default`**: Retain unused function parameters that have no default value. Key `retain_unused_parameters_without_default`, default `false`.
+- **`--retain-swift-ui-previews`**: Retain SwiftUI previews. Key `retain_swift_ui_previews`, default `false`.
+- **`--retain-codable-properties`**: Retain properties on Codable types (including Encodable and Decodable). Key `retain_codable_properties`, default `false`.
+- **`--retain-encodable-properties`**: Retain properties on Encodable types only. Key `retain_encodable_properties`, default `false`.
+- **`--retain-equatable-properties`**: Retain properties on Equatable types, including Hashable types. Key `retain_equatable_properties`, default `false`.
+- **`--retain-hashable-properties`**: Retain properties on Hashable types. Key `retain_hashable_properties`, default `false`.
+- **`--clean-build`**: Remove existing build artifacts before building. Key `clean_build`, default `false`.
+- **`--skip-build`**: Skip the project build step. Key `skip_build`, default `false`.
+- **`--skip-schemes-validation`**: Do not check that the schemes exist. Key `skip_schemes_validation`, default `false`.
+- **`--relative-results`**: Report paths relative to the project root, or to `--relative-to`. Key `relative_results`, default `false`.
+- **`--relative-to`**: Directory the result paths are relative to when `--relative-results` is in effect; a relative value is resolved from `--project-root`. Key `relative_results_base`.
+- **`--strict`**: Exit with status 1 if any result is reported. Key `strict`, default `false`.
+- **`--disable-update-check`**: Do not check for a new version. Key `disable_update_check`, default `false`.
+- **`--verbose`**: Enable verbose logging. Key `verbose`, default `false`.
+- **`--quiet`**: Print only the results. Key `quiet`, default `false`.
+- **`--color`**: Colored output: `auto`, `always` or `never` (`--no-color` is a hidden alias of `--color never`). Key `color`, default `auto`.
+- **`--json-package-manifest-path`**: Package manifest as JSON (from `swift package describe --type json`, or written by hand). Key `json_package_manifest_path`.
+- **`--cache-max-age-days`**: Age in days after which unused Xcode build caches are evicted at the end of a scan; `0` disables eviction. Key `cache_max_age_days`, default `14`.
+- **`--baseline`**: Baseline file whose entries are hidden from the results. Key `baseline`.
+- **`--write-baseline`**: Write the results to a baseline file, keeping the entries of `--baseline`. Key `write_baseline`.
+- **`--prune-baseline`**: Rewrite the `--baseline` file keeping only the entries that still match a result; requires `--baseline`. Key `prune_baseline`, default `false`.
+- **`--strict-baseline`**: Exit with status 1 if the baseline holds entries that no longer match; requires `--baseline`. Key `strict_baseline`, default `false`.
+- **`--write-results`**: Also write the formatted results to a file. Key `write_results`.
+- **`--skip-stdout-results`**: Do not print the results to stdout; requires `--write-results`. Key `skip_stdout_results`, default `false`.
+- **`--generic-project-config`**: Project configuration file for other build systems, see [Other](#other). Key `generic_project_config`.
+- **`--retain-synthesized-uses`**: Retain stored properties of types whose values are described through reflection (`print`, `dump`, `String(describing:)`, interpolation). Key `retain_synthesized_uses`, default `false`.
+- **`--retain-attributes`**: Retain declarations that have one of the given attributes (without the `@`), optionally per declaration kind with `<attribute>:kind1,kind2`. Key `retain_attributes`, default empty.
+- **`--detect-unused-asset-catalog-colors`**: Find unused colors of Xcode asset catalogs. Key `detect_unused_asset_catalog_colors`, default `false`.
+- **`--detect-unused-asset-catalog-images`**: Find unused images of Xcode asset catalogs. Key `detect_unused_asset_catalog_images`, default `false`.
 
 Other commands:
 
