@@ -82,7 +82,7 @@ public final class Declaration {
             rawValue.hasPrefix("var")
         }
 
-        static var globalKinds: Set<Kind> = [
+        static let globalKinds: Set<Kind> = [
             .class,
             .protocol,
             .enum,
