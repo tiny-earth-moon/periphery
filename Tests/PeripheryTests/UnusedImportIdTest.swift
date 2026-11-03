@@ -26,17 +26,23 @@ final class UnusedImportIdTest: SPMSourceGraphTestCase {
         return try XCTUnwrap(Self.results.first { $0.declaration.kind == .module })
     }
 
-    func testResultId_holdsTheRelativeFileButNeitherPositionNorAbsolutePath() throws {
-        XCTAssertEqual(try unusedImportResult().usrs, ["import-Foundation-\(Self.relativeFile)"])
-    }
+    // System module detection relies on the Darwin SDK layout; not reported on Linux yet.
+    #if os(macOS)
+        func testResultId_holdsTheRelativeFileButNeitherPositionNorAbsolutePath() throws {
+            XCTAssertEqual(try unusedImportResult().usrs, ["import-Foundation-\(Self.relativeFile)"])
+        }
+    #endif
 
-    func testBaselineWithTheLegacyPositionalId_stillFiltersTheResult() throws {
-        let result = try unusedImportResult()
-        let legacyId = "import-Foundation-\(Self.relativeFile):1:1"
-        let configuration = Configuration()
-        configuration.projectRoot = FixturesProjectPath
+    // System module detection relies on the Darwin SDK layout; not reported on Linux yet.
+    #if os(macOS)
+        func testBaselineWithTheLegacyPositionalId_stillFiltersTheResult() throws {
+            let result = try unusedImportResult()
+            let legacyId = "import-Foundation-\(Self.relativeFile):1:1"
+            let configuration = Configuration()
+            configuration.projectRoot = FixturesProjectPath
 
-        XCTAssertEqual(result.legacyUsrs(projectRoot: FixturesProjectPath), [legacyId])
-        XCTAssertEqual(try OutputDeclarationFilter(configuration: configuration, logger: Self.logger).filter([result], with: .v1(usrs: [legacyId])).count, 0)
-    }
+            XCTAssertEqual(result.legacyUsrs(projectRoot: FixturesProjectPath), [legacyId])
+            XCTAssertEqual(try OutputDeclarationFilter(configuration: configuration, logger: Self.logger).filter([result], with: .v1(usrs: [legacyId])).count, 0)
+        }
+    #endif
 }
