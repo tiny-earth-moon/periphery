@@ -28,7 +28,7 @@ final class RelativeResultPathsTest: XCTestCase {
     // MARK: - Formats that require relative paths
 
     func testRequiresRelativePaths_isLimitedToTheFormatsThatNeedIt() {
-        let expected: Set<OutputFormat> = [.githubActions, .gitlabCodeQuality, .codeclimate]
+        let expected: Set<OutputFormat> = [.githubActions, .gitlabCodeQuality, .codeclimate, .sarif]
 
         for format in OutputFormat.allCases {
             XCTAssertEqual(format.requiresRelativePaths, expected.contains(format), "\(format)")
