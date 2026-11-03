@@ -82,7 +82,7 @@ On Apple silicon with macOS 27 or later, Homebrew pours a prebuilt bottle; on ot
 ### [Mint](https://github.com/yonaskolb/mint)
 
 ```sh
-mint install tiny-earth-moon/outskirts
+mint install tiny-earth-moon/periphery
 ```
 
 ### From source
