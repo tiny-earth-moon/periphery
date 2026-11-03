@@ -12,15 +12,13 @@
 
 > [!NOTE]
 >
-> This is a maintained fork of [peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived in August 2026. Scope: keep Periphery building and working with current Xcode/Swift toolchains, fix regressions, review community PRs. No functional roadmap.
+> This is the community-maintained successor of [peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived in August 2026. It continues the open-source 3.x line with bug fixes, support for current Xcode/Swift toolchains and new features.
 >
-> Install: `brew install tiny-earth-moon/tap/periphery` (builds from source) or `swift build -c release --product periphery`. Issues and pull requests: this repository.
+> Install with `brew install tiny-earth-moon/tap/periphery` (a prebuilt bottle is available, see [Installation](#installation)) or build from source. Versions and changes: [CHANGELOG.md](CHANGELOG.md) and the [releases page](https://github.com/tiny-earth-moon/periphery/releases). Issues and pull requests: this repository, see [CONTRIBUTING.md](CONTRIBUTING.md).
 >
-> The original author now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. This fork takes nothing from it; both install a `periphery` executable, so install one or the other (the Homebrew formulae conflict on purpose).
+> Periphery was created by [Ian Leitch](https://github.com/ileitch), whom we thank for years of excellent work and for keeping the project open source. See [Credits](#credits) for the full attribution, including the sibling fork [agoodkind/periphery](https://github.com/agoodkind/periphery).
 >
-> This fork is not affiliated with, nor endorsed by, the original author or Periphery Pro. The `periphery` name is kept for the executable and the configuration file so existing scripts keep working; it is not a claim on the Periphery brand.
->
-> Periphery was created by [Ian Leitch](https://github.com/ileitch), whom we thank for years of excellent work and for keeping the project open source. See [Credits](#credits) for the full attribution.
+> The original author now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. This fork takes nothing from it; both install a `periphery` executable, so install one or the other (the Homebrew formulae conflict on purpose). This fork is not affiliated with, nor endorsed by, the original author or Periphery Pro. The `periphery` name is kept for the executable and the configuration file for compatibility; it is not a claim on the Periphery brand.
 
 ## Contents
 
