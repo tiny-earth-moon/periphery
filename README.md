@@ -8,8 +8,8 @@
 <p align="center">Find unused code at the outskirts of your Swift project. A community-maintained fork of Periphery 3.x.</p>
 
 <p align="center">
-<a href="https://github.com/tiny-earth-moon/periphery/releases/latest">
-<img src="https://img.shields.io/github/release/tiny-earth-moon/periphery.svg?color=008DFF"/></a>
+<a href="https://github.com/tiny-earth-moon/outskirts/releases/latest">
+<img src="https://img.shields.io/github/release/tiny-earth-moon/outskirts.svg?color=008DFF"/></a>
 <img src="https://img.shields.io/badge/platform-macOS%20|%20Linux-008DFF">
 <br>
 <br>
@@ -19,7 +19,7 @@
 >
 > outskirts is the new name, since 3.16.0 (2026-11), of the community-maintained successor of [peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived in August 2026. It continues the open-source 3.x line with bug fixes, support for current Xcode/Swift toolchains and new features. Nothing breaks: see [Migrating from Periphery](#migrating-from-periphery).
 >
-> Install with `brew install tiny-earth-moon/tap/outskirts` (a prebuilt bottle is available, see [Installation](#installation)) or build from source. The former `periphery` name keeps working. Versions and changes: [CHANGELOG.md](CHANGELOG.md) and the [releases page](https://github.com/tiny-earth-moon/periphery/releases). Issues and pull requests: this repository, see [CONTRIBUTING.md](CONTRIBUTING.md).
+> Install with `brew install tiny-earth-moon/tap/outskirts` (a prebuilt bottle is available, see [Installation](#installation)) or build from source. The former `periphery` name keeps working. Versions and changes: [CHANGELOG.md](CHANGELOG.md) and the [releases page](https://github.com/tiny-earth-moon/outskirts/releases). Issues and pull requests: this repository, see [CONTRIBUTING.md](CONTRIBUTING.md).
 >
 > Periphery was created by [Ian Leitch](https://github.com/ileitch), whom we thank for years of excellent work and for keeping the project open source. See [Credits](#credits) for the full attribution, including the sibling fork [agoodkind/periphery](https://github.com/agoodkind/periphery).
 >
@@ -82,14 +82,14 @@ On Apple silicon with macOS 27 or later, Homebrew pours a prebuilt bottle; on ot
 ### [Mint](https://github.com/yonaskolb/mint)
 
 ```sh
-mint install tiny-earth-moon/periphery
+mint install tiny-earth-moon/outskirts
 ```
 
 ### From source
 
 ```sh
-git clone https://github.com/tiny-earth-moon/periphery.git
-cd periphery
+git clone https://github.com/tiny-earth-moon/outskirts.git
+cd outskirts
 swift build -c release --product outskirts
 ```
 
@@ -840,7 +840,7 @@ Therefore, if you intend to run outskirts directly after calling `swift test`, y
 
 ### Bazel
 
-The Bazel mode (`--bazel` and every `--bazel-*` option) was removed in 3.13.0 ([#165](https://github.com/tiny-earth-moon/periphery/issues/165)). The `periphery` module on the Bazel Central Registry belongs to the archived upstream project and is frozen at 3.8.0, this fork is distributed through its Homebrew tap only, and the Bazel build files and CI jobs had to be updated with every change. [agoodkind/periphery](https://github.com/agoodkind/periphery) maintains a Bazel mode. With this fork, a Bazel project can still be scanned from the index stores its build produces, through the configuration file described in [Other](#other).
+The Bazel mode (`--bazel` and every `--bazel-*` option) was removed in 3.13.0 ([#165](https://github.com/tiny-earth-moon/outskirts/issues/165)). The `periphery` module on the Bazel Central Registry belongs to the archived upstream project and is frozen at 3.8.0, this fork is distributed through its Homebrew tap only, and the Bazel build files and CI jobs had to be updated with every change. [agoodkind/periphery](https://github.com/agoodkind/periphery) maintains a Bazel mode. With this fork, a Bazel project can still be scanned from the index stores its build produces, through the configuration file described in [Other](#other).
 
 ### Other
 
@@ -984,20 +984,20 @@ Changes from other people taken in since 3.8.1, with the original author kept in
 
 | Change | Author | Where | Version |
 |--------|--------|-------|---------|
-| Fix infinite recursion when expanding paths of directories named `**` or starting with `**` | Zev Eisenberg | [#22](https://github.com/tiny-earth-moon/periphery/pull/22) (3b00f30, 9cde22a, ddc54ea, 44e26aa) | 3.8.4 |
-| Honor `--clean-build` and control the derived data path when listing Xcode schemes | Lukas Kollmer | [#25](https://github.com/tiny-earth-moon/periphery/pull/25) (4dded94, 8062d32, 8c2fd27) | 3.8.5 |
-| Retain macro `@State` properties used only via `$projectedValue` | rishabhtpdl | [#36](https://github.com/tiny-earth-moon/periphery/issues/36) (92f0ec4) | 3.8.8 |
+| Fix infinite recursion when expanding paths of directories named `**` or starting with `**` | Zev Eisenberg | [#22](https://github.com/tiny-earth-moon/outskirts/pull/22) (3b00f30, 9cde22a, ddc54ea, 44e26aa) | 3.8.4 |
+| Honor `--clean-build` and control the derived data path when listing Xcode schemes | Lukas Kollmer | [#25](https://github.com/tiny-earth-moon/outskirts/pull/25) (4dded94, 8062d32, 8c2fd27) | 3.8.5 |
+| Retain macro `@State` properties used only via `$projectedValue` | rishabhtpdl | [#36](https://github.com/tiny-earth-moon/outskirts/issues/36) (92f0ec4) | 3.8.8 |
 | Detect unused String Catalog (`.xcstrings`) keys (upstream commit, cherry-picked unchanged) | Ian Leitch | d865dde | 3.9.0 |
 | Test and fixture pinning `buildPartialBlock` retention in result builders (our #30 already retained it) | Alex Goodkind | [agoodkind/periphery@153790b](https://github.com/agoodkind/periphery/commit/153790b2ad4ddd51a8b6a1b53d7d3b847640a553) (agoodkind PR #6, our issue #119) | 3.12.9 |
-| Read stdout and stderr of shell commands concurrently (no deadlock on large output) | Alex Goodkind | [agoodkind/periphery@90de96b](https://github.com/agoodkind/periphery/commit/90de96b) ([PR #1](https://github.com/agoodkind/periphery/pull/1)), our [#117](https://github.com/tiny-earth-moon/periphery/issues/117) | 3.12.9 |
-| Ternary String Catalog keys: fixture and tests (our visitor already looked through ternaries) | Alex Goodkind | [agoodkind/periphery@6c57931](https://github.com/agoodkind/periphery/commit/6c57931) (agoodkind PR #11, cherry-picked), our [#120](https://github.com/tiny-earth-moon/periphery/issues/120) | 3.12.10 |
-| Retain String Catalog keys of runtime lookups by literal prefix, scoped to the module for `bundle: .module` (reimplemented) | Alex Goodkind | [agoodkind/periphery@544a77d](https://github.com/agoodkind/periphery/commit/544a77d), [5c5af4c](https://github.com/agoodkind/periphery/commit/5c5af4c), our [#120](https://github.com/tiny-earth-moon/periphery/issues/120) | 3.12.10 |
-| Detect String Catalog keys referenced through Xcode 26+ generated symbols (reimplemented) | Alex Goodkind | [agoodkind/periphery@783b5f8](https://github.com/agoodkind/periphery/commit/783b5f8), [9ca12ad](https://github.com/agoodkind/periphery/commit/9ca12ad), [20f40ce](https://github.com/agoodkind/periphery/commit/20f40ce), our [#120](https://github.com/tiny-earth-moon/periphery/issues/120) | 3.12.10 |
-| SwiftUI `@State` fixture (`StateMacroView`, SPMProjectMacOS) and top-level `$state` reads retained under Xcode 27 (merged into our `MacroWrappedPropertyReferenceBuilder`) | Alex Goodkind | [agoodkind/periphery@e5b4cd2](https://github.com/agoodkind/periphery/commit/e5b4cd24b314467a2b6252f0336c298760d39e80) ([PR #4](https://github.com/agoodkind/periphery/pull/4)), our [#118](https://github.com/tiny-earth-moon/periphery/issues/118) | 3.12.10 |
-| Exclude hidden files and directories (`.build`, `.scratch`) from SwiftPM implicit resource discovery (cherry-picked with a manual conflict resolution; 782a4e2 only touches Bazel for private dependencies, so nothing to port) | Alex Goodkind | [agoodkind/periphery@df83716](https://github.com/agoodkind/periphery/commit/df83716), our [#121](https://github.com/tiny-earth-moon/periphery/issues/121) | 3.12.11 |
-| Bazel resource and framework rules: embedded Apple frameworks and XPC services, all XIB and storyboard resource groups, Core Data model and mapping model files (with parse errors reported and uppercase extensions accepted), plus Swift protocol buffer targets (`ProtobufAPIVersionCheckRetainer`) and the Bazel consumer-scan fixtures (cherry-picked, conflicts resolved to keep our code); the Bazel parts of this import were removed in 3.13.0 ([#165](https://github.com/tiny-earth-moon/periphery/issues/165)), the Core Data model inputs, the String Catalog error description and the platform conditional collector fix remain | Alex Goodkind | [agoodkind/periphery#21](https://github.com/agoodkind/periphery/pull/21) (b1a49cd, 72b19a3, 8de9900), [#22](https://github.com/agoodkind/periphery/pull/22) (57ebc75, 405fb72), [#23](https://github.com/agoodkind/periphery/pull/23) (a580f96), [#24](https://github.com/agoodkind/periphery/pull/24) (fb3c7db, ecd320d, 6167672, 8043d63, dc63dc3, 281b88b), [ec864a9](https://github.com/agoodkind/periphery/commit/ec864a9) with prerequisites 782a4e2, e090789 and 88a40ce, our [#122](https://github.com/tiny-earth-moon/periphery/issues/122) | 3.12.16 |
-| Test and fixture for same-named members called through an unknown receiver in platform conditional blocks (the receiver-aware narrowing itself was not taken) | Alex Goodkind | [agoodkind/periphery@8662151](https://github.com/agoodkind/periphery/commit/8662151) and our [#166](https://github.com/tiny-earth-moon/periphery/issues/166) | unreleased |
-| CSV output: Modifiers and Attributes columns swapped back, fields quoted per RFC 4180 | Badri Vishal Pandey | [#216](https://github.com/tiny-earth-moon/periphery/pull/216) (575c79d3b) | master |
+| Read stdout and stderr of shell commands concurrently (no deadlock on large output) | Alex Goodkind | [agoodkind/periphery@90de96b](https://github.com/agoodkind/periphery/commit/90de96b) ([PR #1](https://github.com/agoodkind/periphery/pull/1)), our [#117](https://github.com/tiny-earth-moon/outskirts/issues/117) | 3.12.9 |
+| Ternary String Catalog keys: fixture and tests (our visitor already looked through ternaries) | Alex Goodkind | [agoodkind/periphery@6c57931](https://github.com/agoodkind/periphery/commit/6c57931) (agoodkind PR #11, cherry-picked), our [#120](https://github.com/tiny-earth-moon/outskirts/issues/120) | 3.12.10 |
+| Retain String Catalog keys of runtime lookups by literal prefix, scoped to the module for `bundle: .module` (reimplemented) | Alex Goodkind | [agoodkind/periphery@544a77d](https://github.com/agoodkind/periphery/commit/544a77d), [5c5af4c](https://github.com/agoodkind/periphery/commit/5c5af4c), our [#120](https://github.com/tiny-earth-moon/outskirts/issues/120) | 3.12.10 |
+| Detect String Catalog keys referenced through Xcode 26+ generated symbols (reimplemented) | Alex Goodkind | [agoodkind/periphery@783b5f8](https://github.com/agoodkind/periphery/commit/783b5f8), [9ca12ad](https://github.com/agoodkind/periphery/commit/9ca12ad), [20f40ce](https://github.com/agoodkind/periphery/commit/20f40ce), our [#120](https://github.com/tiny-earth-moon/outskirts/issues/120) | 3.12.10 |
+| SwiftUI `@State` fixture (`StateMacroView`, SPMProjectMacOS) and top-level `$state` reads retained under Xcode 27 (merged into our `MacroWrappedPropertyReferenceBuilder`) | Alex Goodkind | [agoodkind/periphery@e5b4cd2](https://github.com/agoodkind/periphery/commit/e5b4cd24b314467a2b6252f0336c298760d39e80) ([PR #4](https://github.com/agoodkind/periphery/pull/4)), our [#118](https://github.com/tiny-earth-moon/outskirts/issues/118) | 3.12.10 |
+| Exclude hidden files and directories (`.build`, `.scratch`) from SwiftPM implicit resource discovery (cherry-picked with a manual conflict resolution; 782a4e2 only touches Bazel for private dependencies, so nothing to port) | Alex Goodkind | [agoodkind/periphery@df83716](https://github.com/agoodkind/periphery/commit/df83716), our [#121](https://github.com/tiny-earth-moon/outskirts/issues/121) | 3.12.11 |
+| Bazel resource and framework rules: embedded Apple frameworks and XPC services, all XIB and storyboard resource groups, Core Data model and mapping model files (with parse errors reported and uppercase extensions accepted), plus Swift protocol buffer targets (`ProtobufAPIVersionCheckRetainer`) and the Bazel consumer-scan fixtures (cherry-picked, conflicts resolved to keep our code); the Bazel parts of this import were removed in 3.13.0 ([#165](https://github.com/tiny-earth-moon/outskirts/issues/165)), the Core Data model inputs, the String Catalog error description and the platform conditional collector fix remain | Alex Goodkind | [agoodkind/periphery#21](https://github.com/agoodkind/periphery/pull/21) (b1a49cd, 72b19a3, 8de9900), [#22](https://github.com/agoodkind/periphery/pull/22) (57ebc75, 405fb72), [#23](https://github.com/agoodkind/periphery/pull/23) (a580f96), [#24](https://github.com/agoodkind/periphery/pull/24) (fb3c7db, ecd320d, 6167672, 8043d63, dc63dc3, 281b88b), [ec864a9](https://github.com/agoodkind/periphery/commit/ec864a9) with prerequisites 782a4e2, e090789 and 88a40ce, our [#122](https://github.com/tiny-earth-moon/outskirts/issues/122) | 3.12.16 |
+| Test and fixture for same-named members called through an unknown receiver in platform conditional blocks (the receiver-aware narrowing itself was not taken) | Alex Goodkind | [agoodkind/periphery@8662151](https://github.com/agoodkind/periphery/commit/8662151) and our [#166](https://github.com/tiny-earth-moon/outskirts/issues/166) | unreleased |
+| CSV output: Modifiers and Attributes columns swapped back, fields quoted per RFC 4180 | Badri Vishal Pandey | [#216](https://github.com/tiny-earth-moon/outskirts/pull/216) (575c79d3b) | master |
 
 ### Sibling fork
 
