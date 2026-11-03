@@ -12,6 +12,21 @@
 
 - None.
 
+## 3.16.1 (2026-11-03)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- None.
+
+##### Bug Fixes
+
+- The build cache now lives in `~/Library/Caches/com.github.tiny-earth-moon.outskirts`, under the new name. The first scan moves a cache left under the former `com.github.tiny-earth-moon.periphery` directory, so nothing is rebuilt; when both exist the old one is removed, and `outskirts clear-cache` removes it too if it is still there.
+- The last comments in the sources that referred to the tool as Periphery now say outskirts.
+
 ## 3.16.0 (2026-11-03)
 
 ##### Breaking
