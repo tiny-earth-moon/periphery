@@ -170,6 +170,20 @@ final class SarifFormatterTest: XCTestCase {
         }
     }
 
+    func testSarifOutput_withARelativeResultsBase_emitsThatBaseAndPathsFromIt() throws {
+        let configuration = Configuration()
+        configuration.relativeResults = true
+        configuration.relativeResultsBase = root.removingLastComponent()
+        let formatter = SarifFormatter(configuration: configuration, logger: logger)
+        let output = try XCTUnwrap(formatter.format(results(), colored: false))
+        let run = try XCTUnwrap((try log(output)["runs"] as? [[String: Any]])?.first)
+        let baseIds = try XCTUnwrap(run["originalUriBaseIds"] as? [String: [String: Any]])
+        let projectDirectory = try XCTUnwrap(root.lastComponent?.string)
+
+        XCTAssertEqual(baseIds["%SRCROOT%"]?["uri"] as? String, URL(fileURLWithPath: root.removingLastComponent().string, isDirectory: true).absoluteString)
+        XCTAssertTrue(output.contains("\"uri\" : \"\(projectDirectory)/Sources/My%20Lib/Widget.swift\""), output)
+    }
+
     func testSarifOutput_isIdenticalAcrossFormatterInstances() throws {
         let results = results()
         let first = try format(results)

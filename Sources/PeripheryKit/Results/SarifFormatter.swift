@@ -80,7 +80,7 @@ final class SarifFormatter: OutputFormatter {
     }
 
     private func rootUri() -> String {
-        URL(fileURLWithPath: currentFilePath.string, isDirectory: true).absoluteString
+        URL(fileURLWithPath: relativeResultsBase.string, isDirectory: true).absoluteString
     }
 
     private func sarifResult(_ result: ScanResult) -> [String: Any] {

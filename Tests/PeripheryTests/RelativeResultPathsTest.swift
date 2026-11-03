@@ -94,9 +94,11 @@ final class RelativeResultPathsTest: XCTestCase {
     func testEveryFormatter_withTheBaseSetToTheParentOfTheProjectRoot_emitsThePathFromThatBase() throws {
         for format in OutputFormat.allCases {
             let output = try self.format(format, base: "/work")
+            // SARIF names the base once, as the absolute URI the relative paths are resolved from.
+            let paths = format == .sarif ? output.replacingOccurrences(of: "\"uri\" : \"file:///work/\"", with: "") : output
 
             XCTAssertTrue(output.contains("project/\(relativePath)"), "\(format): \(output)")
-            XCTAssertFalse(output.contains("/work/"), "\(format): \(output)")
+            XCTAssertFalse(paths.contains("/work/"), "\(format): \(output)")
         }
     }
 
