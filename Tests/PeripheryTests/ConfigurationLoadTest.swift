@@ -319,7 +319,38 @@ final class ConfigurationLoadTest: XCTestCase {
         XCTAssertEqual(reloaded.outputFormat, .githubMarkdown)
     }
 
+    // MARK: - Default file lookup
+
+    func testDefaultLookupPrefersOutskirtsFile() throws {
+        try withCurrentDirectory {
+            try "strict: true\n".write(toFile: ".outskirts.yml", atomically: true, encoding: .utf8)
+            try "retain_public: true\n".write(toFile: ".periphery.yml", atomically: true, encoding: .utf8)
+            let configuration = Configuration()
+            try configuration.load(from: nil) { _ in }
+            XCTAssertTrue(configuration.strict)
+            XCTAssertFalse(configuration.retainPublic)
+        }
+    }
+
+    func testDefaultLookupStillReadsPeripheryFile() throws {
+        try withCurrentDirectory {
+            try "retain_public: true\n".write(toFile: ".periphery.yml", atomically: true, encoding: .utf8)
+            let configuration = Configuration()
+            try configuration.load(from: nil) { _ in }
+            XCTAssertTrue(configuration.retainPublic)
+            XCTAssertFalse(configuration.strict)
+        }
+    }
+
     // MARK: - Private
+
+    private func withCurrentDirectory(_ body: () throws -> Void) throws {
+        let manager = FileManager.default
+        let previous = manager.currentDirectoryPath
+        XCTAssertTrue(manager.changeCurrentDirectoryPath(directory.path))
+        defer { manager.changeCurrentDirectoryPath(previous) }
+        try body()
+    }
 
     private func onlyWarning(_ warnings: [String]) throws -> String {
         XCTAssertEqual(warnings.count, 1, "\(warnings)")
