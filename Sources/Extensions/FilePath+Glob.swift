@@ -149,7 +149,7 @@ private final class Glob {
             let matches = Int(gt.gl_pathc)
         #endif
         for i in 0 ..< matches {
-            if let path = String(validatingUTF8: gt.gl_pathv[i]!) {
+            if let path = String(validatingCString: gt.gl_pathv[i]!) {
                 if !includeFiles {
                     let isDirectory = isDirectory(path: path)
                     if !includeFiles, !isDirectory {

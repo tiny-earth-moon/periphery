@@ -1,14 +1,14 @@
 import Foundation
 import Synchronization
 
-public struct JobPool<Job> {
+public struct JobPool<Job: Sendable>: Sendable {
     let jobs: [Job]
 
     public init(jobs: [Job]) {
         self.jobs = jobs
     }
 
-    public func forEach(_ block: @escaping (Job) throws -> Void) throws {
+    public func forEach(_ block: @escaping @Sendable (Job) throws -> Void) throws {
         let firstError = Mutex<Error?>(nil)
 
         DispatchQueue.concurrentPerform(iterations: jobs.count) { idx in
@@ -32,7 +32,7 @@ public struct JobPool<Job> {
     }
 
     /// Throwing variant
-    public func flatMap<Result>(_ block: @escaping (Job) throws -> [Result]) throws -> [Result] {
+    public func flatMap<Result: Sendable>(_ block: @escaping @Sendable (Job) throws -> [Result]) throws -> [Result] {
         let firstError = Mutex<Error?>(nil)
         let results = Mutex<[Result]>([])
 
@@ -60,7 +60,7 @@ public struct JobPool<Job> {
     }
 
     /// Non-throwing variant
-    public func flatMap<Result>(_ block: @escaping (Job) -> [Result]) -> [Result] {
+    public func flatMap<Result: Sendable>(_ block: @escaping @Sendable (Job) -> [Result]) -> [Result] {
         let results = Mutex<[Result]>([])
 
         DispatchQueue.concurrentPerform(iterations: jobs.count) { idx in

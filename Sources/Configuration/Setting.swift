@@ -102,7 +102,7 @@ extension Setting where Value == [String] {
     }
 }
 
-extension Setting where Value: RawRepresentable & CaseIterable, Value.RawValue == String {
+extension Setting where Value: RawRepresentable & CaseIterable & Sendable, Value.RawValue == String {
     convenience init(key: String, defaultValue: Value) {
         self.init(key: key, defaultValue: defaultValue, convert: SettingConverter.rawValue(of: Value.self))
     }
