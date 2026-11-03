@@ -15,6 +15,7 @@ public enum PeripheryError: Error, LocalizedError, CustomStringConvertible {
     case xcodebuildNotConfigured
     case pathDoesNotExist(path: String)
     case foundIssues(count: Int)
+    case staleBaselineEntries(count: Int)
     case packageError(message: String)
     case swiftVersionParseError(fullVersion: String)
     case swiftVersionUnsupportedError(version: String, minimumVersion: String)
@@ -58,6 +59,8 @@ public enum PeripheryError: Error, LocalizedError, CustomStringConvertible {
             return "No such file or directory: \(path)."
         case let .foundIssues(count):
             return "Found \(count) \(count > 1 ? "issues" : "issue")."
+        case let .staleBaselineEntries(count):
+            return "Found \(count) stale baseline \(count > 1 ? "entries" : "entry"), run with '--prune-baseline' to remove \(count > 1 ? "them" : "it")."
         case let .packageError(message):
             return message
         case let .swiftVersionParseError(fullVersion):
