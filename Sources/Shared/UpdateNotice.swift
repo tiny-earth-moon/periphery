@@ -1,7 +1,7 @@
 import Foundation
 
 public enum UpdateNotice {
-    public static let repository = "tiny-earth-moon/periphery"
+    public static let repository = "tiny-earth-moon/outskirts"
 
     public static var latestReleaseURL: URL {
         URL(string: "https://api.github.com/repos/\(repository)/releases/latest")!

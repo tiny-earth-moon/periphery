@@ -21,6 +21,16 @@ final class CommentCommandTest: XCTestCase {
         assertParsesCommand("// periphery:ignore:parameters foo,bar", expected: .ignoreParameters(["foo", "bar"]))
     }
 
+    func testParseOutskirtsCommands() {
+        assertParsesCommand("// outskirts:ignore", expected: .ignore)
+        assertParsesCommand("/// outskirts:ignore", expected: .ignore)
+        assertParsesCommand("/* outskirts:ignore */", expected: .ignore)
+        assertParsesCommand("// outskirts:ignore:all", expected: .ignoreAll)
+        assertParsesCommand("// outskirts:ignore:parameters foo,bar", expected: .ignoreParameters(["foo", "bar"]))
+        assertParsesCommand("// outskirts:ignore - reason", expected: .ignore)
+        assertDoesNotParseCommand("// some text outskirts:ignore")
+    }
+
     func testAllowsLeadingWhitespace() {
         assertParsesCommand("//   periphery:ignore", expected: .ignore)
         assertParsesCommand("///  periphery:ignore", expected: .ignore)

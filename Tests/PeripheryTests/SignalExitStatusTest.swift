@@ -3,7 +3,7 @@ import Foundation
 @testable import TestShared
 import XCTest
 
-/// Launches the `periphery` executable on a project whose build never finishes, signals it, and checks how it exits.
+/// Launches the `outskirts` executable on a project whose build never finishes, signals it, and checks how it exits.
 final class SignalExitStatusTest: XCTestCase {
     private var root: URL!
     private var processes: [Process] = []

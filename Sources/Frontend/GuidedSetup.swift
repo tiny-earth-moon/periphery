@@ -18,7 +18,7 @@ final class GuidedSetup: SetupGuideHelpers {
     }
 
     func perform() throws -> Project {
-        print(logger.colorize("Welcome to Periphery!", .boldGreen))
+        print(logger.colorize("Welcome to outskirts!", .boldGreen))
         print("This guided setup will help you select the appropriate configuration for your project.\n")
 
         var projectGuides: [SetupGuide] = []
@@ -78,7 +78,7 @@ final class GuidedSetup: SetupGuideHelpers {
     // MARK: - Private
 
     private func formatScanCommand(options: [String], didSave: Bool) -> String {
-        let bareCommand = "periphery scan"
+        let bareCommand = "outskirts scan"
 
         if didSave {
             return bareCommand

@@ -7,7 +7,9 @@ import SystemPackage
 import Yams
 
 public final class Configuration {
-    public static let defaultConfigurationFile = FilePath(".periphery.yml")
+    public static let defaultConfigurationFile = FilePath(".outskirts.yml")
+    /// Looked up in this order, the first existing file wins; `.periphery.*` is kept for existing projects.
+    static let configurationFileNames = [".outskirts.yml", ".outskirts.yaml", ".periphery.yml", ".periphery.yaml"]
 
     public init() {}
 
@@ -406,7 +408,7 @@ public final class Configuration {
             return path
         }
 
-        return [Self.defaultConfigurationFile, FilePath(".periphery.yaml")].first { $0.exists }
+        return Self.configurationFileNames.map { FilePath($0) }.first { $0.exists }
     }
 }
 

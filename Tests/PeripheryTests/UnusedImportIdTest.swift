@@ -26,14 +26,14 @@ final class UnusedImportIdTest: SPMSourceGraphTestCase {
         return try XCTUnwrap(Self.results.first { $0.declaration.kind == .module })
     }
 
-    // System module detection relies on the Darwin SDK layout; not reported on Linux yet.
+    // System module detection relies on the Darwin SDK layout; not reported on Linux yet (#280).
     #if os(macOS)
         func testResultId_holdsTheRelativeFileButNeitherPositionNorAbsolutePath() throws {
             XCTAssertEqual(try unusedImportResult().usrs, ["import-Foundation-\(Self.relativeFile)"])
         }
     #endif
 
-    // System module detection relies on the Darwin SDK layout; not reported on Linux yet.
+    // System module detection relies on the Darwin SDK layout; not reported on Linux yet (#280).
     #if os(macOS)
         func testBaselineWithTheLegacyPositionalId_stillFiltersTheResult() throws {
             let result = try unusedImportResult()

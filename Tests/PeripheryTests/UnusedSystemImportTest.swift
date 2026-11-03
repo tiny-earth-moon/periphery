@@ -28,7 +28,7 @@ final class UnusedSystemImportTest: SPMSourceGraphTestCase {
         }
     }
 
-    // System module detection relies on the Darwin SDK layout; not reported on Linux yet.
+    // System module detection relies on the Darwin SDK layout; not reported on Linux yet (#280).
     #if os(macOS)
         func testUnusedSystemImportIsReported() {
             indexFixtures(enableUnusedSystemImports: true)

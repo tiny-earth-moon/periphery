@@ -22,7 +22,7 @@ struct ScanCommand: ParsableCommand {
     @Option(help: "Path to the root directory of your project")
     var projectRoot: FilePath = projectRootDefault
 
-    @Option(help: "Path to configuration file, relative paths being resolved from '--project-root'. By default Periphery will look for .periphery.yml in the project root")
+    @Option(help: "Path to configuration file, relative paths being resolved from '--project-root'. By default outskirts looks for .outskirts.yml (or .periphery.yml) in the project root")
     var config: FilePath?
 
     @Option(help: "Path to your project's .xcodeproj or .xcworkspace")
