@@ -18,6 +18,17 @@ let retentionFixturesExcludedOnLinux = [
 let retentionFixturesExcludedOnLinux: [String] = []
 #endif
 
+// `@c`, `@section` and `@used` need Swift 6.2; their tests are macOS-only.
+#if compiler(>=6.2)
+let linkageFixturesNeedingSwift62: [String] = []
+#else
+let linkageFixturesNeedingSwift62 = [
+    "testRetainsCFunction.swift",
+    "testRetainsSectionGlobal.swift",
+    "testRetainsUsedGlobal.swift",
+]
+#endif
+
 var targets: [PackageDescription.Target] = [
     .target(
         name: "ExternalModuleFixtures"
@@ -121,6 +132,7 @@ var targets: [PackageDescription.Target] = [
     ),
     .target(
         name: "LinkageRetentionFixtures",
+        exclude: linkageFixturesNeedingSwift62,
         swiftSettings: [
             .unsafeFlags(["-enable-experimental-feature", "Extern"]) // For the @_extern(c) declarations.
         ]
