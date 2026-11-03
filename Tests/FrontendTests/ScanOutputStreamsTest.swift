@@ -2,7 +2,7 @@ import Foundation
 @testable import TestShared
 import XCTest
 
-/// Runs the `periphery` executable on a small package and checks which stream carries what.
+/// Runs the `outskirts` executable on a small package and checks which stream carries what.
 final class ScanOutputStreamsTest: XCTestCase {
     private static let package: Result<URL, Error> = Result {
         let root = FileManager.default.temporaryDirectory

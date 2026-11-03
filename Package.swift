@@ -199,6 +199,7 @@ let package = Package(
     name: "Periphery",
     platforms: [.macOS(.v15)],
     products: [
+        .executable(name: "outskirts", targets: ["Frontend"]),
         .executable(name: "periphery", targets: ["Frontend"]),
         .library(name: "PeripheryKit", targets: ["PeripheryKit"]),
     ],

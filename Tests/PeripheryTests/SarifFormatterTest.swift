@@ -90,7 +90,7 @@ final class SarifFormatterTest: XCTestCase {
 
         let run = runs[0]
         let driver = try XCTUnwrap((run["tool"] as? [String: Any])?["driver"] as? [String: Any])
-        XCTAssertEqual(driver["name"] as? String, "Periphery")
+        XCTAssertEqual(driver["name"] as? String, "outskirts")
         XCTAssertEqual(driver["version"] as? String, PeripheryVersion)
         XCTAssertNotNil(driver["informationUri"] as? String)
 

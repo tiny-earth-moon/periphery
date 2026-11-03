@@ -15,7 +15,7 @@ extension CommentCommand {
             }
 
             guard let (comment, markerLength) = parsed,
-                  let range = comment.range(of: "periphery:") else { return nil }
+                  let range = ["outskirts:", "periphery:"].compactMap({ comment.range(of: $0) }).min(by: { $0.lowerBound < $1.lowerBound }) else { return nil }
 
             // Only respect commands at the start of a comment (after the marker and whitespace).
             let prefixStart = comment.index(comment.startIndex, offsetBy: markerLength)

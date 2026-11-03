@@ -31,9 +31,9 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .build
-          key: ${{ runner.os }}-xcode-27.2-spm-${{ hashFiles('Package.swift', 'Package.resolved') }}
+          key: ${{ runner.os }}-outskirts-xcode-27.2-spm-${{ hashFiles('Package.swift', 'Package.resolved') }}
           restore-keys: |
-            ${{ runner.os }}-xcode-27.2-spm-
+            ${{ runner.os }}-outskirts-xcode-27.2-spm-
       - name: Build
         run: swift build
       - name: Test
@@ -49,9 +49,9 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .build
-          key: ${{ runner.os }}-swift-6.4-spm-${{ hashFiles('Package.swift', 'Package.resolved') }}
+          key: ${{ runner.os }}-outskirts-swift-6.4-spm-${{ hashFiles('Package.swift', 'Package.resolved') }}
           restore-keys: |
-            ${{ runner.os }}-swift-6.4-spm-
+            ${{ runner.os }}-outskirts-swift-6.4-spm-
       - name: Build
         run: swift build
       # The Xcode project tests are macOS-only and excluded from the package on Linux by Package.swift;
@@ -74,9 +74,9 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .build
-          key: ${{ runner.os }}-swift-6.1-spm-${{ hashFiles('Package.swift', 'Package.resolved') }}
+          key: ${{ runner.os }}-outskirts-swift-6.1-spm-${{ hashFiles('Package.swift', 'Package.resolved') }}
           restore-keys: |
-            ${{ runner.os }}-swift-6.1-spm-
+            ${{ runner.os }}-outskirts-swift-6.1-spm-
       - name: Build
         run: swift build
       - name: Test
