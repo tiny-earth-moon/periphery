@@ -38,6 +38,7 @@ var targets: [PackageDescription.Target] = [
     .executableTarget(
         name: "Frontend",
         dependencies: [
+            .target(name: "CStdio"),
             .target(name: "Shared"),
             .target(name: "Configuration"),
             .target(name: "SourceGraph"),
@@ -67,7 +68,8 @@ var targets: [PackageDescription.Target] = [
         ],
         swiftSettings: swift6
     ),
-    .target(name: "Logger", swiftSettings: swift6),
+    .target(name: "CStdio"),
+    .target(name: "Logger", dependencies: [.target(name: "CStdio")], swiftSettings: swift6),
     .target(
         name: "PeripheryKit",
         dependencies: [

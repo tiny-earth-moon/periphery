@@ -1,3 +1,4 @@
+import CStdio
 import Foundation
 
 #if canImport(os)
@@ -183,6 +184,5 @@ public struct ContextualLogger: Sendable {
     }
 #endif
 
-// The C standard streams are global `var`s on Linux, which Swift 6 rejects as shared mutable state. The pointers never change.
-private nonisolated(unsafe) let standardOutput = stdout
-private nonisolated(unsafe) let standardError = stderr
+private var standardOutput: UnsafeMutablePointer<FILE> { periphery_stdout()! }
+private var standardError: UnsafeMutablePointer<FILE> { periphery_stderr()! }
