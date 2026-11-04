@@ -85,6 +85,20 @@ final class CommandLinePrecedenceTest: XCTestCase {
         XCTAssertEqual(configuration.relativeResultsBase?.string, "/other")
     }
 
+    func testChangedSinceOnTheCommandLineOverridesTheFile() throws {
+        let configuration = try merge(["--changed-since", "origin/main", "--changed-lines"], file: "changed_since: develop\nchanged_lines: false\n")
+
+        XCTAssertEqual(configuration.changedSince, "origin/main")
+        XCTAssertTrue(configuration.changedLines)
+    }
+
+    func testChangedSinceFromTheFile_isKeptWhenTheOptionIsNotPassed() throws {
+        let configuration = try merge([], file: "changed_since: develop\nchanged_lines: true\n")
+
+        XCTAssertEqual(configuration.changedSince, "develop")
+        XCTAssertTrue(configuration.changedLines)
+    }
+
     func testNoStrictOverridesTheFile() throws {
         let configuration = try merge(["--no-strict"], file: "strict: true\n")
 

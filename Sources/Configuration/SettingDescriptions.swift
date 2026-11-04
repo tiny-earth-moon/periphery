@@ -57,6 +57,8 @@ extension Configuration {
         "clean_build": "Remove existing build artifacts before building.",
         "relative_results": "Report paths relative to the project root, or to relative_results_base.",
         "relative_results_base": "Directory the result paths are relative to when relative_results is in effect (command line: --relative-to).",
+        "changed_since": "Report only the results in files that changed since this git ref: committed since its merge base with HEAD, uncommitted or untracked (command line: --changed-since). The whole project is still analysed.",
+        "changed_lines": "With changed_since, report only the results on changed lines.",
         "json_package_manifest_path": "Package manifest as JSON (from 'swift package describe --type json', or written by hand).",
         "cache_max_age_days": "Age in days after which unused Xcode build caches are evicted at the end of a scan; 0 disables eviction.",
         "baseline": "Baseline file whose entries are hidden from the results.",

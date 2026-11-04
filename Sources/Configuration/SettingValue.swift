@@ -76,6 +76,14 @@ enum SettingConverter {
         SettingConversion(try strings(value))
     }
 
+    static let optionalString: Conversion<String?> = { value throws(SettingValueError) in
+        guard let string = value as? String else {
+            throw .wrongType(expected: "a string")
+        }
+
+        return SettingConversion(string)
+    }
+
     static let filePath: Conversion<FilePath?> = { value throws(SettingValueError) in
         guard let string = value as? String else {
             throw .wrongType(expected: "a string")

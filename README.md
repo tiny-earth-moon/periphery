@@ -213,6 +213,8 @@ Every option of the `scan` command, with its key in the configuration file and i
 - **`--skip-schemes-validation`**: Do not check that the schemes exist. Key `skip_schemes_validation`, default `false`.
 - **`--relative-results`**: Report paths relative to the project root, or to `--relative-to`. Key `relative_results`, default `false`.
 - **`--relative-to`**: Directory the result paths are relative to when `--relative-results` is in effect; a relative value is resolved from `--project-root`. Key `relative_results_base`.
+- **`--changed-since`**: Report only the results in files that changed since a git ref: committed since its merge base with `HEAD`, or uncommitted or untracked. The whole project is still analysed. Needs a git work tree and a ref that exists, otherwise the scan stops with an error. Key `changed_since`.
+- **`--changed-lines`**: With `--changed-since`, report only the results on changed lines. Requires `--changed-since`. Key `changed_lines`, default `false`.
 - **`--strict`**: Exit with status 1 if any result is reported. Key `strict`, default `false`.
 - **`--disable-update-check`**: Do not check for a new version. Key `disable_update_check`, default `false`.
 - **`--verbose`**: Enable verbose logging. Key `verbose`, default `false`.
@@ -925,6 +927,16 @@ The `sarif` format writes a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sari
 The upload needs the `security-events: write` permission. Code scanning is free on public repositories; on private repositories it requires GitHub Code Security. GitHub limits the size of an uploaded SARIF file, so a project with a very large number of results may need to be scanned in parts.
 
 Relative paths are made relative to the project root (`--project-root`). In a repository that holds several projects, CI services need paths from the repository root: pass it with `--relative-to` (configuration key `relative_results_base`), e.g. `--relative-to "$GITHUB_WORKSPACE"` on GitHub Actions or `--relative-to "$CI_PROJECT_DIR"` on GitLab CI. With `--project-root pkg`, a result reported as `Sources/Demo/main.swift` becomes `pkg/Sources/Demo/main.swift`. A relative `--relative-to` value is resolved from the project root, like the other path options (`--config`, `--baseline`, `--index-store-path`, `--write-baseline`, `--write-results`), which are all resolved from `--project-root` rather than from the directory the command was typed in.
+
+### Pull request checks
+
+To look at what a pull request adds, scan the whole project and report only what changed since the branch point:
+
+```sh
+outskirts scan --changed-since origin/main --strict --format github-actions
+```
+
+Results are kept when their file changed since the merge base with `origin/main`, or has uncommitted or untracked changes; add `--changed-lines` to keep only those on changed lines. Make sure the ref is fetched, since CI checkouts are often shallow (`fetch-depth: 0` on GitHub Actions). The filter is applied after `--baseline` and with the same path rules as `--report-include`, so it needs no committed baseline of its own.
 
 ### Baseline ratchet
 
