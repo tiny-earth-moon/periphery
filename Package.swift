@@ -46,7 +46,8 @@ var targets: [PackageDescription.Target] = [
             .target(name: "ProjectDrivers"),
             .product(name: "ArgumentParser", package: "swift-argument-parser"),
             .product(name: "FilenameMatcher", package: "swift-filename-matcher"),
-        ]
+        ],
+        swiftSettings: swift6
     ),
     .target(
         name: "Configuration",
@@ -82,7 +83,8 @@ var targets: [PackageDescription.Target] = [
             .product(name: "SwiftParser", package: "swift-syntax"),
             .product(name: "IndexStore", package: "swift-index-store"),
             .product(name: "FilenameMatcher", package: "swift-filename-matcher"),
-        ]
+        ],
+        swiftSettings: swift6
     ),
     .target(
         name: "Indexer",
@@ -95,7 +97,8 @@ var targets: [PackageDescription.Target] = [
     ),
     .target(
         name: "ProjectDrivers",
-        dependencies: projectDriverDependencies
+        dependencies: projectDriverDependencies,
+        swiftSettings: swift6
     ),
     .target(
         name: "SyntaxAnalysis",
@@ -104,7 +107,8 @@ var targets: [PackageDescription.Target] = [
             .target(name: "Shared"),
             .product(name: "SwiftSyntax", package: "swift-syntax"),
             .product(name: "SwiftParser", package: "swift-syntax"),
-        ]
+        ],
+        swiftSettings: swift6
     ),
     .target(
         name: "SourceGraph",
@@ -113,7 +117,8 @@ var targets: [PackageDescription.Target] = [
             .product(name: "SwiftSyntax", package: "swift-syntax"),
             .product(name: "SystemPackage", package: "swift-system"),
             .target(name: "Shared"),
-        ]
+        ],
+        swiftSettings: swift6
     ),
     .target(
         name: "Shared",
@@ -181,7 +186,8 @@ var targets: [PackageDescription.Target] = [
                 .target(name: "Shared"),
                 .target(name: "PeripheryKit"),
                 .product(name: "XcodeProj", package: "XcodeProj"),
-            ]
+            ],
+            swiftSettings: swift6
         ),
         .testTarget(
             name: "XcodeTests",
