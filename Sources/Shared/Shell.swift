@@ -44,8 +44,9 @@ public protocol Shell: Sendable {
 public final class ShellImpl: Shell {
     private let logger: ContextualLogger
     private let store: ShellProcessStore
-    /// Only kept alive here, never read; `DispatchSourceSignal` is not Sendable on Linux.
-    private nonisolated(unsafe) let signalSources: [DispatchSourceSignal]
+    /// Only kept alive here, never read; the `Mutex` makes the class `Sendable` on Linux, where
+    /// `DispatchSourceSignal` is not.
+    private let signalSources: Mutex<[DispatchSourceSignal]>
 
     /// `sigintHandler` runs when `SIGINT` or `SIGTERM` is received, before the running processes are stopped. The
     /// program then exits with the conventional status of the signal, 130 for `SIGINT` and 143 for `SIGTERM`.
@@ -53,7 +54,7 @@ public final class ShellImpl: Shell {
         self.logger = logger.contextualized(with: "shell")
         store = ShellProcessStore()
 
-        signalSources = [SIGINT, SIGTERM].map { [store] signalNumber in
+        let sources = [SIGINT, SIGTERM].map { [store] signalNumber in
             signal(signalNumber, SIG_IGN)
             let source = DispatchSource.makeSignalSource(signal: signalNumber, queue: .global())
             source.setEventHandler {
@@ -64,6 +65,7 @@ public final class ShellImpl: Shell {
             source.resume()
             return source
         }
+        signalSources = Mutex(sources)
     }
 
     @discardableResult
