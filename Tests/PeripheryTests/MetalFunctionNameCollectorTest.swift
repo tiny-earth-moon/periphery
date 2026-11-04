@@ -1,4 +1,3 @@
-@testable import Indexer
 import SourceGraph
 import SwiftParser
 import SwiftSyntax

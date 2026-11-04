@@ -12,6 +12,7 @@ private struct Item: Decodable {
 }
 
 private struct Document: Decodable {
+    // outskirts:ignore - only decoded: the tests check the message of the decoding error, never the value
     let items: [Item]
 }
 

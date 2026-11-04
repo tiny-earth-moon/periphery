@@ -1,6 +1,5 @@
 import SwiftParser
 import SwiftSyntax
-@testable import SyntaxAnalysis
 import XCTest
 
 final class SwiftSyntax604ParsingTest: XCTestCase {

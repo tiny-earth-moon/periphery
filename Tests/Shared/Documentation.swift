@@ -7,15 +7,6 @@ enum Documentation {
         try String(contentsOfFile: ProjectRootPath.appending("docs/\(name).md").string, encoding: .utf8)
     }
 
-    /// Contents of every `docs/*.md` page.
-    static func allPages() throws -> [String] {
-        let directory = ProjectRootPath.appending("docs").string
-        return try FileManager.default.contentsOfDirectory(atPath: directory)
-            .filter { $0.hasSuffix(".md") }
-            .sorted()
-            .map { try String(contentsOfFile: "\(directory)/\($0)", encoding: .utf8) }
-    }
-
     /// The anchors of the headings of a page, as GitHub and the site generator compute them.
     static func anchors(in markdown: String) -> Set<String> {
         var anchors: Set<String> = []
