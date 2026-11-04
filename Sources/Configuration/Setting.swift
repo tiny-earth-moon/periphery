@@ -128,6 +128,7 @@ enum SettingValueKind: Equatable {
     case bool
     case int
     case stringList
+    case string
     case path
     case pathList
     /// One of the given strings.
@@ -142,6 +143,8 @@ enum SettingValueKind: Equatable {
             self = .int
         } else if type == [String].self {
             self = .stringList
+        } else if type == String?.self {
+            self = .string
         } else if type == FilePath?.self {
             self = .path
         } else if type == [FilePath].self {
