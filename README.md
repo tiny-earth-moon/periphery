@@ -940,6 +940,35 @@ The upload needs the `security-events: write` permission. Code scanning is free 
 
 Relative paths are made relative to the project root (`--project-root`). In a repository that holds several projects, CI services need paths from the repository root: pass it with `--relative-to` (configuration key `relative_results_base`), e.g. `--relative-to "$GITHUB_WORKSPACE"` on GitHub Actions or `--relative-to "$CI_PROJECT_DIR"` on GitLab CI. With `--project-root pkg`, a result reported as `Sources/Demo/main.swift` becomes `pkg/Sources/Demo/main.swift`. A relative `--relative-to` value is resolved from the project root, like the other path options (`--config`, `--baseline`, `--index-store-path`, `--write-baseline`, `--write-results`), which are all resolved from `--project-root` rather than from the directory the command was typed in.
 
+### GitHub Actions
+
+On a macOS runner, install outskirts, build with the index store enabled and scan without building again:
+
+```yaml
+- run: brew install tiny-earth-moon/tap/outskirts
+- run: swift build --build-tests
+- run: outskirts scan --skip-build --index-store-path <path> --format github-actions --strict --baseline baseline.json
+```
+
+The `github-actions` format prints one workflow-command warning per result, which GitHub shows as an annotation on the file; it always reports relative paths. `--baseline` is optional: see [Baseline](#baseline) and [Baseline ratchet](#baseline-ratchet). For a Swift package on Linux, use a `swift` container (`container: swift:6.4-noble`), build the package, and run the built `outskirts` the same way; with Swift 6.4 or later the index store is found without `--index-store-path` (see [SwiftPM](#swiftpm)).
+
+What this repository's own CI runs: the tests on a macOS runner (`xcode-27` image, Xcode 27.2, a GitHub preview image) and in the `swift:6.4-noble` and `swift:6.1-noble` containers on `ubuntu-latest`, and, in the Swift 6.4 container, a scan of this repository with `--skip-build --baseline --strict` (advisory, it does not fail the job). The Homebrew install step and the `github-actions` recipe above have not been run on a hosted runner by this repository: adapt them to your runner image, whose macOS and Xcode versions must meet the [requirements](#requirements) of the bottle (otherwise Homebrew builds from source).
+
+### GitLab CI
+
+The `gitlab-codequality` format writes a [Code Quality](https://docs.gitlab.com/ci/testing/code_quality/) report, which GitLab shows in merge requests:
+
+```yaml
+outskirts:
+  script:
+    - outskirts scan --skip-build --index-store-path <path> --format gitlab-codequality --relative-results --write-results gl-code-quality-report.json
+  artifacts:
+    reports:
+      codequality: gl-code-quality-report.json
+```
+
+`--relative-results` is implied by this format and is harmless; GitLab needs paths relative to the repository root, so pass `--relative-to "$CI_PROJECT_DIR"` when the scanned project is in a subdirectory. This recipe is untested: this repository has no GitLab pipeline, and GitLab runners are Linux or macOS machines of your own, with outskirts installed as described in [Installation](#installation).
+
 ### Baseline ratchet
 
 A baseline hides the results that exist today so that CI only fails on new ones. Without care it only grows: an entry stays after its code is fixed or deleted, and hides the declaration if it is added back with the same id. outskirts logs `N baseline entries no longer match any result` on every scan with a baseline, and lists them with `--verbose`.
