@@ -38,7 +38,6 @@ final class ShellProcessStore: Sendable {
 public protocol Shell: Sendable {
     @discardableResult
     func exec(_ args: [String]) throws -> String
-    func execStatus(_ args: [String]) throws -> Int32
 }
 
 public final class ShellImpl: Shell {
@@ -83,18 +82,9 @@ public final class ShellImpl: Shell {
         )
     }
 
-    @discardableResult
-    public func execStatus(_ args: [String]) throws -> Int32 {
-        let (status, _, _) = try exec(args, captureOutput: false)
-        return status
-    }
-
     // MARK: - Private
 
-    private func exec(
-        _ cmd: [String],
-        captureOutput: Bool = true
-    ) throws -> (Int32, String, String) {
+    private func exec(_ cmd: [String]) throws -> (Int32, String, String) {
         guard let executable = cmd.first else {
             throw PeripheryError.executableNotFound(name: "", searchPath: [])
         }
@@ -110,27 +100,22 @@ public final class ShellImpl: Shell {
         store.add(process)
         defer { store.remove(process) }
 
-        var stdoutPipe: Pipe?
-        var stderrPipe: Pipe?
-
-        if captureOutput {
-            stdoutPipe = Pipe()
-            stderrPipe = Pipe()
-            process.standardOutput = stdoutPipe
-            process.standardError = stderrPipe
-        }
+        let stdoutPipe = Pipe()
+        let stderrPipe = Pipe()
+        process.standardOutput = stdoutPipe
+        process.standardError = stderrPipe
 
         try process.run()
 
         var standardOutput = ""
         var standardError = ""
 
-        let handles = [stdoutPipe?.fileHandleForReading, stderrPipe?.fileHandleForReading]
+        let handles = [stdoutPipe.fileHandleForReading, stderrPipe.fileHandleForReading]
         let results = Mutex<[Result<Data?, Error>]>([.success(nil), .success(nil)])
         let reads = DispatchGroup()
         for (index, handle) in handles.enumerated() {
             DispatchQueue.global().async(group: reads) {
-                let result = Result { try handle?.readToEnd() }
+                let result = Result { try handle.readToEnd() }
                 results.withLock { $0[index] = result }
             }
         }

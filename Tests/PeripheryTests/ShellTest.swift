@@ -44,13 +44,6 @@ final class ShellTest: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: marker.path))
     }
 
-    func testExecStatusPassesArgumentsLiterally() throws {
-        let shell = ShellImpl(logger: Logger(quiet: true, verbose: false, colorMode: .never))
-        let status = try shell.execStatus(["test", "$(echo a)", "=", "$(echo a)"])
-        XCTAssertEqual(status, 0)
-        XCTAssertEqual(try shell.execStatus(["test", "$(echo a)", "=", "a"]), 1)
-    }
-
     func testResolvesExecutableFromPath() throws {
         let url = try ShellImpl.executableURL(for: "printf", environment: ["PATH": "/nonexistent::/usr/bin:/bin"])
         XCTAssertTrue(FileManager.default.isExecutableFile(atPath: url.path))

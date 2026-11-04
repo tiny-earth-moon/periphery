@@ -16,11 +16,6 @@ final class XcodebuildArgumentsTest: XCTestCase {
             }
             return #"{"project": {"schemes": ["My $(Scheme)"]}}"#
         }
-
-        func execStatus(_ args: [String]) throws -> Int32 {
-            commands.append(args)
-            return 0
-        }
     }
 
     private final class ProjectStub: XcodeProjectlike {

@@ -21,10 +21,6 @@ final class DecodingErrorMessageTest: XCTestCase {
             XCTFail("The shell must not be used")
             return ""
         }
-
-        func execStatus(_: [String]) throws -> Int32 {
-            0
-        }
     }
 
     private var directory: URL!
