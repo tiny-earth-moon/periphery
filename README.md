@@ -27,6 +27,7 @@
     - [Configuration](#configuration)
     - [Options Reference](#options-reference)
     - [Output Formats](#output-formats)
+    - [Baseline](#baseline)
     - [Exit Status](#exit-status)
 - [Analysis](#analysis)
     - [Function Parameters](#function-parameters)
@@ -46,6 +47,7 @@
     - [Codable](#codable)
     - [Equatable and Hashable](#equatable-and-hashable)
     - [Retaining by Attribute](#retaining-by-attribute)
+    - [Framework conventions](#framework-conventions)
     - [Unused Parameters Without a Default Value](#unused-parameters-without-a-default-value)
     - [XCTestCase](#xctestcase)
     - [Interface Builder](#interface-builder)
@@ -262,6 +264,19 @@ Select a format with `--format` (`format` in the configuration file). The defaul
 | `codeclimate` | Code Climate JSON | always |
 
 "always" means paths are relative to the project root (or to `--relative-to`) without passing `--relative-results`; the other formats report absolute paths unless it is passed. See [Continuous Integration](#continuous-integration).
+
+### Baseline
+
+A baseline records results so that later scans do not report them again: new unused declarations show up, the recorded ones stay quiet. It lets a project adopt outskirts without fixing everything first.
+
+- **`--write-baseline <path>`**: write the results of the scan to `<path>` (key `write_baseline`). The entries of the baseline given to `--baseline` are kept, and the current results are added.
+- **`--baseline <path>`**: hide the results recorded in `<path>` (key `baseline`). A relative path is resolved from `--project-root`.
+- **`--prune-baseline`**: rewrite the file given to `--baseline`, keeping only the entries that still match a result. Requires `--baseline`.
+- **`--strict-baseline`**: exit with status 1 if the baseline holds entries that no longer match any result. Requires `--baseline`.
+- **Format**: baselines are written in format `v2`: sorted, pretty-printed JSON that gives each entry an `id` and the `kind`, `name` and `file` (relative to the project root) of the result it was written for, so a review shows what was baselined. Only the `id` is used for matching. `v1` files (a list of ids) are still read, and are rewritten as `v2` by `--write-baseline` and `--prune-baseline`.
+- **Ids**: an id is the identifier of the declaration in the index store (its USR), which does not depend on its line number. Results without a USR of their own, such as unused imports, empty extensions and localized strings, use ids that outskirts builds for them. The position-based ids and absolute String Catalog paths written by earlier versions still match.
+
+To make a baseline shrink over time, with `--strict-baseline` and `--prune-baseline`, see [Baseline ratchet](#baseline-ratchet).
 
 ### Exit Status
 
@@ -577,7 +592,7 @@ By default, imports of system frameworks (`Foundation`, `UIKit`, `SwiftUI`, `Com
 
 Limitations: uses that leave no reference in the index store are invisible, such as `@objc` or `dynamic` without any other Objective-C runtime reference, so a file whose only use of `Foundation` is an `@objc` attribute is reported. Use `// outskirts:ignore` on the import, or `retain_unused_imported_modules`, for such cases.
 
-outskirts will likely produce false positives for targets with mixed Swift and Objective-C, as outskirts cannot scan the Objective-C files. It is recommended, therefore, to disable unused import detection for projects with a significant amount of Objective-C or manually exclude the mixed language targets from the results.
+outskirts will likely produce false positives for targets with mixed Swift and Objective-C, as outskirts cannot scan the Objective-C files. It is recommended, therefore, to disable unused import detection with `--disable-unused-import-analysis` (`disable_unused_import_analysis: true`) for projects with a significant amount of Objective-C or manually exclude the mixed language targets from the results.
 
 ### Platform Conditionals
 
@@ -624,6 +639,21 @@ Some attributes are retained without configuration, because they exist for calle
 - Functions with a body and `@_silgen_name`, which define the symbol they are linked under. A bodyless `@_silgen_name` or `@_extern(c)` declaration imports a symbol instead, so it is reported when unused, but its parameters are never reported: nothing could use them.
 - Types and extensions with `@implementation` or `@_objcImplementation`, together with their members.
 - The `dynamicallyCall(withArguments:)` and `dynamicallyCall(withKeywordArguments:)` methods that calls to a `@dynamicCallable` value are lowered to, in addition to the `subscript(dynamicMember:)` of `@dynamicMemberLookup` types.
+
+### Framework conventions
+
+Some frameworks call code that no source file references: the system discovers an intent, a test runner finds a test, the compiler lowers a result builder. outskirts keeps what each of the following conventions needs, and only that. Each bullet says what is kept, the option that controls it if any, and the known limit. See also [XCTestCase](#xctestcase), [Interface Builder](#interface-builder), [Codable](#codable) and [Equatable and Hashable](#equatable-and-hashable).
+
+- **App Intents**: a class, struct or enum that directly conforms to a protocol of the `AppIntents` module (`AppIntent`, `AppEntity`, ...) is retained with its ancestors, as are its static `description` properties, which the App Intents metadata processor reads by name at build time. Conformance may be declared through a protocol of your own that refines an App Intents protocol ([#193](https://github.com/tiny-earth-moon/outskirts/issues/193)); the `description` property is [#191](https://github.com/tiny-earth-moon/outskirts/issues/191). Limit: only the type and that metadata are retained; its other members follow the usual rules.
+- **Swift Testing**: in a file that imports `Testing`, a type with `@Suite` and a function with `@Test` are retained, and so is the type that declares a `@Test` method. Limit: detection is by attribute name in files that import `Testing`; only free functions and instance, class and static methods are considered, and helpers used by a test are kept only if the test references them.
+- **SwiftUI**: types conforming to `LibraryContentProvider` are retained; so are the `@UIApplicationDelegateAdaptor` and `@NSApplicationDelegateAdaptor` properties of an `@main` type, and the underscored witnesses of the SDK protocols `TextFieldStyle` (`_body(configuration:)`) and `ShapeStyle` (`_apply(to:)`), whose requirements the index does not link. Previews are judged by liveness: a `#Preview` expansion, or a `PreviewProvider`, that previews a used `View`, `Widget` or `ControlWidget` is used along with the code it references, whereas a preview of unused code stays unused. `--retain-swift-ui-previews` (`retain_swift_ui_previews`) retains every `PreviewProvider` and every `#Preview` expansion regardless. Limit: a preview is live only if the view it builds is itself used, directly or through a refining protocol or superclass. [#204](https://github.com/tiny-earth-moon/outskirts/issues/204)
+- **Observation and attached macros**: a stored property of an `@Observable` class counts as used only by explicit code, not by the accessors that the `@Observable` macro generates, so unused and assign-only properties are reported ([#178](https://github.com/tiny-earth-moon/outskirts/issues/178)). Since Xcode 27, a use of `$foo` or `_foo` on a property wrapper implemented as a macro (such as `@State`) counts as a use of `foo`; initializers generated by the compiler are ignored. Limit: this is a name-based rule (the `$` or `_` prefix) applied to properties that have an attribute. For SwiftData, implicit initializers added by `@Model` do not count, so the only explicit initializer of a `@Model` class is retained ([#173](https://github.com/tiny-earth-moon/outskirts/issues/173)); outskirts has no dedicated rule for `@Model` properties.
+- **Result builders**: in a type with `@resultBuilder`, the methods the compiler calls implicitly are retained: `buildExpression`, `buildOptional`, `buildEither(first:)`, `buildEither(second:)`, `buildArray`, `buildFinalResult`, `buildLimitedAvailability`, `buildPartialBlock(first:)`, `buildPartialBlock(accumulated:next:)` and `buildBlock` with any number of parameters. Limit: other members of the builder follow the usual rules.
+- **App entry points**: a type marked `@main`, `@UIApplicationMain` or `@NSApplicationMain` is retained with its ancestors, including when `@main` is on an extension of the type; for `@main`, the static `main()` is retained too.
+- **Protobuf**: the fileprivate `_GeneratedWithProtocGenSwiftVersion` struct that `protoc-gen-swift` generates to check API compatibility is retained when it declares `typealias Version` and conforms to `SwiftProtobuf`'s API version check protocol. Limit: only that struct; the rest of generated code is judged like any other source, so exclude it with `--index-exclude` or `report_exclude` if it is not meant to be reviewed.
+- **Dynamic member and dynamic callable**: every `subscript(dynamicMember:)` is retained (by name, because it may be declared in an extension of a type outside the scan), as are `dynamicallyCall(withArguments:)` and `dynamicallyCall(withKeywordArguments:)` with their parameters, and declarations marked `@_dynamicReplacement`. Limit: retention is by name, so another method with one of these names is retained too.
+- **String interpolation**: the index store does not record a call to `appendInterpolation` made by a string literal ([apple/swift#56189](https://github.com/apple/swift/issues/56189)), so every `appendInterpolation(` method declared in a struct extension is retained. Limit: such a method is retained even if no literal uses it; see [#222](https://github.com/tiny-earth-moon/outskirts/issues/222).
+- **Synthesized uses**: opt-in with `--retain-synthesized-uses` (`retain_synthesized_uses`). The stored properties of a struct that is printed, interpolated or passed to `String(describing:)`, and of a struct or class that is passed to `dump`, are retained, including the types of those properties, recursively. Limit: a type that provides its own description (`CustomStringConvertible`, `CustomDebugStringConvertible`, `TextOutputStreamable`, `CustomReflectable`; only `CustomReflectable` for `dump`) is not retained this way, and computed properties never are. See [Equatable and Hashable](#equatable-and-hashable) for the related note on reflection.
 
 ### Unused Parameters Without a Default Value
 
@@ -927,6 +957,35 @@ The `sarif` format writes a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sari
 The upload needs the `security-events: write` permission. Code scanning is free on public repositories; on private repositories it requires GitHub Code Security. GitHub limits the size of an uploaded SARIF file, so a project with a very large number of results may need to be scanned in parts.
 
 Relative paths are made relative to the project root (`--project-root`). In a repository that holds several projects, CI services need paths from the repository root: pass it with `--relative-to` (configuration key `relative_results_base`), e.g. `--relative-to "$GITHUB_WORKSPACE"` on GitHub Actions or `--relative-to "$CI_PROJECT_DIR"` on GitLab CI. With `--project-root pkg`, a result reported as `Sources/Demo/main.swift` becomes `pkg/Sources/Demo/main.swift`. A relative `--relative-to` value is resolved from the project root, like the other path options (`--config`, `--baseline`, `--index-store-path`, `--write-baseline`, `--write-results`), which are all resolved from `--project-root` rather than from the directory the command was typed in.
+
+### GitHub Actions
+
+On a macOS runner, install outskirts, build with the index store enabled and scan without building again:
+
+```yaml
+- run: brew install tiny-earth-moon/tap/outskirts
+- run: swift build --build-tests
+- run: outskirts scan --skip-build --index-store-path <path> --format github-actions --strict --baseline baseline.json
+```
+
+The `github-actions` format prints one workflow-command warning per result, which GitHub shows as an annotation on the file; it always reports relative paths. `--baseline` is optional: see [Baseline](#baseline) and [Baseline ratchet](#baseline-ratchet). For a Swift package on Linux, use a `swift` container (`container: swift:6.4-noble`), build the package, and run the built `outskirts` the same way; with Swift 6.4 or later the index store is found without `--index-store-path` (see [SwiftPM](#swiftpm)).
+
+What this repository's own CI runs: the tests on a macOS runner (`xcode-27` image, Xcode 27.2, a GitHub preview image) and in the `swift:6.4-noble` and `swift:6.1-noble` containers on `ubuntu-latest`, and, in the Swift 6.4 container, a scan of this repository with `--skip-build --baseline --strict` (advisory, it does not fail the job). The Homebrew install step and the `github-actions` recipe above have not been run on a hosted runner by this repository: adapt them to your runner image, whose macOS and Xcode versions must meet the [requirements](#requirements) of the bottle (otherwise Homebrew builds from source).
+
+### GitLab CI
+
+The `gitlab-codequality` format writes a [Code Quality](https://docs.gitlab.com/ci/testing/code_quality/) report, which GitLab shows in merge requests:
+
+```yaml
+outskirts:
+  script:
+    - outskirts scan --skip-build --index-store-path <path> --format gitlab-codequality --relative-results --write-results gl-code-quality-report.json
+  artifacts:
+    reports:
+      codequality: gl-code-quality-report.json
+```
+
+`--relative-results` is implied by this format and is harmless; GitLab needs paths relative to the repository root, so pass `--relative-to "$CI_PROJECT_DIR"` when the scanned project is in a subdirectory. This recipe is untested: this repository has no GitLab pipeline, and GitLab runners are Linux or macOS machines of your own, with outskirts installed as described in [Installation](#installation).
 
 ### Pull request checks
 
