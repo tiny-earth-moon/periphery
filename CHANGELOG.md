@@ -12,6 +12,21 @@
 
 - None.
 
+## 3.17.0 (2026-11-04)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- The build cache key now covers the build arguments passed after `--`; output and report options (`--format`, `--baseline`, `--write-baseline`, `--strict`, `--report-include`, `--report-exclude`, `--relative-results`) never trigger a new build. Scans with different build arguments no longer share one index store, and existing caches keep their names. The README explains how the cache is keyed and how to reuse an existing build with `--skip-build --index-store-path`.
+- New opt-in analysis `--detect-unused-metal-functions` (`detect_unused_metal_functions`): the `.metal` files of the project are read by a lightweight parser, and the `kernel`, `vertex`, `fragment`, `[[visible]]` and `[[stitchable]]` functions that no Swift string literal names (`makeFunction(name:)`, `MTLFunctionDescriptor.name`, `MTLFunctionStitchingFunctionNode(name:)`) are reported as unused; a literal naming a function that no `.metal` file declares is reported as `missingMetalFunction`. A name that is not a plain literal retains every Metal function, and a library created at run time (`makeLibrary(source:)` and the like) disables the `missingMetalFunction` results. Prompted by the upstream discussion [peripheryapp/periphery#1119](https://github.com/peripheryapp/periphery/discussions/1119).
+
+##### Bug Fixes
+
+- None.
+
 ## 3.16.1 (2026-11-03)
 
 ##### Breaking
