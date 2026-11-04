@@ -59,7 +59,7 @@ public extension Configuration {
             return [("type", .string("boolean"))]
         case .int:
             return [("type", .string("integer"))]
-        case .path:
+        case .string, .path:
             return [("type", .string("string"))]
         case .stringList, .pathList:
             // A single string is read as a list of one.
