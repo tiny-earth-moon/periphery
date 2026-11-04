@@ -12,6 +12,23 @@
 
 - None.
 
+## 3.18.1 (2026-11-04)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- Documentation site at https://outskirts.dev/docs/, generated from `docs/`: one page per topic, the README keeps the pitch and generated extracts, and `docs/options.md` is checked against the configuration schema and the scan help (#304, #305, #306).
+- The Known Bugs table of the README records the verified state of each Swift bug, pinned by raw index store tests (#303).
+
+##### Bug Fixes
+
+- SARIF rules link to their section of the documentation site (`helpUri`), and the manual Xcode configuration hint points to the configuration page (#304).
+- The concurrent job pool no longer races on its error state; SourceGraph, SyntaxAnalysis, ProjectDrivers, XcodeSupport, PeripheryKit and Frontend build in the Swift 6 language mode, and the signal handler builds in Swift 6 on Linux. Closes #181 (#307).
+- outskirts now scans itself in CI with `--strict`, blocking on any new unused code; the dead code it found is removed and the advisory Linux self-scan is dropped. Closes #220 (#308).
+
 ## 3.18.0 (2026-11-04)
 
 ##### Breaking

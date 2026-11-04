@@ -12,6 +12,7 @@ Issues carry a priority label, from `P1` (first) to `P3`.
 
 Recent releases, newest first:
 
+- **3.18.1** (2026-11-04): documentation site at outskirts.dev/docs; job pool data race fixed and Swift 6 language mode ([#181](https://github.com/tiny-earth-moon/outskirts/issues/181)); blocking strict self-scan in CI ([#220](https://github.com/tiny-earth-moon/outskirts/issues/220)).
 - **3.18.0** (2026-11-04): JSON Schema of the configuration file and `outskirts config check` ([#228](https://github.com/tiny-earth-moon/outskirts/issues/228)); `--changed-since` and `--changed-lines` for pull request checks ([#231](https://github.com/tiny-earth-moon/outskirts/issues/231)); `--quiet` prints nothing when there is no result ([#296](https://github.com/tiny-earth-moon/outskirts/issues/296)).
 - **3.17.0** (2026-11-04): Metal functions analysis (`--detect-unused-metal-functions`); the build cache is keyed by the build arguments.
 - **3.16.0** (2026-11-03): the project is renamed outskirts, with `periphery` kept as an alias; Linux is built and tested in CI ([#219](https://github.com/tiny-earth-moon/outskirts/issues/219)).
