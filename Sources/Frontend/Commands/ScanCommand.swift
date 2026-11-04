@@ -387,7 +387,7 @@ struct ScanCommand: ParsableCommand {
 
         let formattedOutput = try formatter.format(filteredResults, colored: colored)
 
-        if let output = formattedOutput, !configuration.skipStdoutResults {
+        if let output = formattedOutput, Self.shouldPrintToStdout(configuration: configuration, resultCount: filteredResults.count) {
             if outputFormat.supportsAuxiliaryOutput {
                 logger.info("", canQuiet: true)
             }
@@ -422,6 +422,18 @@ struct ScanCommand: ParsableCommand {
 
     /// The error that ends the scan with a non-zero status when `--strict-baseline` finds stale entries, which
     /// `--prune-baseline` has just removed.
+    /// With `--quiet`, stdout stays empty when there is nothing to report, and the report goes to
+    /// the `--write-results` file only.
+    static func shouldPrintToStdout(configuration: Configuration, resultCount: Int) -> Bool {
+        if configuration.skipStdoutResults {
+            return false
+        }
+        if configuration.quiet, configuration.writeResults != nil || resultCount == 0 {
+            return false
+        }
+        return true
+    }
+
     static func staleBaselineFailure(configuration: Configuration, staleEntryCount: Int) -> PeripheryError? {
         guard configuration.strictBaseline, !configuration.pruneBaseline, staleEntryCount > 0 else { return nil }
 

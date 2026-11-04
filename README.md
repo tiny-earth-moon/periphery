@@ -133,7 +133,7 @@ For an Xcode project, outskirts keeps its build in a cache folder that is keyed 
 
 If your project consists of one or more standalone frameworks that do not also contain some kind of application that consumes their interfaces, you need to tell outskirts to assume that all public declarations are used with the `--retain-public` option.
 
-The results are written to stdout. With any `--format` other than `xcode`, progress and `--verbose` messages go to stderr, so stdout carries only the report, e.g. `outskirts scan --format json > report.json`. `--write-results <file>` also writes the report to a file, and `--skip-stdout-results` then stops it from being printed to stdout. Interrupting a scan with Ctrl-C (`SIGINT`) or `SIGTERM` stops the running build and exits with status 130 or 143, see [Exit Status](#exit-status).
+The results are written to stdout. With any `--format` other than `xcode`, progress and `--verbose` messages go to stderr, so stdout carries only the report, e.g. `outskirts scan --format json > report.json`. `--write-results <file>` also writes the report to a file, and `--skip-stdout-results` then stops it from being printed to stdout. With `--quiet`, a scan that finds nothing prints nothing at all on stdout, whatever the format (no "No unused code detected." line, no empty JSON array), and `--quiet --write-results <file>` writes the report to the file only, as if `--skip-stdout-results` were given; the file always holds the complete report, an empty document included. Exit statuses are unchanged. Interrupting a scan with Ctrl-C (`SIGINT`) or `SIGTERM` stops the running build and exits with status 130 or 143, see [Exit Status](#exit-status).
 
 For projects that are mixed Objective-C & Swift, it's highly recommended you [read about the implications](#objective-c) this can have on your results.
 
@@ -216,7 +216,7 @@ Every option of the `scan` command, with its key in the configuration file and i
 - **`--strict`**: Exit with status 1 if any result is reported. Key `strict`, default `false`.
 - **`--disable-update-check`**: Do not check for a new version. Key `disable_update_check`, default `false`.
 - **`--verbose`**: Enable verbose logging. Key `verbose`, default `false`.
-- **`--quiet`**: Print only the results. Key `quiet`, default `false`.
+- **`--quiet`**: Print only the results. With no result, nothing is printed on stdout in any format; combined with `--write-results`, stdout stays empty and the report goes to the file only. Exit statuses are unchanged. Key `quiet`, default `false`.
 - **`--color`**: Colored output: `auto`, `always` or `never` (`--no-color` is a hidden alias of `--color never`). Key `color`, default `auto`.
 - **`--json-package-manifest-path`**: Package manifest as JSON (from `swift package describe --type json`, or written by hand). Key `json_package_manifest_path`.
 - **`--cache-max-age-days`**: Age in days after which unused Xcode build caches are evicted at the end of a scan; `0` disables eviction. Key `cache_max_age_days`, default `14`.
@@ -224,7 +224,7 @@ Every option of the `scan` command, with its key in the configuration file and i
 - **`--write-baseline`**: Write the results to a baseline file, keeping the entries of `--baseline`. Key `write_baseline`.
 - **`--prune-baseline`**: Rewrite the `--baseline` file keeping only the entries that still match a result; requires `--baseline`. Key `prune_baseline`, default `false`.
 - **`--strict-baseline`**: Exit with status 1 if the baseline holds entries that no longer match; requires `--baseline`. Key `strict_baseline`, default `false`.
-- **`--write-results`**: Also write the formatted results to a file. Key `write_results`.
+- **`--write-results`**: Also write the formatted results to a file. With `--quiet`, only the file is written. Key `write_results`.
 - **`--skip-stdout-results`**: Do not print the results to stdout; requires `--write-results`. Key `skip_stdout_results`, default `false`.
 - **`--generic-project-config`**: Project configuration file for other build systems, see [Other](#other). Key `generic_project_config`.
 - **`--retain-synthesized-uses`**: Retain stored properties of types whose values are described through reflection (`print`, `dump`, `String(describing:)`, interpolation). Key `retain_synthesized_uses`, default `false`.
