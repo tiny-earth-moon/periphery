@@ -14,8 +14,10 @@ let retentionFixturesExcludedOnLinux = [
     "testRetainsSoleInitializerOfMacroModelClass.swift",
     "testRetainsViewExtensionMembersCalledInPostfixPlatformConditionalBlock.swift",
 ]
+let knownSwiftBugsFixturesExcludedOnLinux = ["testOptionalObjcMethodInSubclassIsRelated.swift"]
 #else
 let retentionFixturesExcludedOnLinux: [String] = []
+let knownSwiftBugsFixturesExcludedOnLinux: [String] = []
 #endif
 
 // `@c`, `@section` and `@used` need Swift 6.2; their tests are macOS-only.
@@ -117,6 +119,10 @@ var targets: [PackageDescription.Target] = [
         swiftSettings: [
             .unsafeFlags(["-suppress-warnings"]) // Suppress warnings from testLocalVariableAssignment
         ]
+    ),
+    .target(
+        name: "KnownSwiftBugsFixtures",
+        exclude: knownSwiftBugsFixturesExcludedOnLinux
     ),
     .target(
         name: "UnusedParameterRetentionFixtures"
