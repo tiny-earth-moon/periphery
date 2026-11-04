@@ -69,6 +69,7 @@ h2:hover .anchor,h3:hover .anchor,.anchor:focus-visible{opacity:1}
 .toc{margin:var(--space-4) 0;padding:var(--space-2) var(--space-3);background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);font-size:var(--text-small)}
 .toc ul{margin:var(--space-2) 0}
 .toc li{margin:.15rem 0}
+.toc code{background:none;padding:0}
 .status{padding:var(--space-2) var(--space-3);background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m)}
 .callout{margin:var(--space-3) 0;padding:var(--space-2) var(--space-3);border-left:4px solid var(--note);background:var(--surface);border-radius:0 var(--radius-m) var(--radius-m) 0}
 .callout-tip{border-left-color:var(--tip)}

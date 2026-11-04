@@ -19,6 +19,8 @@ import {
 const OUT_DIR = join(PUBLIC_DIR, "docs");
 const STACKED_COLUMNS = 3;
 const PROSE_LENGTH = 60;
+// Past this many h2 and h3 headings, the table of contents lists the h2 headings only.
+const MAX_TOC_ENTRIES = 40;
 const CALLOUTS = { NOTE: "Note", TIP: "Tip", IMPORTANT: "Important", WARNING: "Warning", CAUTION: "Caution" };
 
 const pages = loadPages();
@@ -160,7 +162,8 @@ function renderPage(page) {
   const { md, headings } = markdown(page);
   let body = md.render(page.body);
 
-  const toc = tableOfContents(headings, page.name === "changelog");
+  const changelog = page.name === "changelog";
+  const toc = tableOfContents(headings, { topLevelOnly: changelog || headings.length > MAX_TOC_ENTRIES, closed: changelog });
   const status =
     page.name === ""
       ? `<p class="status">Latest release: <a href="/docs/changelog/#${release.slug}">${release.version}</a> (${release.date}). See what comes next on the <a href="/docs/roadmap/">roadmap</a>.</p>\n`
@@ -246,18 +249,18 @@ function navList(current) {
     .join("\n");
 }
 
-function tableOfContents(headings, collapsed) {
+function tableOfContents(headings, { topLevelOnly, closed }) {
   if (headings.filter((h) => h.level === 2).length < 2) return "";
   const items = [];
   for (const heading of headings) {
     const link = `<a href="#${heading.id}">${renderInline(heading.inline)}</a>`;
     if (heading.level === 2 || items.length === 0) items.push({ link, children: [] });
-    else if (!collapsed) items.at(-1).children.push(link);
+    else if (!topLevelOnly) items.at(-1).children.push(link);
   }
   const list = items
     .map((item) => `<li>${item.link}${item.children.length ? `<ul>${item.children.map((c) => `<li>${c}</li>`).join("")}</ul>` : ""}</li>`)
     .join("\n");
-  return `<details class="toc"${collapsed ? "" : " open"}>\n<summary>On this page</summary>\n<ul>\n${list}\n</ul>\n</details>\n`;
+  return `<details class="toc"${closed ? "" : " open"}>\n<summary>On this page</summary>\n<ul>\n${list}\n</ul>\n</details>\n`;
 }
 
 function renderInline(inline) {
