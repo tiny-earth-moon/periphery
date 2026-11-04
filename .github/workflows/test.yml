@@ -81,3 +81,17 @@ jobs:
         run: swift build
       - name: Test
         run: swift test
+  site:
+    name: Site and documentation
+    # Builds outskirts.dev from docs/ and checks it, and checks that docs/options.md and the README extracts are in
+    # step with their sources (`npm run sync` in site/ regenerates them).
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install
+        run: npm ci --no-audit --no-fund
+      - name: Check
+        run: npm run check

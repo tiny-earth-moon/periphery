@@ -3,10 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node scripts/check.mjs",
+    "build": "node scripts/build-docs.mjs",
+    "sync": "node scripts/sync.mjs",
+    "check": "node scripts/build-docs.mjs && node scripts/sync.mjs --check && node scripts/check.mjs",
     "deploy": "wrangler deploy"
   },
   "devDependencies": {
+    "markdown-it": "15.0.3",
     "wrangler": "4.156.2"
   }
 }

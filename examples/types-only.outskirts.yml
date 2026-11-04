@@ -5,8 +5,9 @@
 #
 # 1. report_exclude with result kinds (3.12.6): exclude kinds for all files.
 #    "unused.function" covers every unused function and method, "unused.var" every
-#    unused property and parameter, other kinds are listed in the README
-#    (section "Excluding Results"). An unknown kind is a configuration error.
+#    unused property and parameter, other kinds are listed on
+#    https://outskirts.dev/docs/excluding-files/#excluding-results
+#    An unknown kind is a configuration error.
 #    These are cosmetic: everything is still indexed, so a type used only by an
 #    excluded member is still counted as used.
 # 2. Post-filtering the JSON report on its `kind` field (see the end of this file).

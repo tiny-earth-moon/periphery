@@ -6,9 +6,9 @@ import Shared
 @testable import TestShared
 import XCTest
 
-/// Pins what the Swift index store itself records for the constructs of the README "Known Bugs" table, before any
-/// outskirts mutator runs. When a toolchain changes the raw behaviour, the matching test fails and the README row and
-/// the workaround (if any) must be revisited.
+/// Pins what the Swift index store itself records for the constructs of the "Known Swift bugs" table of
+/// docs/troubleshooting.md, before any outskirts mutator runs. When a toolchain changes the raw behaviour, the matching
+/// test fails and the table row and the workaround (if any) must be revisited.
 final class KnownSwiftBugsTest: FixtureSourceGraphTestCase {
     private func rawGraph() -> SourceGraph {
         let configuration = Configuration()

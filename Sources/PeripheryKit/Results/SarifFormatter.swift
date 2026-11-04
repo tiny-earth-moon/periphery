@@ -16,25 +16,28 @@ final class SarifFormatter: OutputFormatter {
 
     private static let informationUri = "https://github.com/tiny-earth-moon/outskirts"
 
+    /// Documentation page of every rule, followed by the section of the rule.
+    static let helpBaseUri = "https://outskirts.dev/docs/"
+
     private struct Rule {
         let id: String
         let description: String
-        let anchor: String
+        let help: String
     }
 
     private static let rules: [Rule] = [
-        Rule(id: "unused", description: "The declaration is never referenced", anchor: "analysis"),
-        Rule(id: "assignOnlyProperty", description: "The property is assigned, but never read", anchor: "assign-only-properties"),
-        Rule(id: "unassignedOptionalProperty", description: "The optional property is never assigned and is always nil", anchor: "unassigned-optional-analysis"),
-        Rule(id: "redundantProtocol", description: "The protocol is never used as an existential type", anchor: "protocols-1"),
-        Rule(id: "redundantPublicAccessibility", description: "The declaration is public but not used outside of its module", anchor: "redundant-public-accessibility"),
-        Rule(id: "redundantOpenAccessibility", description: "The declaration is open but never subclassed or overridden outside of its module", anchor: "open--final-analysis"),
-        Rule(id: "missingFinal", description: "The class or member could be final", anchor: "open--final-analysis"),
-        Rule(id: "redundantAccessLevel", description: "The access level is already the default in its context", anchor: "redundant-access-level-analysis"),
-        Rule(id: "emptyExtension", description: "The extension declares nothing", anchor: "empty-extension-analysis"),
-        Rule(id: "superfluousIgnoreCommand", description: "The ignore comment is on a declaration that is referenced", anchor: "comment-commands"),
-        Rule(id: "unusedAssetCatalogColor", description: "The asset catalog color is never referenced", anchor: "asset-catalog-colors"),
-        Rule(id: "unusedAssetCatalogImage", description: "The asset catalog image is never referenced", anchor: "asset-catalog-images"),
+        Rule(id: "unused", description: "The declaration is never referenced", help: "analysis/#unused-declarations"),
+        Rule(id: "assignOnlyProperty", description: "The property is assigned, but never read", help: "analysis/#assign-only-properties"),
+        Rule(id: "unassignedOptionalProperty", description: "The optional property is never assigned and is always nil", help: "analysis/#unassigned-optional-properties"),
+        Rule(id: "redundantProtocol", description: "The protocol is never used as an existential type", help: "analysis/#redundant-protocols"),
+        Rule(id: "redundantPublicAccessibility", description: "The declaration is public but not used outside of its module", help: "analysis/#redundant-public-accessibility"),
+        Rule(id: "redundantOpenAccessibility", description: "The declaration is open but never subclassed or overridden outside of its module", help: "analysis/#open-and-final"),
+        Rule(id: "missingFinal", description: "The class or member could be final", help: "analysis/#open-and-final"),
+        Rule(id: "redundantAccessLevel", description: "The access level is already the default in its context", help: "analysis/#redundant-access-levels"),
+        Rule(id: "emptyExtension", description: "The extension declares nothing", help: "analysis/#empty-extensions"),
+        Rule(id: "superfluousIgnoreCommand", description: "The ignore comment is on a declaration that is referenced", help: "analysis/#superfluous-ignore-comments"),
+        Rule(id: "unusedAssetCatalogColor", description: "The asset catalog color is never referenced", help: "analysis/#asset-catalog-colors"),
+        Rule(id: "unusedAssetCatalogImage", description: "The asset catalog image is never referenced", help: "analysis/#asset-catalog-images"),
     ]
 
     let configuration: Configuration
@@ -72,7 +75,7 @@ final class SarifFormatter: OutputFormatter {
                 [
                     "id": rule.id,
                     "shortDescription": ["text": rule.description],
-                    "helpUri": "https://github.com/tiny-earth-moon/outskirts#\(rule.anchor)",
+                    "helpUri": Self.helpBaseUri + rule.help,
                 ] as [String: Any]
             },
         ]

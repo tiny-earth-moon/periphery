@@ -67,14 +67,35 @@ final class ConfigurationSchemaTest: XCTestCase {
         XCTAssertEqual(scanKeys.subtracting(settingKeys).sorted(), [], "scan options without a setting")
     }
 
-    func testEveryKeyIsDocumentedInTheReadmeOrAnExample() throws {
-        let root = ProjectRootPath.string
-        let examples = try FileManager.default.contentsOfDirectory(atPath: "\(root)/examples").map { "\(root)/examples/\($0)" }
-        let documentation = try (["\(root)/README.md"] + examples).map { try String(contentsOfFile: $0, encoding: .utf8) }.joined(separator: "\n")
+    /// Every setting has its entry in docs/options.md, with its description and default, and every `scan` option its
+    /// heading, so that the reference is never out of step with the schema or the help.
+    func testOptionsReferenceIsUpToDate() throws {
+        let reference = try Documentation.page("options")
+        let lines = reference.split(separator: "\n").map(String.init)
+        let properties = try XCTUnwrap(generatedSchema()["properties"] as? [String: [String: Any]])
+        let stale = "docs/options.md is out of date: run 'npm run sync' in site/"
 
-        for key in Configuration().settingKeys {
-            let mentioned = documentation.range(of: "(?<![a-z_])\(key)(?![a-z_])", options: .regularExpression) != nil
-            XCTAssertTrue(mentioned, "'\(key)' is mentioned neither in README.md nor in examples/")
+        for (key, property) in properties {
+            let facts = lines.first { $0.hasPrefix("Key `\(key)`") }
+            XCTAssertNotNil(facts, "\(key) has no entry. \(stale)")
+
+            let description = try XCTUnwrap(property["description"] as? String)
+                .replacing(#/\s*\(command line: --[a-z-]+\)/#, with: "")
+            XCTAssertTrue(reference.contains(description), "the description of \(key) changed. \(stale)")
+
+            if let value = property["default"], !(value is [Any]) {
+                let json = try XCTUnwrap(String(bytes: JSONSerialization.data(withJSONObject: value, options: .fragmentsAllowed), encoding: .utf8))
+                let shown = json.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+                XCTAssertTrue(facts?.contains("default `\(shown)`") == true, "the default of \(key) changed. \(stale)")
+            }
+        }
+
+        let flags = ScanCommand.helpMessage(columns: 1000).split(separator: "\n").compactMap { line in
+            line.firstMatch(of: #/^\s+(?:-[A-Za-z], )?(--[a-z][a-z-]*)/#).map { String($0.1) }
+        }
+        XCTAssertFalse(flags.isEmpty)
+        for flag in flags where flag != "--help" {
+            XCTAssertTrue(lines.contains("### `\(flag)`"), "\(flag) has no entry. \(stale)")
         }
     }
 
