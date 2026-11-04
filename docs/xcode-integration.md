@@ -29,6 +29,8 @@ Copy your outskirts command into the script input.
 > [!TIP]
 > 1. Include the `--format xcode` option so that results are always formatted for Xcode.
 > 2. Use the absolute path to `outskirts`.
+> 3. Keep the command on one line, or end each line but the last with `\`: a line break ends a shell command, so an argument on the next line, such as the value of `-destination`, would be lost.
+> 4. To silence Xcode's warning that the script runs during every build, clear _Based on dependency analysis_: the scan has no output files, so it should run every time.
 
 ![The outskirts command in the Run Script phase](../assets/xcode-integration/4.png)
 
@@ -131,3 +133,7 @@ The new scheme is now in the scheme menu. Select it and run it.
 > For others on your team to use the scheme, mark it as _Shared_: choose _Manage Schemes..._ and select the _Shared_ checkbox next to the new scheme. The scheme definition can then be checked into source control.
 
 ![Selecting the outskirts scheme and running it](../assets/xcode-integration/6.png)
+
+The results appear as warnings in the Issue navigator, grouped by file, and next to the code in the editor.
+
+![outskirts results as Xcode warnings in the Issue navigator](../assets/xcode-integration/7.png)
