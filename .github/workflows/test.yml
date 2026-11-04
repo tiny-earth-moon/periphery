@@ -36,6 +36,10 @@ jobs:
             ${{ runner.os }}-outskirts-xcode-27.2-spm-
       - name: Build
         run: swift build
+      # Blocking self-scan with .outskirts.yml: any new unused code fails the job. It also builds the test targets,
+      # which the next step reuses.
+      - name: Self-scan
+        run: .build/debug/outskirts scan --strict --disable-update-check
       - name: Test
         run: swift test
   linux:
