@@ -1,6 +1,6 @@
 # Configuration examples
 
-Commented `.outskirts.yml` configuration files for common scenarios. Each header states the scenario and the expected result. Every key exists in `Sources/Configuration/Configuration.swift` (checked against 3.15.0). Use one with `outskirts scan --config examples/<file>`, or copy it to `.outskirts.yml` at the project root (`.periphery.yml` is still read). The first line of each file points editors at the [JSON Schema](../outskirts.schema.json) of the configuration file, and `outskirts config check --config examples/<file>` checks a file without scanning.
+Commented `.outskirts.yml` configuration files for common scenarios. Each header states the scenario and the expected result. Every key exists in `Sources/Configuration/Configuration.swift` (checked against 3.17.0). Use one with `outskirts scan --config examples/<file>`, or copy it to `.outskirts.yml` at the project root (`.periphery.yml` is still read). The first line of each file points editors at the [JSON Schema](../outskirts.schema.json) of the configuration file, and `outskirts config check --config examples/<file>` checks a file without scanning.
 
 | File | Scenario |
 |------|----------|
