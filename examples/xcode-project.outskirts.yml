@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/tiny-earth-moon/outskirts/master/outskirts.schema.json
 # Scenario: minimal configuration for an Xcode project (app or app + frameworks).
 # Run from the project root: outskirts scan --config examples/xcode-project.outskirts.yml
 # Expected: declarations unused by any scanned scheme are reported in the Xcode
