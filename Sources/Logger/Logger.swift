@@ -103,7 +103,6 @@ public struct Logger: Sendable {
         log(text, output: standardError)
     }
 
-    // periphery:ignore
     public func error(_ text: String) {
         let text = colorize("error: ", .boldRed) + text
         log(text, output: standardError)

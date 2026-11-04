@@ -43,6 +43,7 @@ public protocol Shell: Sendable {
 public final class ShellImpl: Shell {
     private let logger: ContextualLogger
     private let store: ShellProcessStore
+    // outskirts:ignore - assign-only on purpose: holding the sources keeps the signal handlers installed
     /// Only kept alive here, never read; the `Mutex` makes the class `Sendable` on Linux, where
     /// `DispatchSourceSignal` is not.
     private let signalSources: Mutex<[DispatchSourceSignal]>

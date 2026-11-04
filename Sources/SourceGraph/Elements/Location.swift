@@ -15,14 +15,6 @@ public final class Location {
         hashValueCache = [file.hashValue, line, column].hashValue
     }
 
-    func relativeTo(_ path: FilePath) -> Location {
-        let newPath = file.path.relativeTo(path)
-        let newFile = SourceFile(path: newPath, modules: file.modules)
-        newFile.importStatements = file.importStatements
-        newFile.usesDistributedModifier = file.usesDistributedModifier
-        return Location(file: newFile, line: line, column: column)
-    }
-
     // MARK: - Private
 
     private func buildDescription(path: String) -> String {

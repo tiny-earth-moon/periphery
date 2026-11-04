@@ -28,7 +28,6 @@ public struct Function: Item, Hashable {
 
 public struct Attribute {
     let name: String
-    let arguments: String?
     let isUnavailableOnAllPlatforms: Bool
 }
 
@@ -389,7 +388,6 @@ struct UnusedParameterParser {
                 if case let .attribute(attr) = $0 {
                     return Attribute(
                         name: attr.attributeName.trimmed.description,
-                        arguments: attr.arguments?.trimmed.description,
                         isUnavailableOnAllPlatforms: isUnavailableOnAllPlatforms(attr)
                     )
                 }
