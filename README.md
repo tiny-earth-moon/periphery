@@ -27,6 +27,7 @@
     - [Configuration](#configuration)
     - [Options Reference](#options-reference)
     - [Output Formats](#output-formats)
+    - [Baseline](#baseline)
     - [Exit Status](#exit-status)
 - [Analysis](#analysis)
     - [Function Parameters](#function-parameters)
@@ -260,6 +261,19 @@ Select a format with `--format` (`format` in the configuration file). The defaul
 | `codeclimate` | Code Climate JSON | always |
 
 "always" means paths are relative to the project root (or to `--relative-to`) without passing `--relative-results`; the other formats report absolute paths unless it is passed. See [Continuous Integration](#continuous-integration).
+
+### Baseline
+
+A baseline records results so that later scans do not report them again: new unused declarations show up, the recorded ones stay quiet. It lets a project adopt outskirts without fixing everything first.
+
+- **`--write-baseline <path>`**: write the results of the scan to `<path>` (key `write_baseline`). The entries of the baseline given to `--baseline` are kept, and the current results are added.
+- **`--baseline <path>`**: hide the results recorded in `<path>` (key `baseline`). A relative path is resolved from `--project-root`.
+- **`--prune-baseline`**: rewrite the file given to `--baseline`, keeping only the entries that still match a result. Requires `--baseline`.
+- **`--strict-baseline`**: exit with status 1 if the baseline holds entries that no longer match any result. Requires `--baseline`.
+- **Format**: baselines are written in format `v2`: sorted, pretty-printed JSON that gives each entry an `id` and the `kind`, `name` and `file` (relative to the project root) of the result it was written for, so a review shows what was baselined. Only the `id` is used for matching. `v1` files (a list of ids) are still read, and are rewritten as `v2` by `--write-baseline` and `--prune-baseline`.
+- **Ids**: an id is the identifier of the declaration in the index store (its USR), which does not depend on its line number. Results without a USR of their own, such as unused imports, empty extensions and localized strings, use ids that outskirts builds for them. The position-based ids and absolute String Catalog paths written by earlier versions still match.
+
+To make a baseline shrink over time, with `--strict-baseline` and `--prune-baseline`, see [Baseline ratchet](#baseline-ratchet).
 
 ### Exit Status
 
@@ -575,7 +589,7 @@ By default, imports of system frameworks (`Foundation`, `UIKit`, `SwiftUI`, `Com
 
 Limitations: uses that leave no reference in the index store are invisible, such as `@objc` or `dynamic` without any other Objective-C runtime reference, so a file whose only use of `Foundation` is an `@objc` attribute is reported. Use `// outskirts:ignore` on the import, or `retain_unused_imported_modules`, for such cases.
 
-outskirts will likely produce false positives for targets with mixed Swift and Objective-C, as outskirts cannot scan the Objective-C files. It is recommended, therefore, to disable unused import detection for projects with a significant amount of Objective-C or manually exclude the mixed language targets from the results.
+outskirts will likely produce false positives for targets with mixed Swift and Objective-C, as outskirts cannot scan the Objective-C files. It is recommended, therefore, to disable unused import detection with `--disable-unused-import-analysis` (`disable_unused_import_analysis: true`) for projects with a significant amount of Objective-C or manually exclude the mixed language targets from the results.
 
 ### Platform Conditionals
 
