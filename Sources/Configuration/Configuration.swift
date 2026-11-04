@@ -9,7 +9,7 @@ import Yams
 public final class Configuration {
     public static let defaultConfigurationFile = FilePath(".outskirts.yml")
     /// Looked up in this order, the first existing file wins; `.periphery.*` is kept for existing projects.
-    static let configurationFileNames = [".outskirts.yml", ".outskirts.yaml", ".periphery.yml", ".periphery.yaml"]
+    public static let configurationFileNames = [".outskirts.yml", ".outskirts.yaml", ".periphery.yml", ".periphery.yaml"]
 
     public init() {}
 
@@ -242,7 +242,7 @@ public final class Configuration {
     }
 
     public func save(to path: FilePath = defaultConfigurationFile) throws {
-        let data = try asYaml().data(using: .utf8)
+        let data = try (Self.schemaComment + "\n" + asYaml()).data(using: .utf8)
         FileManager.default.createFile(atPath: path.string, contents: data)
     }
 
@@ -403,7 +403,8 @@ public final class Configuration {
         return patterns.map { FilenameMatcher(relativePattern: $0, to: pwd, caseSensitive: false) }
     }
 
-    private func configurationPath(withUserProvided path: FilePath?) throws -> FilePath? {
+    /// The configuration file to read: the given one, which must exist, or else the first existing default file.
+    public func configurationPath(withUserProvided path: FilePath?) throws -> FilePath? {
         if let path {
             if !path.exists {
                 throw PeripheryError.pathDoesNotExist(path: path.lexicallyNormalized().string)

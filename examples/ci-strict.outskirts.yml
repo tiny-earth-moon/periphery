@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/tiny-earth-moon/outskirts/master/outskirts.schema.json
 # Scenario: CI gate. The job fails when any unused code is found.
 # Run: outskirts scan --config examples/ci-strict.outskirts.yml > outskirts-report.json
 # Expected: exit status 1 with `strict`, 0 when nothing is reported; stdout contains only

@@ -17,6 +17,18 @@ The full suite is long. Run the tests relevant to your change:
 swift test --filter <TestCaseName>
 ```
 
+## Adding an option
+
+An option of `scan` that can also be set in the configuration file touches every item below; `ConfigurationSchemaTest` fails when one is missing.
+
+- The `@Setting` property in `Sources/Configuration/Configuration.swift`, and its entry in the `settings` array of the same file.
+- A one-line description of the key in `Sources/Configuration/SettingDescriptions.swift`.
+- The `@Option` or `@Flag` in `Sources/Frontend/Commands/ScanCommand.swift`, and its line in `apply(to:)`.
+- Its entry in the README Options Reference, with the key and the default.
+- If it helps a common scenario, a commented use in a file under `examples/`.
+- The regenerated schema: `swift run outskirts config schema > outskirts.schema.json`.
+- `swift test --filter ConfigurationSchemaTest`, which compares the settings with the `scan` options, the README and `examples/`, and the committed schema with the generated one.
+
 ## Commits
 
 Conventional Commits with a scope, in English: `fix(indexer): ...`, `build: ...`, `docs: ...`, `chore(fork): ...`. One logical change per commit.

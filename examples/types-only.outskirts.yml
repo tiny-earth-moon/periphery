@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/tiny-earth-moon/outskirts/master/outskirts.schema.json
 # Scenario: report only unused types (class, struct, enum, protocol...), hide unused
 # functions, properties and parameters (issue #79).
 # There is no single "types only" option. The fork offers two real mechanisms:

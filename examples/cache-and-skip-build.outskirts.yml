@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/tiny-earth-moon/outskirts/master/outskirts.schema.json
 # Scenario: repeated local or CI scans that reuse a build already produced.
 # Run: outskirts scan --config examples/cache-and-skip-build.outskirts.yml
 # Expected: the build step is skipped and the index store at `index_store_path` is read
