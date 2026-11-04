@@ -91,9 +91,4 @@ private struct StubShell: Shell {
     func exec(_: [String]) throws -> String {
         try result.get()
     }
-
-    func execStatus(_: [String]) throws -> Int32 {
-        try result.get()
-        return 0
-    }
 }

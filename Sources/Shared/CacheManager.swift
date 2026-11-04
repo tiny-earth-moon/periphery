@@ -1,18 +1,18 @@
 import Foundation
 
-public struct CacheEntryError: Error, CustomStringConvertible {
-    public let path: String
-    public let underlying: Error
+struct CacheEntryError: Error, CustomStringConvertible {
+    let path: String
+    let underlying: Error
 
-    public var description: String {
+    var description: String {
         "\(path): \(underlying.localizedDescription)"
     }
 }
 
-public struct CacheClearError: Error, LocalizedError {
-    public let failures: [CacheEntryError]
+struct CacheClearError: Error, LocalizedError {
+    let failures: [CacheEntryError]
 
-    public var errorDescription: String? {
+    var errorDescription: String? {
         "Failed to clear the cache, the following entries could not be removed:\n"
             + failures.map { "  - \($0.description)" }.joined(separator: "\n")
     }

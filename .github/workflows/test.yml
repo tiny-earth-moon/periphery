@@ -36,11 +36,14 @@ jobs:
             ${{ runner.os }}-outskirts-xcode-27.2-spm-
       - name: Build
         run: swift build
+      # Blocking self-scan with .outskirts.yml: any new unused code fails the job. It also builds the test targets,
+      # which the next step reuses.
+      - name: Self-scan
+        run: .build/debug/outskirts scan --strict --disable-update-check
       - name: Test
         run: swift test
   linux:
     name: Linux (Swift 6.4)
-    # Same image family as docker/Dockerfile-Linux (swift:6.4.x), which `mise run scan-linux` uses locally.
     runs-on: ubuntu-latest
     container: swift:6.4-noble
     steps:
@@ -58,11 +61,6 @@ jobs:
       # every other target, including the SwiftPM fixture scans, runs here.
       - name: Test
         run: swift test
-      # Swift 6.4 builds with the swiftbuild backend, whose index store is `.build/out`: outskirts finds it itself.
-      - name: Self-scan
-        # Advisory until baselines/linux.json is regenerated on Linux (#281): a stale baseline fails here without failing the job.
-        continue-on-error: true
-        run: .build/debug/outskirts scan --skip-build --baseline baselines/linux.json --strict --disable-update-check
   linux-minimum:
     name: Linux (Swift 6.1, minimum toolchain)
     # The minimum supported toolchain is `minimumVersion` in Sources/Shared/SwiftVersion.swift (6.1.2).

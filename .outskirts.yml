@@ -1,0 +1,9 @@
+# Self-scan of this package, run in CI with `outskirts scan --strict`.
+retain_hashable_properties: true
+report_exclude:
+  # Fixture projects scanned by the tests: their unused code is what the tests expect outskirts to find.
+  - Tests/SPMTests/SPMProject*/**
+  - Tests/XcodeTests/*Project/**
+  - Tests/AccessibilityTests/AccessibilityProject/**
+  - Tests/Fixtures/**
+  - Tests/ExecutableFixtures/**

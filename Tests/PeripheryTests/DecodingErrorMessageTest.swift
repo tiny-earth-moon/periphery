@@ -12,6 +12,7 @@ private struct Item: Decodable {
 }
 
 private struct Document: Decodable {
+    // outskirts:ignore - only decoded: the tests check the message of the decoding error, never the value
     let items: [Item]
 }
 
@@ -20,10 +21,6 @@ final class DecodingErrorMessageTest: XCTestCase {
         func exec(_: [String]) throws -> String {
             XCTFail("The shell must not be used")
             return ""
-        }
-
-        func execStatus(_: [String]) throws -> Int32 {
-            0
         }
     }
 

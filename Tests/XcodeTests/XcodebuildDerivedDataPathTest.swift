@@ -16,11 +16,6 @@
                 commands.append(args)
                 return "Xcode 0.0"
             }
-
-            func execStatus(_ args: [String]) throws -> Int32 {
-                commands.append(args)
-                return 0
-            }
         }
 
         private final class ProjectStub: XcodeProjectlike {

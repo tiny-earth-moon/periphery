@@ -7,8 +7,4 @@ struct ShellMock: Shell {
     func exec(_: [String]) throws -> String {
         output
     }
-
-    func execStatus(_: [String]) throws -> Int32 {
-        0
-    }
 }

@@ -1,7 +1,0 @@
-#!/bin/bash
-
-set -e
-
-export DOCKER_CLI_HINTS=false
-docker build -t outskirts -f docker/Dockerfile-Linux .
-docker run --rm -t outskirts scan "$@" --baseline baselines/linux.json

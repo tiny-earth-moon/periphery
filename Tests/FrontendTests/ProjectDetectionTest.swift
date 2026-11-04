@@ -77,8 +77,4 @@ private struct UnexpectedShell: Shell {
     func exec(_ args: [String]) throws -> String {
         throw PeripheryError.shellCommandFailed(cmd: args, status: 1, output: "unexpected command")
     }
-
-    func execStatus(_ args: [String]) throws -> Int32 {
-        throw PeripheryError.shellCommandFailed(cmd: args, status: 1, output: "unexpected command")
-    }
 }

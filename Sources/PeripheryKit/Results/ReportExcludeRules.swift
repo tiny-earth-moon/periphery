@@ -10,7 +10,7 @@ import SourceGraph
 /// declaration kind (as emitted in the `kind` of a JSON report), e.g. `unused`, `unused.function.free`,
 /// `assignOnlyProperty.var.instance`. An identifier matches a result if it is equal to, or a dotted prefix of,
 /// the result identifier, so `unused.function` matches every unused function and method.
-public enum ResultKind {
+enum ResultKind {
     static let annotationNames: Set<String> = Set([
         "unused", "assignOnlyProperty", "unassignedOptionalProperty", "redundantProtocol", "redundantPublicAccessibility",
         "redundantOpenAccessibility", "missingFinal", "redundantAccessLevel", "emptyExtension", "superfluousIgnoreCommand",
@@ -21,7 +21,7 @@ public enum ResultKind {
         Declaration.Kind.identifiers.map { "\(annotation).\($0)" }
     })
 
-    public static func isValid(_ identifier: String) -> Bool {
+    static func isValid(_ identifier: String) -> Bool {
         identifiers.contains(identifier)
     }
 

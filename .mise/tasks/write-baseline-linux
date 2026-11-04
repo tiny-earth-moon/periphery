@@ -1,9 +1,0 @@
-#!/bin/bash
-
-set -euo pipefail
-
-export DOCKER_CLI_HINTS=false
-docker build -t outskirts -f docker/Dockerfile-Linux .
-docker run --name outskirts_write_baseline -t outskirts scan "$@" --write-baseline /baseline.json
-docker cp outskirts_write_baseline:baseline.json ./baselines/linux.json
-docker rm outskirts_write_baseline

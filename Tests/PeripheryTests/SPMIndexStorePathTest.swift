@@ -19,10 +19,6 @@ final class SPMIndexStorePathTest: XCTestCase {
             commands.append(args)
             return output
         }
-
-        func execStatus(_: [String]) throws -> Int32 {
-            0
-        }
     }
 
     private var root: URL!
