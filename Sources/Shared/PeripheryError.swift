@@ -56,7 +56,7 @@ public enum PeripheryError: Error, LocalizedError, CustomStringConvertible {
         case let .sourceGraphIntegrityError(message):
             return message
         case let .guidedSetupError(message):
-            return "\(message). Please refer to the documentation for instructions on configuring outskirts manually - https://github.com/tiny-earth-moon/outskirts#xcode-integration"
+            return "\(message). Please refer to the documentation for instructions on configuring outskirts manually - https://outskirts.dev/docs/configuration/"
         case let .updateCheckError(message):
             return message
         case .xcodebuildNotConfigured:

@@ -241,84 +241,84 @@
           "name" : "outskirts",
           "rules" : [
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#analysis",
+              "helpUri" : "https://outskirts.dev/docs/analysis/#unused-declarations",
               "id" : "unused",
               "shortDescription" : {
                 "text" : "The declaration is never referenced"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#assign-only-properties",
+              "helpUri" : "https://outskirts.dev/docs/analysis/#assign-only-properties",
               "id" : "assignOnlyProperty",
               "shortDescription" : {
                 "text" : "The property is assigned, but never read"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#unassigned-optional-analysis",
+              "helpUri" : "https://outskirts.dev/docs/analysis/#unassigned-optional-properties",
               "id" : "unassignedOptionalProperty",
               "shortDescription" : {
                 "text" : "The optional property is never assigned and is always nil"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#protocols-1",
+              "helpUri" : "https://outskirts.dev/docs/analysis/#redundant-protocols",
               "id" : "redundantProtocol",
               "shortDescription" : {
                 "text" : "The protocol is never used as an existential type"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#redundant-public-accessibility",
+              "helpUri" : "https://outskirts.dev/docs/analysis/#redundant-public-accessibility",
               "id" : "redundantPublicAccessibility",
               "shortDescription" : {
                 "text" : "The declaration is public but not used outside of its module"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#open--final-analysis",
+              "helpUri" : "https://outskirts.dev/docs/analysis/#open-and-final",
               "id" : "redundantOpenAccessibility",
               "shortDescription" : {
                 "text" : "The declaration is open but never subclassed or overridden outside of its module"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#open--final-analysis",
+              "helpUri" : "https://outskirts.dev/docs/analysis/#open-and-final",
               "id" : "missingFinal",
               "shortDescription" : {
                 "text" : "The class or member could be final"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#redundant-access-level-analysis",
+              "helpUri" : "https://outskirts.dev/docs/analysis/#redundant-access-levels",
               "id" : "redundantAccessLevel",
               "shortDescription" : {
                 "text" : "The access level is already the default in its context"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#empty-extension-analysis",
+              "helpUri" : "https://outskirts.dev/docs/analysis/#empty-extensions",
               "id" : "emptyExtension",
               "shortDescription" : {
                 "text" : "The extension declares nothing"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#comment-commands",
+              "helpUri" : "https://outskirts.dev/docs/analysis/#superfluous-ignore-comments",
               "id" : "superfluousIgnoreCommand",
               "shortDescription" : {
                 "text" : "The ignore comment is on a declaration that is referenced"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#asset-catalog-colors",
+              "helpUri" : "https://outskirts.dev/docs/analysis/#asset-catalog-colors",
               "id" : "unusedAssetCatalogColor",
               "shortDescription" : {
                 "text" : "The asset catalog color is never referenced"
               }
             },
             {
-              "helpUri" : "https://github.com/tiny-earth-moon/outskirts#asset-catalog-images",
+              "helpUri" : "https://outskirts.dev/docs/analysis/#asset-catalog-images",
               "id" : "unusedAssetCatalogImage",
               "shortDescription" : {
                 "text" : "The asset catalog image is never referenced"

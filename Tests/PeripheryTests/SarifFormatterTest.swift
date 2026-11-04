@@ -5,6 +5,7 @@ import Logger
 import Shared
 import SourceGraph
 import SystemPackage
+@testable import TestShared
 import XCTest
 
 /// Set `PERIPHERY_UPDATE_GOLDEN` to rewrite the golden file from the current output.
@@ -127,6 +128,23 @@ final class SarifFormatterTest: XCTestCase {
             fingerprints.insert(fingerprint)
         }
         XCTAssertEqual(fingerprints.count, sarifResults.count)
+    }
+
+    func testSarifRules_linkToADocumentedSectionOfTheSite() throws {
+        let run = try XCTUnwrap((log(format([]))["runs"] as? [[String: Any]])?.first)
+        let rules = try XCTUnwrap(((run["tool"] as? [String: Any])?["driver"] as? [String: Any])?["rules"] as? [[String: Any]])
+        XCTAssertFalse(rules.isEmpty)
+
+        for rule in rules {
+            let uri = try XCTUnwrap(rule["helpUri"] as? String)
+            XCTAssertTrue(uri.hasPrefix(SarifFormatter.helpBaseUri), uri)
+            let parts = uri.dropFirst(SarifFormatter.helpBaseUri.count).split(separator: "/#", maxSplits: 1).map(String.init)
+            XCTAssertEqual(parts.count, 2, "\(uri) names no page and section")
+            guard parts.count == 2 else { continue }
+
+            let page = try Documentation.page(parts[0])
+            XCTAssertTrue(Documentation.anchors(in: page).contains(parts[1]), "docs/\(parts[0]).md has no section #\(parts[1]) for \(uri)")
+        }
     }
 
     func testSarifOutput_describesTheRedundantConformancesAsRelatedLocations() throws {
