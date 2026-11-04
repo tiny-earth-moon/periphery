@@ -93,9 +93,9 @@ final class KnownSwiftBugsTest: FixtureSourceGraphTestCase {
 
     // MARK: - swiftlang/swift#56189
 
-    /// Verified on Swift 6.4: `appendInterpolation` is referenced from the string literal. Not verified on older
-    /// toolchains, where `StringInterpolationAppendInterpolationRetainer` stays as the safety net, so the raw
-    /// behaviour is pinned from 6.4 only.
+    /// Verified on Swift 6.4: `appendInterpolation` is referenced from the string literal. On older toolchains the
+    /// reference is expected to be missing (the upstream bug), and `StringInterpolationAppendInterpolationRetainer`
+    /// stays as the safety net; the raw behaviour is pinned on both sides.
     func testAppendInterpolationFromLiteralIsRelated() throws {
         analyze(retainPublic: true) {
             assertReferenced(.extensionStruct("DefaultStringInterpolation")) {
@@ -103,12 +103,12 @@ final class KnownSwiftBugsTest: FixtureSourceGraphTestCase {
             }
         }
 
+        let graph = rawGraph()
+        let related = try hasUseReference(graph, kind: .functionMethodInstance, name: "appendInterpolation(fixtureLabel:)")
         #if compiler(>=6.4)
-            let graph = rawGraph()
-            let related = try hasUseReference(graph, kind: .functionMethodInstance, name: "appendInterpolation(fixtureLabel:)")
             XCTAssertTrue(related, "raw index store behaviour for #56189 changed")
         #else
-            break
+            XCTAssertFalse(related, "raw index store behaviour for #56189 changed")
         #endif
     }
 
