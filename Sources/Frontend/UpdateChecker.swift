@@ -8,10 +8,11 @@ import Synchronization
     import FoundationNetworking
 #endif
 
-final class UpdateChecker {
+final class UpdateChecker: Sendable {
     private let logger: Logger
     private let debugLogger: ContextualLogger
-    private let configuration: Configuration
+    /// Only the xcode format performs the update check, because it may interfere with parsing json and csv.
+    private let isEnabled: Bool
     private let urlSession: URLSession
     private let latestReleaseURL: URL
     private let semaphore: DispatchSemaphore
@@ -21,7 +22,7 @@ final class UpdateChecker {
     required init(logger: Logger, configuration: Configuration) {
         self.logger = logger
         debugLogger = logger.contextualized(with: "update-check")
-        self.configuration = configuration
+        isEnabled = !configuration.disableUpdateCheck && configuration.outputFormat.supportsAuxiliaryOutput
         let config = URLSessionConfiguration.ephemeral
         urlSession = URLSession(configuration: config)
         latestReleaseURL = UpdateNotice.latestReleaseURL
@@ -33,10 +34,7 @@ final class UpdateChecker {
     }
 
     func run() {
-        // We only perform the update check with xcode format because it may interfere with
-        // parsing json and csv.
-        guard !configuration.disableUpdateCheck,
-              configuration.outputFormat.supportsAuxiliaryOutput else { return }
+        guard isEnabled else { return }
 
         var urlRequest = URLRequest(url: latestReleaseURL)
         urlRequest.setValue("application/vnd.github.v3+json", forHTTPHeaderField: "Accept")

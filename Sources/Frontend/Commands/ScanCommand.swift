@@ -241,7 +241,11 @@ struct ScanCommand: ParsableCommand {
     @OptionGroup(visibility: .hidden)
     var removedBazelOptions: RemovedBazelOptions
 
-    private static let defaultConfiguration = Configuration()
+    /// A fresh configuration on each access: `Configuration` is a mutable class, so a shared instance is not
+    /// concurrency-safe. Only its default values are read.
+    private static var defaultConfiguration: Configuration {
+        Configuration()
+    }
 
     func validate() throws {
         try removedBazelOptions.rejectUse()

@@ -1,12 +1,13 @@
 import Foundation
+import Synchronization
 import SystemPackage
 
 public enum Constants {
     static let cacheDirectoryName = "com.github.tiny-earth-moon.outskirts"
     static let legacyCacheDirectoryName = "com.github.tiny-earth-moon.periphery"
 
-    private static let migrationLock = NSLock()
-    private nonisolated(unsafe) static var migratedBaseDirectories = Set<String>()
+    /// Base directories already migrated by this process; held for the whole migration.
+    private static let migratedBaseDirectories = Mutex<Set<String>>([])
 
     /// The outskirts cache directory. The first call per process moves a cache left by an earlier release
     /// (or deletes it when both exist). `cachesDirectory` defaults to the user caches directory.
@@ -30,23 +31,22 @@ public enum Constants {
     }
 
     private static func migrateLegacyCacheIfNeeded(in base: URL) throws {
-        migrationLock.lock()
-        defer { migrationLock.unlock() }
+        try migratedBaseDirectories.withLock { migrated in
+            guard !migrated.contains(base.path) else { return }
 
-        guard !migratedBaseDirectories.contains(base.path) else { return }
+            let fileManager = FileManager.default
+            let legacy = base.appendingPathComponent(legacyCacheDirectoryName)
+            let current = base.appendingPathComponent(cacheDirectoryName)
 
-        let fileManager = FileManager.default
-        let legacy = base.appendingPathComponent(legacyCacheDirectoryName)
-        let current = base.appendingPathComponent(cacheDirectoryName)
-
-        if fileManager.fileExists(atPath: legacy.path) {
-            if fileManager.fileExists(atPath: current.path) {
-                try fileManager.removeItem(at: legacy)
-            } else {
-                try fileManager.moveItem(at: legacy, to: current)
+            if fileManager.fileExists(atPath: legacy.path) {
+                if fileManager.fileExists(atPath: current.path) {
+                    try fileManager.removeItem(at: legacy)
+                } else {
+                    try fileManager.moveItem(at: legacy, to: current)
+                }
             }
-        }
 
-        migratedBaseDirectories.insert(base.path)
+            migrated.insert(base.path)
+        }
     }
 }
