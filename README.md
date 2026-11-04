@@ -644,6 +644,10 @@ With `--detect-unused-metal-functions` (`detect_unused_metal_functions` in the c
 
 A name that is not a plain string literal (a variable, an interpolation) may name any function, so it retains every Metal function. The reader is lightweight, it does not compile the shaders: functions of `#if` blocks are known but never reported, and when a macro may declare functions, no `missingMetalFunction` is reported. No `missingMetalFunction` is reported either when the project has no `.metal` file.
 
+A library that is not built from the project's `.metal` files may declare any function, so as soon as a Swift source creates one, no `missingMetalFunction` is reported at all (the `unused` results are unchanged). The calls that count are `makeLibrary(source:)` (with or without `options:`), `makeLibrary(URL:)`, `makeLibrary(filepath:)`, `makeLibrary(data:)`, `makeLibrary(stitchedDescriptor:)`, `makeBinaryArchive(` and any use of `MTLBinaryArchive`; `makeLibrary()` and `makeDefaultLibrary()` read the compiled project library and do not. `--verbose` prints the first such call and says why literals naming unknown functions are left out.
+
+Known limits: functions declared in `.h` headers or inside C++ namespaces are not read, so a literal naming one is reported as not found, unless a library created at run time is present.
+
 ### SPI (System Programming Interface)
 
 Swift's `@_spi` attribute marks declarations as pseudo-private, making them accessible only to clients that explicitly import the SPI. While these declarations are technically `public`, they're intended for internal or restricted use.

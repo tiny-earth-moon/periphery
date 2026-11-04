@@ -56,6 +56,23 @@
             })
         }
 
+        func testDoesNotReportMissingFunctionsWhenALibraryIsCompiledAtRunTime() {
+            let results = analyze(retainPublic: true, detectUnusedMetalFunctions: true, projectRoot: fixtureRoot) {
+                assertNotReferenced(.metalFunction("fixtureUsedKernel"))
+                assertNotReferenced(.metalFunction("fixtureUnusedFragment"))
+            }
+
+            XCTAssertFalse(results.contains {
+                if case .missingMetalFunction = $0.annotation {
+                    true
+                } else {
+                    false
+                }
+            })
+            XCTAssertTrue(unusedMetalFunctions(results).contains("fixtureUsedKernel"))
+            XCTAssertTrue(unusedMetalFunctions(results).contains("fixtureUnusedFragment"))
+        }
+
         func testDetectsNothingWithoutTheOption() {
             let results = analyze(retainPublic: true, projectRoot: fixtureRoot) {
                 assertNotIndexed(.metalFunction("fixtureUnusedFragment"))

@@ -7,6 +7,10 @@ import SwiftSyntax
 ///
 /// Only an assignment to `MTLFunctionDescriptor.name` names a Metal function, which the indexer confirms from the
 /// index store at the position of the `name` token.
+///
+/// It also collects the calls that create a Metal library from something other than the `.metal` files of the
+/// project: `makeLibrary(source:)`, `makeLibrary(URL:)`, `makeLibrary(filepath:)`, `makeLibrary(data:)`,
+/// `makeLibrary(stitchedDescriptor:)`, and anything involving an `MTLBinaryArchive`.
 public final class MetalFunctionNameCollector: SyntaxVisitor {
     public struct Candidate: Hashable {
         public let reference: MetalFunctionNameReference
@@ -14,9 +18,19 @@ public final class MetalFunctionNameCollector: SyntaxVisitor {
         public let propertyLocation: Location?
     }
 
+    public struct Result {
+        public let candidates: [Candidate]
+        public let runtimeLibrarySites: [MetalRuntimeLibrarySite]
+    }
+
+    private static let runtimeLibraryLabels: Set = ["source", "URL", "filepath", "data", "stitchedDescriptor"]
+    private static let binaryArchiveNames: Set = ["MTLBinaryArchive", "makeBinaryArchive"]
+
     private static let callNames: Set = ["makeFunction", "MTLFunctionStitchingFunctionNode"]
 
     public private(set) var candidates: [Candidate] = []
+
+    public private(set) var runtimeLibrarySites: [MetalRuntimeLibrarySite] = []
 
     private let sourceLocationBuilder: SourceLocationBuilder
 
@@ -29,11 +43,11 @@ public final class MetalFunctionNameCollector: SyntaxVisitor {
         from syntax: SourceFileSyntax,
         file: SourceFile,
         locationConverter: SourceLocationConverter
-    ) -> [Candidate] {
+    ) -> Result {
         let builder = SourceLocationBuilder(file: file, locationConverter: locationConverter)
         let collector = MetalFunctionNameCollector(sourceLocationBuilder: builder)
         collector.walk(syntax)
-        return collector.candidates
+        return Result(candidates: collector.candidates, runtimeLibrarySites: collector.runtimeLibrarySites)
     }
 
     override public func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
@@ -49,6 +63,18 @@ public final class MetalFunctionNameCollector: SyntaxVisitor {
            let argument = node.arguments.first, argument.label?.text == "name"
         {
             candidates.append(Candidate(reference: reference(to: argument.expression), propertyLocation: nil))
+        }
+
+        if let calleeName {
+            collectRuntimeLibrary(calleeName: calleeName, call: node)
+        }
+
+        return .visitChildren
+    }
+
+    override public func visit(_ node: IdentifierTypeSyntax) -> SyntaxVisitorContinueKind {
+        if node.name.text == "MTLBinaryArchive" {
+            addRuntimeLibrarySite(call: "MTLBinaryArchive", at: node.positionAfterSkippingLeadingTrivia)
         }
 
         return .visitChildren
@@ -75,6 +101,22 @@ public final class MetalFunctionNameCollector: SyntaxVisitor {
     }
 
     // MARK: - Private
+
+    private func collectRuntimeLibrary(calleeName: String, call node: FunctionCallExprSyntax) {
+        let position = node.positionAfterSkippingLeadingTrivia
+
+        if calleeName == "makeLibrary", let label = node.arguments.first?.label?.text,
+           Self.runtimeLibraryLabels.contains(label)
+        {
+            addRuntimeLibrarySite(call: "makeLibrary(\(label):)", at: position)
+        } else if Self.binaryArchiveNames.contains(calleeName) {
+            addRuntimeLibrarySite(call: calleeName, at: position)
+        }
+    }
+
+    private func addRuntimeLibrarySite(call: String, at position: AbsolutePosition) {
+        runtimeLibrarySites.append(MetalRuntimeLibrarySite(call: call, location: sourceLocationBuilder.location(at: position)))
+    }
 
     private func collectAssignment(to target: ExprSyntax, value: ExprSyntax) {
         guard let memberAccess = target.as(MemberAccessExprSyntax.self),
