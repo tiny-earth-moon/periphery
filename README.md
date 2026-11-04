@@ -1154,14 +1154,14 @@ outskirts scan --skip-build --index-store-path '../dd/Index.noindex/DataStore/'
 
 ## Known Bugs
 
-Due to some underlying bugs in Swift, outskirts may in some instances report incorrect results. Three of these issues were closed by the Swift project in January 2026 without a confirmed fix; outskirts keeps its workarounds for them.
+These Swift index store bugs were checked against the raw index store (`KnownSwiftBugsTest`, before any outskirts mutator runs). Verified on Swift 6.4; the CI also runs the tests on 6.1 (the minimum toolchain) and fails when a raw behaviour changes.
 
 | ID    | Title | State |
 | :---  | :---  | :---  |
-| [56541](https://github.com/swiftlang/swift/issues/56541) | Index store does not relate static property getter used as subscript key | Closed 2026-01, no fix confirmed |
-| [56327](https://github.com/swiftlang/swift/issues/56327) | Index store does not relate objc optional protocol method implemented in subclass | Closed 2026-01, no fix confirmed |
-| [56189](https://github.com/swiftlang/swift/issues/56189) | Index store should relate appendInterpolation from string literals | Closed 2026-01, no fix confirmed |
-| [56165](https://github.com/swiftlang/swift/issues/56165) | Index store does not relate constructor via literal notation | Open |
+| [56541](https://github.com/swiftlang/swift/issues/56541) | Index store does not relate static property getter used as subscript key | Closed upstream 2026-01. Not reproduced: the reference is recorded (verified on 6.4; no workaround needed, none in outskirts) |
+| [56327](https://github.com/swiftlang/swift/issues/56327) | Index store does not relate objc optional protocol method implemented in subclass | Fixed in Swift 6.3 ([swiftlang/swift#86167](https://github.com/swiftlang/swift/pull/86167)); before 6.3 no relation is recorded and outskirts has no workaround |
+| [56189](https://github.com/swiftlang/swift/issues/56189) | Index store should relate appendInterpolation from string literals | Closed upstream 2026-01. Reference recorded on Swift 6.4 (verified); workaround kept for older toolchains (every `appendInterpolation` stays retained) |
+| [56165](https://github.com/swiftlang/swift/issues/56165) | Index store does not relate constructor via literal notation | Still Open upstream, but not reproduced: all nine literal initializers are related (verified on 6.4, reported resolved since 6.1.2); no workaround needed, none in outskirts |
 
 The index store also records no `overrideOf` relation for the underscored requirements of some SwiftUI protocols, namely `TextFieldStyle._body(configuration:)` and `ShapeStyle._apply(to:)`. outskirts retains these witnesses by name on conforming types, from a table in `SwiftUIRetainer`.
 
