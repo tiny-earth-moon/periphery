@@ -106,3 +106,4 @@ article img{display:block;max-width:100%;height:auto;margin:var(--space-3) 0;bor
   .sidebar{display:block;position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:var(--space-3) 0;font-size:var(--text-small)}
   .mobile-nav{display:none}
 }
+@media (max-width:40rem){pre{white-space:pre;overflow-wrap:normal;overflow-x:auto;background:linear-gradient(to right,var(--code) 40%,transparent) left/1.5rem 100% no-repeat local,linear-gradient(to left,var(--code) 40%,transparent) right/1.5rem 100% no-repeat local,radial-gradient(farthest-side at 0 50%,var(--line),transparent) left/.6rem 100% no-repeat scroll,radial-gradient(farthest-side at 100% 50%,var(--line),transparent) right/.6rem 100% no-repeat scroll,var(--code)}}
