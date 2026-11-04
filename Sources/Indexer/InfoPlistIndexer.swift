@@ -26,15 +26,13 @@ final class InfoPlistIndexer: Indexer {
         let (includedFiles, excludedFiles) = filterIndexExcluded(from: infoPlistFiles)
         excludedFiles.forEach { self.logger.debug("Excluding \($0.string)") }
 
-        try JobPool(jobs: Array(includedFiles)).forEach { [weak self] path in
-            guard let self else { return }
-
+        try JobPool(jobs: Array(includedFiles)).forEach { [graph, logger, collectsImageNames] path in
             let elapsed = try Benchmark.measure {
                 do {
                     let parser = InfoPlistParser(path: path)
                     let refs = try parser.parse()
-                    let imageNames = try self.collectsImageNames ? parser.imageNames() : []
-                    self.graph.withLock { graph in
+                    let imageNames = try collectsImageNames ? parser.imageNames() : []
+                    graph.withLock { graph in
                         refs.forEach { graph.add($0) }
                         graph.addAssetCatalogNameReferences(imageNames)
                     }

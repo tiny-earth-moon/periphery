@@ -52,15 +52,13 @@ final class XCStringsIndexer: Indexer {
             return false
         }
 
-        try JobPool(jobs: Array(includedFiles)).forEach { [weak self] path in
-            guard let self else { return }
-
+        try JobPool(jobs: Array(includedFiles)).forEach { [graph, logger, modulesByFile, projectRoot = configuration.projectRoot] path in
             let elapsed = try Benchmark.measure {
                 do {
                     let keys = try XCStringsParser(path: path).parse()
-                    let modules = self.modulesByFile[path] ?? []
+                    let modules = modulesByFile[path] ?? []
                     if modules.isEmpty {
-                        self.logger.debug("Unknown owning module of \(path.string), keys built at runtime in any module are matched against it")
+                        logger.debug("Unknown owning module of \(path.string), keys built at runtime in any module are matched against it")
                     }
 
                     let sourceFile = SourceFile(path: path, modules: modules)
@@ -70,12 +68,12 @@ final class XCStringsIndexer: Indexer {
                         Declaration(
                             name: key,
                             kind: .localizedString,
-                            usrs: [SyntheticUsr.localizedString(key, in: path, projectRoot: self.configuration.projectRoot)],
+                            usrs: [SyntheticUsr.localizedString(key, in: path, projectRoot: projectRoot)],
                             location: location
                         )
                     }
 
-                    self.graph.withLock { $0.add(Set(declarations)) }
+                    graph.withLock { $0.add(Set(declarations)) }
                 } catch {
                     throw XCStringsError.failedToParse(path: path, underlyingError: error)
                 }

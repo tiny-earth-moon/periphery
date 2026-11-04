@@ -28,17 +28,15 @@ final class XibIndexer: Indexer {
         let (includedFiles, excludedFiles) = filterIndexExcluded(from: xibFiles)
         excludedFiles.forEach { self.logger.debug("Excluding \($0.string)") }
 
-        try JobPool(jobs: Array(includedFiles)).forEach { [weak self] xibPath in
-            guard let self else { return }
-
+        try JobPool(jobs: Array(includedFiles)).forEach { [graph, logger, collectsNamedColors, collectsNamedImages] xibPath in
             let elapsed = try Benchmark.measure {
                 do {
                     let parser = XibParser(path: xibPath)
                     let refs = try parser.parse()
-                    let assetNames = self.collectsNamedColors || self.collectsNamedImages
-                        ? try parser.namedAssets(colors: self.collectsNamedColors, images: self.collectsNamedImages)
+                    let assetNames = collectsNamedColors || collectsNamedImages
+                        ? try parser.namedAssets(colors: collectsNamedColors, images: collectsNamedImages)
                         : []
-                    self.graph.withLock { graph in
+                    graph.withLock { graph in
                         refs.forEach { graph.add($0) }
                         graph.addAssetCatalogNameReferences(assetNames)
                     }

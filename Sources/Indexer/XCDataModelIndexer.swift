@@ -32,15 +32,13 @@ final class XCDataModelIndexer: Indexer {
         let (includedFiles, excludedFiles) = filterIndexExcluded(from: files)
         excludedFiles.forEach { self.logger.debug("Excluding \($0.string)") }
 
-        try JobPool(jobs: Array(includedFiles)).forEach { [weak self] path in
-            guard let self else { return }
-
+        try JobPool(jobs: Array(includedFiles)).forEach { [graph, logger] path in
             let elapsed = try Benchmark.measure {
                 do {
                     let input = try ModelInput(path: path, kind: .data)
                     let refs = try XCDataModelParser(input: input)
                         .parse()
-                    self.graph.withLock { graph in
+                    graph.withLock { graph in
                         refs.forEach { graph.add($0) }
                     }
                 } catch {
