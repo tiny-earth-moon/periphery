@@ -12,3 +12,20 @@ public struct MetalFunctionNameReference: Hashable {
         self.location = location
     }
 }
+
+/// A Swift call that creates a Metal library, or a binary archive, from something other than the project's `.metal`
+/// files, so that it may declare functions outskirts cannot read.
+public struct MetalRuntimeLibrarySite: Hashable, Comparable {
+    /// The creating call, e.g. `makeLibrary(source:)`.
+    public let call: String
+    public let location: Location
+
+    public init(call: String, location: Location) {
+        self.call = call
+        self.location = location
+    }
+
+    public static func < (lhs: MetalRuntimeLibrarySite, rhs: MetalRuntimeLibrarySite) -> Bool {
+        lhs.location < rhs.location
+    }
+}

@@ -28,6 +28,12 @@ final class MetalFunctionRetainer: SourceGraphMutator {
 
         guard graph.declaredMetalFunctionNamesAreComplete else { return }
 
+        // A library compiled or loaded at run time may declare any function.
+        if let site = graph.metalRuntimeLibrarySites.min() {
+            graph.logMetalRuntimeLibrary(site)
+            return
+        }
+
         let declaredNames = graph.declaredMetalFunctionNames
 
         for reference in references.sorted(by: { $0.location < $1.location }) {

@@ -408,21 +408,26 @@ final class SwiftIndexer: Indexer {
         /// Calls are recognized from syntax, an assignment to a `name` property only when the index store records
         /// a reference to `MTLFunctionDescriptor.name` at its `name` token.
         private func collectMetalFunctionNameReferences(using multiplexingSyntaxVisitor: MultiplexingSyntaxVisitor) {
-            let candidates = MetalFunctionNameCollector.collect(
+            let collected = MetalFunctionNameCollector.collect(
                 from: multiplexingSyntaxVisitor.syntax,
                 file: sourceFile,
                 locationConverter: multiplexingSyntaxVisitor.locationConverter
             )
-            let references = candidates.compactMapSet { candidate -> MetalFunctionNameReference? in
+            let references = collected.candidates.compactMapSet { candidate -> MetalFunctionNameReference? in
                 guard let propertyLocation = candidate.propertyLocation else { return candidate.reference }
 
                 return metalFunctionDescriptorNameLocations.contains(propertyLocation) ? candidate.reference : nil
             }
             metalFunctionDescriptorNameLocations = []
 
-            guard !references.isEmpty else { return }
+            let runtimeLibrarySites = Set(collected.runtimeLibrarySites)
 
-            graph.withLock { $0.addMetalFunctionNameReferences(references) }
+            guard !references.isEmpty || !runtimeLibrarySites.isEmpty else { return }
+
+            graph.withLock {
+                $0.addMetalFunctionNameReferences(references)
+                $0.addMetalRuntimeLibrarySites(runtimeLibrarySites)
+            }
         }
 
         private static let calleeSymbolKinds: Set<SymbolKind> = [

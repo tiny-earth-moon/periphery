@@ -47,6 +47,8 @@ public final class SourceGraph {
     public private(set) var assetCatalogNameReferences: Set<String> = []
     /// Swift expressions that name a Metal function.
     public private(set) var metalFunctionNameReferences: Set<MetalFunctionNameReference> = []
+    /// Swift calls that create a Metal library at run time (from source, a file, data or a binary archive).
+    public private(set) var metalRuntimeLibrarySites: Set<MetalRuntimeLibrarySite> = []
     /// Every Metal function name of the `.metal` files, including those of conditionally compiled blocks, which
     /// are never reported.
     public private(set) var declaredMetalFunctionNames: Set<String> = []
@@ -312,6 +314,14 @@ public final class SourceGraph {
 
     public func addMetalFunctionNameReferences(_ references: Set<MetalFunctionNameReference>) {
         metalFunctionNameReferences.formUnion(references)
+    }
+
+    public func addMetalRuntimeLibrarySites(_ sites: Set<MetalRuntimeLibrarySite>) {
+        metalRuntimeLibrarySites.formUnion(sites)
+    }
+
+    public func logMetalRuntimeLibrary(_ site: MetalRuntimeLibrarySite) {
+        logger.debug("Metal library created at run time at \(site.location.file.path.string):\(site.location.line) (\(site.call)): literals naming unknown Metal functions are not reported")
     }
 
     public func addDeclaredMetalFunctionNames(_ names: Set<String>, isComplete: Bool) {
