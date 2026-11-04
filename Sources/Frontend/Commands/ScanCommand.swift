@@ -172,6 +172,12 @@ struct ScanCommand: ParsableCommand {
     @Option(help: "Directory that result paths are relative to when '--relative-results' is in effect, e.g. $GITHUB_WORKSPACE or $CI_PROJECT_DIR in a monorepo. A relative path is resolved from '--project-root' (default: the project root)")
     var relativeTo: FilePath?
 
+    @Option(help: "Report only the results in files that changed since this git ref (committed since the merge base with HEAD, uncommitted or untracked), e.g. origin/main. The whole project is still analysed")
+    var changedSince: String?
+
+    @Flag(inversion: .prefixedNo, help: "With '--changed-since', report only the results on changed lines. Requires '--changed-since'")
+    var changedLines: Bool?
+
     @Flag(inversion: .prefixedNo, help: "Exit with non-zero status if any unused code is found")
     var strict: Bool?
 
@@ -295,6 +301,8 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$buildArguments, given(buildArguments))
         configuration.apply(\.$relativeResults, relativeResults)
         configuration.apply(\.$relativeResultsBase, relativeTo)
+        configuration.apply(\.$changedSince, changedSince)
+        configuration.apply(\.$changedLines, changedLines)
         configuration.apply(\.$retainCodableProperties, retainCodableProperties)
         configuration.apply(\.$retainEncodableProperties, retainEncodableProperties)
         configuration.apply(\.$retainEquatableProperties, retainEquatableProperties)
@@ -331,6 +339,10 @@ struct ScanCommand: ParsableCommand {
 
         if configuration.skipStdoutResults, configuration.writeResults == nil {
             throw PeripheryError.usageError("The '--skip-stdout-results' option requires '--write-results', otherwise the results would not be output anywhere.")
+        }
+
+        if configuration.changedLines, configuration.changedSince == nil {
+            throw PeripheryError.usageError("The '--changed-lines' option requires '--changed-since', otherwise there is nothing to compare the lines with.")
         }
 
         configuration.buildFilenameMatchers()
@@ -381,11 +393,13 @@ struct ScanCommand: ParsableCommand {
             try Self.writeBaseline(.written(from: filteredResults, union: baseline, projectRoot: configuration.projectRoot), to: baselinePath)
         }
 
+        let reportedResults = try ChangedSinceFilter(configuration: configuration, shell: shell, logger: logger).filter(filteredResults)
+
         let outputFormat = configuration.outputFormat
         let formatter = outputFormat.formatter.init(configuration: configuration, logger: logger)
         let colored = outputFormat.supportsColoredOutput && logger.isColoredOutputEnabled
 
-        let formattedOutput = try formatter.format(filteredResults, colored: colored)
+        let formattedOutput = try formatter.format(reportedResults, colored: colored)
 
         if let output = formattedOutput, !configuration.skipStdoutResults {
             if outputFormat.supportsAuxiliaryOutput {
@@ -399,7 +413,7 @@ struct ScanCommand: ParsableCommand {
             let output: String = if colored {
                 // The formatted output contains ANSI escape codes, so we need to re-format
                 // with coloring disabled.
-                try formatter.format(filteredResults, colored: false) ?? ""
+                try formatter.format(reportedResults, colored: false) ?? ""
             } else {
                 formattedOutput ?? ""
             }
@@ -411,8 +425,8 @@ struct ScanCommand: ParsableCommand {
 
         updateChecker.notifyIfAvailable()
 
-        if !filteredResults.isEmpty, configuration.strict {
-            throw PeripheryError.foundIssues(count: filteredResults.count)
+        if !reportedResults.isEmpty, configuration.strict {
+            throw PeripheryError.foundIssues(count: reportedResults.count)
         }
 
         if let failure = Self.staleBaselineFailure(configuration: configuration, staleEntryCount: outputFilter.staleBaselineEntries.count) {

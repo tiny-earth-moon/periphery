@@ -181,6 +181,12 @@ public final class Configuration {
     @Setting(key: "relative_results_base", defaultValue: nil, convert: SettingConverter.filePath)
     public var relativeResultsBase: FilePath?
 
+    @Setting(key: "changed_since", defaultValue: nil, convert: SettingConverter.optionalString)
+    public var changedSince: String?
+
+    @Setting(key: "changed_lines", defaultValue: false)
+    public var changedLines: Bool
+
     @Setting(key: "json_package_manifest_path", defaultValue: nil, convert: SettingConverter.filePath)
     public var jsonPackageManifestPath: FilePath?
 
@@ -389,7 +395,7 @@ public final class Configuration {
         $disablePlatformConditionalRetention, $disableUnusedImportAnalysis, $enableUnusedSystemImports, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $retainRuntimeLocalizedKeys, $superfluousIgnoreComments, $retainUnusedImportedModules,
         $externalEncodableProtocols, $externalCodableProtocols, $externalTestCaseClasses, $verbose, $quiet, $color,
         $disableUpdateCheck, $strict, $indexStorePath,
-        $skipBuild, $skipSchemesValidation, $cleanBuild, $cacheMaxAgeDays, $buildArguments, $xcodeListArguments, $relativeResults, $relativeResultsBase,
+        $skipBuild, $skipSchemesValidation, $cleanBuild, $cacheMaxAgeDays, $buildArguments, $xcodeListArguments, $relativeResults, $relativeResultsBase, $changedSince, $changedLines,
         $jsonPackageManifestPath, $retainCodableProperties, $retainEncodableProperties, $retainEquatableProperties,
         $retainHashableProperties, $baseline, $writeBaseline, $pruneBaseline, $strictBaseline,
         $writeResults, $skipStdoutResults, $genericProjectConfig,

@@ -6,6 +6,8 @@ public enum PeripheryError: Error, LocalizedError, CustomStringConvertible {
     case shellOutputEncodingFailed(cmd: [String], encoding: String.Encoding)
     case executableNotFound(name: String, searchPath: [String])
     case usageError(String)
+    case notInGitWorkTree(path: String)
+    case unknownGitRef(ref: String)
     case removedBazelOption(String)
     case underlyingError(Error)
     case invalidScheme(name: String, project: String)
@@ -41,6 +43,10 @@ public enum PeripheryError: Error, LocalizedError, CustomStringConvertible {
             return "Executable '\(name)' not found in PATH: \(searchPath.joined(separator: ":"))"
         case let .usageError(message):
             return message
+        case let .notInGitWorkTree(path):
+            return "The '--changed-since' option needs a git work tree, but '\(path)' is not inside one."
+        case let .unknownGitRef(ref):
+            return "The '--changed-since' ref '\(ref)' does not name a commit in this repository. Fetch it first (CI checkouts are often shallow) or pass another ref."
         case let .removedBazelOption(option):
             return "\(option) is no longer supported: Bazel support was removed in 3.13.0. The agoodkind/periphery fork maintains a Bazel mode."
         case let .underlyingError(error):
