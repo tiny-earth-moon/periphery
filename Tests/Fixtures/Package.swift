@@ -179,6 +179,11 @@ targets.append(contentsOf: [
     ),
     .target(
         name: "UnusedAssetCatalogImageFixtures"
+    ),
+    // The .metal files are read as plain files, never compiled.
+    .target(
+        name: "MetalFunctionFixtures",
+        exclude: ["Shaders"]
     )
 ])
 #endif

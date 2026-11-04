@@ -45,6 +45,7 @@ public final class Declaration {
         case varStatic = "var.static"
         case macro
         case localizedString = "localized_string"
+        case metalFunction = "metal_function"
 
         static var functionKinds: Set<Kind> {
             Set(Kind.allCases.filter(\.isFunctionKind))
@@ -213,6 +214,8 @@ public final class Declaration {
                 "macro"
             case .localizedString:
                 "localized string"
+            case .metalFunction:
+                "Metal function"
             }
         }
     }

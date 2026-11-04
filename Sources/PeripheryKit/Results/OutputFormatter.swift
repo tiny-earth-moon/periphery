@@ -71,6 +71,8 @@ extension OutputFormatter {
             "superfluousIgnoreCommand"
         case let .unusedAssetCatalogSymbol(symbol):
             symbol.kind.annotationName
+        case .missingMetalFunction:
+            "missingMetalFunction"
         }
     }
 
@@ -122,6 +124,8 @@ extension OutputFormatter {
             description += "Superfluous ignore comment for \(kindDisplayName) '\(name)' (declaration is referenced and should not be ignored)"
         case let .unusedAssetCatalogSymbol(symbol):
             description += unusedAssetCatalogSymbolDescription(symbol, symbolName: name)
+        case .missingMetalFunction:
+            description += "Metal function '\(name)' not found in any .metal file"
         }
 
         return [(location, description)] + secondaryResults

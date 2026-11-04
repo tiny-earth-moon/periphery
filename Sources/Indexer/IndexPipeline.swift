@@ -3,6 +3,7 @@ import Foundation
 import Logger
 import Shared
 import SourceGraph
+import SystemPackage
 
 public struct IndexPipeline {
     /// The global accent color of Xcode's app templates, assumed when no build setting names it.
@@ -84,6 +85,12 @@ public struct IndexPipeline {
                 logger: logger,
                 configuration: configuration
             ).perform()
+        }
+
+        if configuration.detectUnusedMetalFunctions {
+            let projectRoot = configuration.projectRoot
+            let root = projectRoot.isEmpty ? FilePath.current : projectRoot.makeAbsolute()
+            try MetalFunctionIndexer(root: root, graph: graph, logger: logger, configuration: configuration).perform()
         }
 
         if configuration.detectsUnusedAssetCatalogSymbols {

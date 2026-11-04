@@ -229,6 +229,9 @@ struct ScanCommand: ParsableCommand {
     @Flag(inversion: .prefixedNo, help: "Report unused images of Xcode asset catalogs, analyzing the symbols Xcode generates for them in GeneratedAssetSymbols.swift (indexed despite '--index-exclude')")
     var detectUnusedAssetCatalogImages: Bool?
 
+    @Flag(inversion: .prefixedNo, help: "Report Metal functions (kernel, vertex, fragment, [[visible]], [[stitchable]]) of the project's .metal files that no Swift string literal names, and the literals naming a Metal function that no .metal file declares")
+    var detectUnusedMetalFunctions: Bool?
+
     @OptionGroup(visibility: .hidden)
     var removedBazelOptions: RemovedBazelOptions
 
@@ -308,6 +311,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$retainAttributes, given(retainAttributes))
         configuration.apply(\.$detectUnusedAssetCatalogColors, detectUnusedAssetCatalogColors)
         configuration.apply(\.$detectUnusedAssetCatalogImages, detectUnusedAssetCatalogImages)
+        configuration.apply(\.$detectUnusedMetalFunctions, detectUnusedMetalFunctions)
     }
 
     func run() throws {

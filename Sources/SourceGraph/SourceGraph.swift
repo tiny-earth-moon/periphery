@@ -45,6 +45,16 @@ public final class SourceGraph {
     /// Strings that may name an asset catalog resource, from string literals, Interface Builder files and
     /// build settings.
     public private(set) var assetCatalogNameReferences: Set<String> = []
+    /// Swift expressions that name a Metal function.
+    public private(set) var metalFunctionNameReferences: Set<MetalFunctionNameReference> = []
+    /// Every Metal function name of the `.metal` files, including those of conditionally compiled blocks, which
+    /// are never reported.
+    public private(set) var declaredMetalFunctionNames: Set<String> = []
+    /// Whether the declared Metal function names are complete, so that a literal naming none of them can be
+    /// reported: false when no `.metal` file was read, or when a macro may declare functions.
+    public private(set) var declaredMetalFunctionNamesAreComplete = false
+    /// Swift literals naming a Metal function that no `.metal` file declares.
+    public private(set) var missingMetalFunctions: Set<Declaration> = []
 
     private var indexedModules: Set<String> = []
     private var indexedSystemModules: Set<String> = []
@@ -298,6 +308,23 @@ public final class SourceGraph {
 
     public func addAssetCatalogNameReferences(_ names: Set<String>) {
         assetCatalogNameReferences.formUnion(names)
+    }
+
+    public func addMetalFunctionNameReferences(_ references: Set<MetalFunctionNameReference>) {
+        metalFunctionNameReferences.formUnion(references)
+    }
+
+    public func addDeclaredMetalFunctionNames(_ names: Set<String>, isComplete: Bool) {
+        declaredMetalFunctionNames.formUnion(names)
+        declaredMetalFunctionNamesAreComplete = isComplete
+    }
+
+    /// A literal naming a Metal function that no `.metal` file declares, recorded once per location.
+    func markMissingMetalFunction(named name: String, at location: Location) {
+        let id = SyntheticUsr.missingMetalFunction(name, in: location.file.path, projectRoot: configuration.projectRoot)
+        guard let usr = numberedSyntheticUsr(id, at: location) else { return }
+
+        missingMetalFunctions.insert(Declaration(name: name, kind: .metalFunction, usrs: [usr], location: location))
     }
 
     public func addSynthesizedUses(_ uses: Set<SynthesizedUse>) {

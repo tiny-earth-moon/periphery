@@ -51,6 +51,7 @@
     - [Interface Builder](#interface-builder)
     - [Asset Catalog Colors](#asset-catalog-colors)
     - [Asset Catalog Images](#asset-catalog-images)
+    - [Metal Functions](#metal-functions)
     - [SPI (System Programming Interface)](#spi-system-programming-interface)
     - [Localized Strings](#localized-strings)
 - [Comment Commands](#comment-commands)
@@ -220,6 +221,7 @@ Every option of the `scan` command, with its key in the configuration file and i
 - **`--retain-attributes`**: Retain declarations that have one of the given attributes (without the `@`), optionally per declaration kind with `<attribute>:kind1,kind2`. Key `retain_attributes`, default empty.
 - **`--detect-unused-asset-catalog-colors`**: Find unused colors of Xcode asset catalogs. Key `detect_unused_asset_catalog_colors`, default `false`.
 - **`--detect-unused-asset-catalog-images`**: Find unused images of Xcode asset catalogs. Key `detect_unused_asset_catalog_images`, default `false`.
+- **`--detect-unused-metal-functions`**: Find Metal functions of the project's `.metal` files that no Swift string literal names, and literals naming a Metal function that no `.metal` file declares. Key `detect_unused_metal_functions`, default `false`.
 
 Other commands:
 
@@ -632,6 +634,15 @@ Xcode generates a Swift symbol for each color of an asset catalog (`ColorResourc
 Images are detected the same way with `--detect-unused-asset-catalog-images` (`detect_unused_asset_catalog_images` in the configuration file), independently of colors: Xcode generates `ImageResource.logo` and the `UIImage.logo` and `NSImage.logo` accessors for each image and symbol image of an asset catalog. An image is used when any of its generated symbols is used (e.g. `Image(.logo)` or `UIImage.logo`), or when its name is referenced as a string: a string literal in the scanned Swift sources (e.g. `Image("Logo")`, `UIImage(named: "Logo")` or `NSImage(named: "Logo")`), an image of an Interface Builder file (`image`, `backgroundImage`, `selectedImage`, ... attributes and `<image name="Logo">` resources), or an Info.plist value of `UILaunchScreen`'s `UIImageName`, `UIApplicationShortcutItemIconFile` or `CFBundleIconName`. App icon sets (`.appiconset`) have no generated symbol and are never reported. An unused image is reported once as `unusedAssetCatalogImage`, with its asset name and the `.imageset` or `.symbolset` directories found in the `*.xcassets` catalogs under the project directory. To skip these results, use `--report-exclude "**/GeneratedAssetSymbols.swift:unusedAssetCatalogImage"`.
 
 Limits: an image loaded with a name built at runtime (e.g. `UIImage(named: "flag-\(code)")`), or referenced only from a file that is not scanned (a widget or app extension target outside the scanned schemes, a storyboard or Info.plist that the project driver does not collect, a SwiftPM resource bundle without generated symbols), is reported as unused. Scan every target that uses the catalog, or exclude these results with `--report-exclude`.
+
+### Metal Functions
+
+With `--detect-unused-metal-functions` (`detect_unused_metal_functions` in the configuration file), outskirts reads the `.metal` files under the project root that `--index-exclude` does not exclude (hidden directories, `*.build`, `DerivedData`, `SourcePackages`, `Pods`, `Carthage` and `node_modules` are not searched) and finds the functions the app looks up by name: those qualified with `kernel`, `vertex` or `fragment`, or attributed with `[[visible]]`, `[[stitchable]]`, `[[mesh]]`, `[[object]]` or `[[intersection(...)]]` (named by their `[[host_name("...")]]` when they have one). Plain helper functions are never reported. A function is used when a Swift string literal names it as the `name:` argument of `makeFunction(name:)` (and its `constantValues:` variants) or of `MTLFunctionStitchingFunctionNode(name:)`, or is assigned to `MTLFunctionDescriptor.name`. Two result kinds are reported:
+
+- `unused` with the kind `metal_function`: a Metal function that no Swift literal names, located in its `.metal` file.
+- `missingMetalFunction`: a Swift literal naming a Metal function that no `.metal` file declares, located at the literal.
+
+A name that is not a plain string literal (a variable, an interpolation) may name any function, so it retains every Metal function. The reader is lightweight, it does not compile the shaders: functions of `#if` blocks are known but never reported, and when a macro may declare functions, no `missingMetalFunction` is reported. No `missingMetalFunction` is reported either when the project has no `.metal` file.
 
 ### SPI (System Programming Interface)
 

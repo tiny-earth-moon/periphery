@@ -161,6 +161,7 @@ final class SwiftIndexer: Indexer {
             var rawDeclsByKey: [RawDeclaration.Key: [(RawDeclaration, [RawRelation])]] = [:]
             var references: Set<Reference> = []
             let collectCalleeUsrs = !configuration.disableUnusedLocalizedStringAnalysis
+            let collectMetalDescriptorNames = configuration.detectUnusedMetalFunctions
 
             for unit in units {
                 for recordName in unit.unit.recordNames {
@@ -168,6 +169,14 @@ final class SwiftIndexer: Indexer {
 
                     record.forEach(occurrence: { occurrence in
                         let usr = occurrence.symbol.usr
+
+                        if collectMetalDescriptorNames, occurrence.roles.contains(.reference),
+                           Self.metalFunctionDescriptorNameUsrs.contains(usr),
+                           let location = self.transformLocation(occurrence.location)
+                        {
+                            self.metalFunctionDescriptorNameLocations.insert(location)
+                        }
+
                         guard Self.shouldProcessOccurrence(occurrence),
                               let location = self.transformLocation(occurrence.location)
                         else { return }
@@ -333,6 +342,10 @@ final class SwiftIndexer: Indexer {
                 }
             }
 
+            if configuration.detectUnusedMetalFunctions {
+                collectMetalFunctionNameReferences(using: multiplexingSyntaxVisitor)
+            }
+
             if configuration.retainSynthesizedUses {
                 let uses = SynthesizedUseCollector.collect(
                     from: multiplexingSyntaxVisitor.syntax,
@@ -383,6 +396,34 @@ final class SwiftIndexer: Indexer {
         private var varParameterUsrs: Set<String> = []
         private var extensionUsrMap: [String: String] = [:]
         private var calleeUsrsByPosition: [LocalizedStringCalleePosition: Set<String>] = [:]
+
+        private var metalFunctionDescriptorNameLocations: Set<Location> = []
+
+        /// The `name` property of `MTLFunctionDescriptor`, and its setter, which the index records at the same token.
+        private static let metalFunctionDescriptorNameUsrs: Set<String> = [
+            "c:objc(cs)MTLFunctionDescriptor(py)name",
+            "c:objc(cs)MTLFunctionDescriptor(im)setName:",
+        ]
+
+        /// Calls are recognized from syntax, an assignment to a `name` property only when the index store records
+        /// a reference to `MTLFunctionDescriptor.name` at its `name` token.
+        private func collectMetalFunctionNameReferences(using multiplexingSyntaxVisitor: MultiplexingSyntaxVisitor) {
+            let candidates = MetalFunctionNameCollector.collect(
+                from: multiplexingSyntaxVisitor.syntax,
+                file: sourceFile,
+                locationConverter: multiplexingSyntaxVisitor.locationConverter
+            )
+            let references = candidates.compactMapSet { candidate -> MetalFunctionNameReference? in
+                guard let propertyLocation = candidate.propertyLocation else { return candidate.reference }
+
+                return metalFunctionDescriptorNameLocations.contains(propertyLocation) ? candidate.reference : nil
+            }
+            metalFunctionDescriptorNameLocations = []
+
+            guard !references.isEmpty else { return }
+
+            graph.withLock { $0.addMetalFunctionNameReferences(references) }
+        }
 
         private static let calleeSymbolKinds: Set<SymbolKind> = [
             .function, .instanceMethod, .classMethod, .staticMethod, .constructor, .conversionFunction,
