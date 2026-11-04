@@ -17,6 +17,10 @@ import {
 } from "./lib/docs.mjs";
 
 const OUT_DIR = join(PUBLIC_DIR, "docs");
+const STACKED_COLUMNS = 3;
+const PROSE_LENGTH = 60;
+// Past this many h2 and h3 headings, the table of contents lists the h2 headings only.
+const MAX_TOC_ENTRIES = 40;
 const CALLOUTS = { NOTE: "Note", TIP: "Tip", IMPORTANT: "Important", WARNING: "Warning", CAUTION: "Caution" };
 
 const pages = loadPages();
@@ -73,6 +77,7 @@ function markdown(page) {
         if (token.tag === "h2" || token.tag === "h3") headings.push({ level: Number(token.tag[1]), id, text, inline: tokens[i + 1] });
       }
       if (token.type === "blockquote_open") calloutize(tokens, i, state);
+      if (token.type === "table_open") labelCells(tokens, i);
     }
   });
 
@@ -88,6 +93,10 @@ function markdown(page) {
     return self.renderToken(tokens, i, options);
   };
 
+  // A table too wide for a phone scrolls inside its box, never the page; its cells keep whole words.
+  md.renderer.rules.table_open = (tokens, i, options, env, self) => `<div class="table-scroll">\n${self.renderToken(tokens, i, options)}`;
+  md.renderer.rules.table_close = (tokens, i, options, env, self) => `${self.renderToken(tokens, i, options)}</div>\n`;
+
   md.renderer.rules.image = (tokens, i) => {
     const token = tokens[i];
     const src = token.attrGet("src");
@@ -101,6 +110,29 @@ function markdown(page) {
   };
 
   return { md, headings };
+}
+
+// A table of STACKED_COLUMNS columns or more reads as one card per row on a phone: each cell carries its header
+// as data-label, which the stylesheet shows in front of the value. A column of sentences (PROSE_LENGTH characters
+// per cell on average) is marked "prose": code may break inside it, while code in short columns stays on one line.
+function labelCells(tokens, index) {
+  const labels = [];
+  const columns = [];
+  let column = 0;
+  for (let i = index + 1; tokens[i].type !== "table_close"; i++) {
+    const token = tokens[i];
+    if (token.type === "tr_open") column = 0;
+    if (token.type === "th_open") labels.push(tokens[i + 1].children.map((c) => c.content).join(""));
+    if (token.type === "td_open") {
+      token.attrSet("data-label", labels[column]);
+      (columns[column] ??= []).push({ token, length: tokens[i + 1].content.length });
+      column++;
+    }
+  }
+  for (const cells of columns) {
+    if (cells.reduce((sum, c) => sum + c.length, 0) / cells.length >= PROSE_LENGTH) cells.forEach((c) => c.token.attrSet("class", "prose"));
+  }
+  if (labels.length >= STACKED_COLUMNS) tokens[index].attrSet("class", "stacked");
 }
 
 function calloutize(tokens, index, state) {
@@ -130,7 +162,8 @@ function renderPage(page) {
   const { md, headings } = markdown(page);
   let body = md.render(page.body);
 
-  const toc = tableOfContents(headings, page.name === "changelog");
+  const changelog = page.name === "changelog";
+  const toc = tableOfContents(headings, { topLevelOnly: changelog || headings.length > MAX_TOC_ENTRIES, closed: changelog });
   const status =
     page.name === ""
       ? `<p class="status">Latest release: <a href="/docs/changelog/#${release.slug}">${release.version}</a> (${release.date}). See what comes next on the <a href="/docs/roadmap/">roadmap</a>.</p>\n`
@@ -216,18 +249,18 @@ function navList(current) {
     .join("\n");
 }
 
-function tableOfContents(headings, collapsed) {
+function tableOfContents(headings, { topLevelOnly, closed }) {
   if (headings.filter((h) => h.level === 2).length < 2) return "";
   const items = [];
   for (const heading of headings) {
     const link = `<a href="#${heading.id}">${renderInline(heading.inline)}</a>`;
     if (heading.level === 2 || items.length === 0) items.push({ link, children: [] });
-    else if (!collapsed) items.at(-1).children.push(link);
+    else if (!topLevelOnly) items.at(-1).children.push(link);
   }
   const list = items
     .map((item) => `<li>${item.link}${item.children.length ? `<ul>${item.children.map((c) => `<li>${c}</li>`).join("")}</ul>` : ""}</li>`)
     .join("\n");
-  return `<details class="toc"${collapsed ? "" : " open"}>\n<summary>On this page</summary>\n<ul>\n${list}\n</ul>\n</details>\n`;
+  return `<details class="toc"${closed ? "" : " open"}>\n<summary>On this page</summary>\n<ul>\n${list}\n</ul>\n</details>\n`;
 }
 
 function renderInline(inline) {

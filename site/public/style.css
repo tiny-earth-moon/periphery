@@ -29,8 +29,8 @@ h3{font-size:1.15rem;margin:var(--space-4) 0 var(--space-2)}
 a{color:var(--accent);text-underline-offset:.15em}
 a:focus-visible,summary:focus-visible{outline:var(--focus);outline-offset:3px;border-radius:2px}
 pre,code{font-family:var(--font-mono);font-size:.92em}
-code{background:var(--code);padding:.1em .3em;border-radius:var(--radius-s);overflow-wrap:anywhere}
-pre{background:var(--code);padding:var(--space-3);border-radius:var(--radius-m);margin:var(--space-3) 0;white-space:pre-wrap;overflow-wrap:anywhere}
+code{background:var(--code);padding:.1em .3em;border-radius:var(--radius-s);overflow-wrap:break-word}
+pre{background:var(--code);padding:var(--space-3);border-radius:var(--radius-m);margin:var(--space-3) 0;white-space:pre-wrap;overflow-wrap:break-word}
 pre code{background:none;padding:0}
 ul,ol{padding-left:1.25rem}
 li{margin:var(--space-1) 0}
@@ -69,6 +69,7 @@ h2:hover .anchor,h3:hover .anchor,.anchor:focus-visible{opacity:1}
 .toc{margin:var(--space-4) 0;padding:var(--space-2) var(--space-3);background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);font-size:var(--text-small)}
 .toc ul{margin:var(--space-2) 0}
 .toc li{margin:.15rem 0}
+.toc code{background:none;padding:0}
 .status{padding:var(--space-2) var(--space-3);background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m)}
 .callout{margin:var(--space-3) 0;padding:var(--space-2) var(--space-3);border-left:4px solid var(--note);background:var(--surface);border-radius:0 var(--radius-m) var(--radius-m) 0}
 .callout-tip{border-left-color:var(--tip)}
@@ -77,9 +78,23 @@ h2:hover .anchor,h3:hover .anchor,.anchor:focus-visible{opacity:1}
 .callout-tip .callout-title{color:var(--tip)}
 .callout-warning .callout-title,.callout-caution .callout-title,.callout-important .callout-title{color:var(--warning)}
 blockquote{margin:var(--space-3) 0}
-table{width:100%;border-collapse:collapse;margin:var(--space-3) 0;font-size:var(--text-small)}
-th,td{text-align:left;vertical-align:top;padding:var(--space-1) var(--space-2);border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.table-scroll{margin:var(--space-3) 0;overflow-x:auto;background:linear-gradient(to right,var(--bg) 40%,transparent) left/1.5rem 100% no-repeat local,linear-gradient(to left,var(--bg) 40%,transparent) right/1.5rem 100% no-repeat local,radial-gradient(farthest-side at 0 50%,var(--line),transparent) left/.6rem 100% no-repeat scroll,radial-gradient(farthest-side at 100% 50%,var(--line),transparent) right/.6rem 100% no-repeat scroll}
+table{width:100%;border-collapse:collapse;font-size:var(--text-small)}
+th,td{text-align:left;vertical-align:top;padding:var(--space-1) var(--space-2);border-bottom:1px solid var(--line);overflow-wrap:break-word}
 th{border-bottom-width:2px}
+td.prose code{overflow-wrap:anywhere}
+@media (min-width:40.01rem){td:not(.prose) code{white-space:nowrap}}
+@media (max-width:40rem){
+  th,td{padding-left:var(--space-1);padding-right:var(--space-1)}
+  table.stacked code{overflow-wrap:anywhere}
+  table.stacked,table.stacked tbody,table.stacked tr,table.stacked td{display:block}
+  table.stacked thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  table.stacked tr{padding:var(--space-2) 0;border-bottom:1px solid var(--line)}
+  table.stacked td{border:0;padding:.1rem 0}
+  table.stacked td::before{content:attr(data-label);display:block;font-size:var(--text-tiny);font-weight:700;color:var(--muted)}
+  table.stacked td:first-child::before{display:none}
+  table.stacked td:first-child{font-weight:600}
+}
 article img{display:block;max-width:100%;height:auto;margin:var(--space-3) 0;border:1px solid var(--line);border-radius:var(--radius-m)}
 .pager{display:flex;justify-content:space-between;gap:var(--space-3);margin-top:var(--space-5);padding-top:var(--space-4);border-top:1px solid var(--line)}
 .pager a{text-decoration:none;font-weight:600}
@@ -91,3 +106,4 @@ article img{display:block;max-width:100%;height:auto;margin:var(--space-3) 0;bor
   .sidebar{display:block;position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:var(--space-3) 0;font-size:var(--text-small)}
   .mobile-nav{display:none}
 }
+@media (max-width:40rem){pre{white-space:pre;overflow-wrap:normal;overflow-x:auto;background:linear-gradient(to right,var(--code) 40%,transparent) left/1.5rem 100% no-repeat local,linear-gradient(to left,var(--code) 40%,transparent) right/1.5rem 100% no-repeat local,radial-gradient(farthest-side at 0 50%,var(--line),transparent) left/.6rem 100% no-repeat scroll,radial-gradient(farthest-side at 100% 50%,var(--line),transparent) right/.6rem 100% no-repeat scroll,var(--code)}}

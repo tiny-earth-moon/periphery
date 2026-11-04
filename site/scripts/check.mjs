@@ -43,6 +43,7 @@ for (const page of docsPages) {
   if (!source.includes(`<link rel="canonical" href="${ORIGIN}${url}">`)) errors.push(`${page}: canonical is not ${ORIGIN}${url}`);
   if (!/<meta property="og:title" content="[^"]+">/.test(source)) errors.push(`${page}: missing og:title`);
   if (!navigation.has(url)) errors.push(`${page}: not in the documentation navigation`);
+  checkLayout(page, source);
 }
 
 checkStylesheet();
@@ -67,6 +68,15 @@ function checkCode(page, source) {
       errors.push(`${page}: code line over ${MAX_CODE_LINE} characters wraps on a laptop: ${line.trim()}`);
     }
   }
+}
+
+/** GitHub alerts render as callouts, and every table scrolls inside its own box rather than the page. */
+function checkLayout(page, source) {
+  const raw = decode(source.replace(/<[^>]+>/g, "")).match(/\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/);
+  if (raw) errors.push(`${page}: ${raw[0]} shown as text; the alert was not turned into a callout`);
+  const tables = source.match(/<table[\s>]/g)?.length ?? 0;
+  const wrapped = source.match(/<div class="table-scroll">\n<table[\s>]/g)?.length ?? 0;
+  if (tables !== wrapped) errors.push(`${page}: ${tables - wrapped} table(s) outside a .table-scroll box`);
 }
 
 function checkLinks(page, source) {
@@ -98,6 +108,17 @@ function checkStylesheet() {
       if (property.trim().startsWith("--")) continue;
       if (/#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|oklch|lab|lch|color-mix)\(|:\s*(?:white|black)\b/.test(declaration)) {
         errors.push(`style.css: color outside the :root custom properties in '${rule[1].trim()}': ${declaration.trim()}`);
+      }
+    }
+  }
+  // overflow-wrap:anywhere lets a column shrink to one character (issue numbers wrapped digit by digit); cells
+  // and code use break-word, and only code in a column of sentences (.prose) or a stacked table may break anywhere.
+  for (const rule of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (!/overflow-wrap:\s*anywhere/.test(rule[2])) continue;
+    const selectors = rule[1].split(",").map((s) => s.trim());
+    for (const selector of selectors) {
+      if (/(?:^|[\s>])(?:th|td|code|pre)\b/.test(selector) && !/\.(?:prose|stacked)\b/.test(selector)) {
+        errors.push(`style.css: overflow-wrap:anywhere on '${selector}' lets table columns collapse; use break-word`);
       }
     }
   }
