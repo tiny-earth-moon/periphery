@@ -1,6 +1,7 @@
 {
   "name": "outskirts-site",
   "compatibility_date": "2026-10-01",
+  "build": { "command": "npm run build" },
   "assets": { "directory": "./public" },
   "workers_dev": false,
   "preview_urls": false,
