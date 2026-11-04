@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/tiny-earth-moon/outskirts/master/outskirts.schema.json
 # Scenario: Swift package (no `project`, no `schemes`: outskirts builds every target).
 # Run from the package root: outskirts scan --config examples/swiftpm-package.outskirts.yml
 # Expected: an executable package reports everything not reachable from its

@@ -5,7 +5,10 @@ protocol AbstractSetting {
     associatedtype Value
 
     var key: String { get }
+    var kind: SettingValueKind { get }
     var hasNonDefaultValue: Bool { get }
+    /// The default value as it is written in the configuration file, nil when the setting has none.
+    var defaultJSONValue: JSONValue? { get }
     var wrappedValue: Value { get }
 
     /// Assigns a value read from the configuration file. Returns a warning, completed with the path of the file by the
@@ -18,6 +21,7 @@ protocol AbstractSetting {
 
     public let defaultValue: Value
     let key: String
+    let kind: SettingValueKind
 
     private let convert: Converter
     private let normalize: (Value) -> Value
@@ -26,10 +30,12 @@ protocol AbstractSetting {
     init(
         key: String,
         defaultValue: Value,
+        kind: SettingValueKind? = nil,
         normalize: @escaping (Value) -> Value = { $0 },
         convert: @escaping Converter
     ) {
         self.key = key
+        self.kind = kind ?? SettingValueKind(inferredFrom: Value.self)
         value = defaultValue
         self.defaultValue = defaultValue
         self.normalize = normalize
@@ -47,6 +53,10 @@ protocol AbstractSetting {
 
     var hasNonDefaultValue: Bool {
         value != defaultValue
+    }
+
+    var defaultJSONValue: JSONValue? {
+        JSONValue(settingValue: defaultValue)
     }
 
     func assign(_ newValue: Any) -> String? {
@@ -104,6 +114,42 @@ extension Setting where Value == [String] {
 
 extension Setting where Value: RawRepresentable & CaseIterable & Sendable, Value.RawValue == String {
     convenience init(key: String, defaultValue: Value) {
-        self.init(key: key, defaultValue: defaultValue, convert: SettingConverter.rawValue(of: Value.self))
+        self.init(
+            key: key,
+            defaultValue: defaultValue,
+            kind: .enumeration(Value.allCases.map(\.rawValue)),
+            convert: SettingConverter.rawValue(of: Value.self)
+        )
+    }
+}
+
+/// The shape of the value a setting takes in the configuration file, from which the JSON Schema is generated.
+enum SettingValueKind: Equatable {
+    case bool
+    case int
+    case stringList
+    case path
+    case pathList
+    /// One of the given strings.
+    case enumeration([String])
+    /// A glob, `<glob>:kind1,kind2` or `{path, kinds}`, or a list of them.
+    case reportExclude
+
+    init(inferredFrom type: Any.Type) {
+        if type == Bool.self {
+            self = .bool
+        } else if type == Int.self {
+            self = .int
+        } else if type == [String].self {
+            self = .stringList
+        } else if type == FilePath?.self {
+            self = .path
+        } else if type == [FilePath].self {
+            self = .pathList
+        } else if type == [ReportExcludeEntry].self {
+            self = .reportExclude
+        } else {
+            preconditionFailure("No configuration file shape for settings of type \(type), pass a 'kind'")
+        }
     }
 }

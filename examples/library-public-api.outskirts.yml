@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/tiny-earth-moon/outskirts/master/outskirts.schema.json
 # Scenario: framework or library whose public API is consumed by other code.
 # Run: outskirts scan --config examples/library-public-api.outskirts.yml
 # Expected: public declarations are never reported; internal and private code

@@ -145,6 +145,16 @@ Values are checked when the file is loaded. A value that does not suit its key, 
 
 The command line takes precedence over the configuration file, which takes precedence over the defaults. An option given on the command line wins even when its value is the default (`--format xcode` over `format: json` in the file), and an option that is not given leaves the value of the file untouched. Every boolean option has a `--no-` form to switch off, for one run, what the file enables (`--no-strict`, `--no-retain-public`, `--no-quiet`...). A list given on the command line replaces the list of the file; the default `index_exclude` patterns are always kept.
 
+#### Configuration file schema
+
+The keys, their types and their defaults are published as a JSON Schema, [`outskirts.schema.json`](outskirts.schema.json), also printed by `outskirts config schema`. Editors that use the YAML language server (the YAML extension of VS Code, among others) then offer completion, descriptions and type checks when the first line of the file is:
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/tiny-earth-moon/outskirts/master/outskirts.schema.json
+```
+
+The files written by `outskirts scan --setup` and the files under [`examples/`](examples) start with this line. To check a file without scanning, run `outskirts config check` (or `outskirts config check --config <file> --project-root <dir>`): it reports on stderr, in the same words as a scan, unknown keys with the closest option, values of the wrong type, invalid `report_exclude` and `retain_attributes` entries, and baseline and output paths a scan would refuse. It prints `<file>: ok` and exits with status 0 when there is nothing to report, and exits with status 1 when it finds a problem or no configuration file.
+
 ### Options Reference
 
 Every option of the `scan` command, with its key in the configuration file and its default (see `outskirts help scan` for the full help). Options marked "command line only" cannot be set in the configuration file. Every option that takes no value, except `--setup` and `--skip-stdout-results`, also has a `--no-` form, e.g. `--no-strict`. Options that take a list accept several values after one flag. See [Excluding Files](#excluding-files) and [Analysis](#analysis) for the options in context.
@@ -231,6 +241,8 @@ Other commands:
 |---------|---------|
 | `outskirts check-update` | Check whether a newer version is available. |
 | `outskirts clear-cache` | Clear the build cache of outskirts. |
+| `outskirts config check` | Check the configuration file without scanning, exit status 1 on any problem. |
+| `outskirts config schema` | Print the JSON Schema of the configuration file. |
 | `outskirts version` | Print the version of outskirts. |
 
 ### Output Formats
