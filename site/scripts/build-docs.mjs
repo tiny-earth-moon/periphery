@@ -202,7 +202,8 @@ ${footer}
 }
 
 function navList(current) {
-  return groups
+  const overview = `<ul>\n<li><a href="/docs/"${current.name === "" ? ' aria-current="page"' : ""}>Overview</a></li>\n</ul>\n`;
+  return overview + groups
     .map(
       (group) =>
         `<p class="nav-group">${escapeHTML(group.title)}</p>\n<ul>\n${group.items

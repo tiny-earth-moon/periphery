@@ -101,7 +101,7 @@ outskirts cannot analyze Objective-C code. See [Objective-C](framework-conventio
 These Swift index store bugs were checked against the raw index store, before any outskirts rule runs (`KnownSwiftBugsTest`). Verified on Swift 6.4; the CI also runs the tests on 6.1 (the minimum toolchain) and fails when a raw behaviour changes.
 
 | Issue | Title | State |
-| :--- | :--- | :--- |
+|-------|-------|-------|
 | [56541](https://github.com/swiftlang/swift/issues/56541) | Index store does not relate static property getter used as subscript key | Closed upstream 2026-01. Not reproduced: the reference is recorded (verified on 6.4; no workaround needed, none in outskirts) |
 | [56327](https://github.com/swiftlang/swift/issues/56327) | Index store does not relate objc optional protocol method implemented in subclass | Fixed in Swift 6.3 ([swiftlang/swift#86167](https://github.com/swiftlang/swift/pull/86167)); before 6.3 no relation is recorded and outskirts has no workaround |
 | [56189](https://github.com/swiftlang/swift/issues/56189) | Index store should relate appendInterpolation from string literals | Closed upstream 2026-01. Reference recorded on Swift 6.4 (verified); workaround kept for older toolchains (every `appendInterpolation` stays retained) |
