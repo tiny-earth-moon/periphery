@@ -27,7 +27,10 @@ final class ProtocolConformanceReferenceBuilder: SourceGraphMutator {
     private func referenceConformingDeclarationsImplementedInSuperclass() -> Set<Reference> {
         let protocols = graph.declarations(ofKind: .protocol)
 
-        let newReferences = Set(JobPool(jobs: Array(protocols)).flatMap { [graph] proto in
+        let jobs = protocols.map { ReadOnlyGraphPhase($0) }
+        let newReferences = Set(JobPool(jobs: jobs).flatMap { [graphPhase = ReadOnlyGraphPhase(graph)] job in
+            let graph = graphPhase.value
+            let proto = job.value
             var result: [Reference] = []
             // Find all classes that implement this protocol.
             let conformingClasses = graph.references(to: proto)
@@ -80,8 +83,8 @@ final class ProtocolConformanceReferenceBuilder: SourceGraphMutator {
                     }
                 }
             }
-            return result
-        })
+            return [ReadOnlyGraphPhase(result)]
+        }.flatMap(\.value))
         // Perform mutations on the graph based on the calculated references
         for newReference in newReferences {
             if let parent = newReference.parent {
