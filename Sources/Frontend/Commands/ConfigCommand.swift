@@ -4,8 +4,8 @@ import Configuration
 struct ConfigCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "config",
-        abstract: "Print the JSON Schema of the configuration file",
-        subcommands: [ConfigSchemaCommand.self]
+        abstract: "Check the configuration file, or print its JSON Schema",
+        subcommands: [ConfigCheckCommand.self, ConfigSchemaCommand.self]
     )
 }
 
