@@ -50,7 +50,7 @@ public final class ShellImpl: Shell {
 
     /// `sigintHandler` runs when `SIGINT` or `SIGTERM` is received, before the running processes are stopped. The
     /// program then exits with the conventional status of the signal, 130 for `SIGINT` and 143 for `SIGTERM`.
-    public required init(logger: Logger, sigintHandler: @escaping () -> Void = {}) {
+    public required init(logger: Logger, sigintHandler: @escaping @Sendable () -> Void = {}) {
         self.logger = logger.contextualized(with: "shell")
         store = ShellProcessStore()
 
