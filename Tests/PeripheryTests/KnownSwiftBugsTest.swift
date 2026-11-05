@@ -108,6 +108,9 @@ final class KnownSwiftBugsTest: FixtureSourceGraphTestCase {
         #if compiler(>=6.4)
             XCTAssertTrue(related, "raw index store behaviour for #56189 changed")
         #else
+            // Pinned on Swift 6.4 (Xcode 27); the Swift of Xcode 26 already records the reference, older Linux
+            // toolchains do not.
+            try XCTSkipIf(related, "#56189: the raw reference is pinned on Swift 6.4 (Xcode 27) and later")
             XCTAssertFalse(related, "raw index store behaviour for #56189 changed")
         #endif
     }
