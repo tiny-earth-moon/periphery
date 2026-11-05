@@ -2652,6 +2652,51 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    func testInferredTypePropertyAssignedButNeverRead() {
+        analyze(
+            retainPublic: true,
+            retainAssignOnlyProperties: false,
+            retainAssignOnlyPropertyTypes: ["CustomType", "Swift.Double"]
+        ) {
+            assertReferenced(.class("FixtureClass1500")) {
+                self.assertAssignOnlyProperty(.varInstance("inferredLiteral"))
+                self.assertAssignOnlyProperty(.varInstance("annotatedLiteral"))
+                self.assertAssignOnlyProperty(.varInstance("inferredConstructor"))
+                self.assertAssignOnlyProperty(.varStatic("inferredStatic"))
+                self.assertAssignOnlyProperty(.varInstance("annotatedLazy"))
+                self.assertAssignOnlyProperty(.varInstance("inferredLazy"))
+                self.assertNotReferenced(.varInstance("inferredComputed"))
+                self.assertNotAssignOnlyProperty(.varInstance("inferredComputed"))
+
+                self.assertReferenced(.varInstance("inferredRead"))
+                self.assertNotAssignOnlyProperty(.varInstance("inferredRead"))
+
+                self.assertNotAssignOnlyProperty(.varInstance("inferredObserved"))
+                self.assertNotAssignOnlyProperty(.varInstance("inferredWillSet"))
+                self.assertNotAssignOnlyProperty(.varInstance("inferredWrapped"))
+
+                self.assertReferenced(.varInstance("inferredRetainedCustom"))
+                self.assertNotAssignOnlyProperty(.varInstance("inferredRetainedCustom"))
+                self.assertReferenced(.varInstance("inferredRetainedQualified"))
+                self.assertNotAssignOnlyProperty(.varInstance("inferredRetainedQualified"))
+
+                #if canImport(Combine)
+                    self.assertReferenced(.varInstance("inferredAnyCancellable"))
+                    self.assertNotAssignOnlyProperty(.varInstance("inferredAnyCancellable"))
+                    self.assertReferenced(.varInstance("inferredAnyCancellableSet"))
+                    self.assertNotAssignOnlyProperty(.varInstance("inferredAnyCancellableSet"))
+                #endif
+            }
+        }
+
+        analyze(retainPublic: true, retainAssignOnlyProperties: true) {
+            assertReferenced(.class("FixtureClass1500")) {
+                self.assertReferenced(.varInstance("inferredLiteral"))
+                self.assertNotAssignOnlyProperty(.varInstance("inferredLiteral"))
+            }
+        }
+    }
+
     func testRetainsAssignOnlyPropertyTypes() {
         analyze(
             retainPublic: true,

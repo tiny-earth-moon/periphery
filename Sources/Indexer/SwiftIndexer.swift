@@ -670,6 +670,9 @@ final class SwiftIndexer: Indexer {
                 decl.modifiers = Set(result.modifiers)
                 decl.commentCommands = Set(result.commentCommands)
                 decl.declaredType = result.variableType
+                if result.variableType == nil, decl.kind.isVariableKind {
+                    decl.inferredType = PropertyTypeDemangler.type(of: decl.usrs)
+                }
                 decl.isOptionalType = result.isOptionalType
                 decl.hasNonNilInitialValue = result.hasNonNilInitialValue
 
