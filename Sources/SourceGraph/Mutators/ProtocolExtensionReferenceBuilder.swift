@@ -74,6 +74,39 @@ final class ProtocolExtensionReferenceBuilder: SourceGraphMutator {
                 // When the extension provides default implementations for members required by ProtocolB,
                 // create references from ProtocolB's requirements to the extension's implementations.
                 try referenceConstrainedExtensionImplementations(extensionDeclaration: extensionDeclaration)
+
+                moveWhereClauseTypeReferencesToMembers(extensionDeclaration: extensionDeclaration)
+            }
+        }
+    }
+
+    /// The protocol references each of its extensions, so a type named in the where clause of a constrained
+    /// extension, e.g. `extension Style where Self == SomeStyle`, would be retained even when none of the extension's
+    /// members are used. Move those references onto the members, so the type is retained only through a used member.
+    /// Protocol constraints (`where Self: ProtocolB`) are left on the extension, as are the references of an
+    /// extension without members.
+    private func moveWhereClauseTypeReferencesToMembers(extensionDeclaration: Declaration) {
+        let members = extensionDeclaration.declarations
+        guard !members.isEmpty else { return }
+
+        let whereClauseReferences = extensionDeclaration.references
+            .filter { $0.kind == .normal && $0.role == .genericRequirementType && $0.declarationKind != .protocol }
+            .sorted()
+
+        for reference in whereClauseReferences {
+            graph.remove(reference)
+
+            for member in members.sorted() {
+                let memberReference = Reference(
+                    name: reference.name,
+                    kind: reference.kind,
+                    declarationKind: reference.declarationKind,
+                    usr: reference.usr,
+                    location: reference.location
+                )
+                memberReference.role = reference.role
+                memberReference.parent = member
+                graph.add(memberReference, from: member)
             }
         }
     }

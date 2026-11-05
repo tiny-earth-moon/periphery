@@ -1650,6 +1650,39 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    func testWhereSelfStaticMemberLookupRetainsTypeOnlyThroughUsedMember() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureStruct223UsedStyle"))
+            assertNotReferenced(.struct("FixtureStruct223UnusedStyle"))
+            assertReferenced(.enum("FixtureEnum223Namespace")) {
+                self.assertReferenced(.struct("UsedNestedStyle"))
+                self.assertNotReferenced(.struct("UnusedNestedStyle"))
+            }
+        }
+    }
+
+    func testWhereClauseTypeOfMemberlessProtocolExtensionIsRetained() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureStruct223Memberless"))
+        }
+    }
+
+    func testWhereSelfProtocolConstraintRetainsProtocol() {
+        analyze(retainPublic: true) {
+            assertReferenced(.protocol("FixtureProtocol223Constrained"))
+            assertReferenced(.protocol("FixtureProtocol223Constraint"))
+            assertReferenced(.extensionProtocol("FixtureProtocol223Constrained")) {
+                self.assertNotReferenced(.functionMethodInstance("unusedConstrainedMember()"))
+            }
+        }
+    }
+
+    func testConditionalConformanceWhereClauseTypeIsUnaffected() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureStruct223ConditionalElement"))
+        }
+    }
+
     func testDoesNotRetainProtocolMembersImplementedByExternalType() {
         analyze(retainPublic: true) {
             assertReferenced(.protocol("FixtureProtocol110")) {
