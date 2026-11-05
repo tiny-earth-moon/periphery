@@ -42,6 +42,38 @@ jobs:
         run: .build/debug/outskirts scan --strict --disable-update-check
       - name: Test
         run: swift test
+  macos-minimum:
+    name: macOS (Xcode 26, minimum Xcode)
+    # The Homebrew formula declares `depends_on xcode: "26.0"`: build and test with the newest Xcode 26.x of the
+    # `macos-26` image. Lint and the self-scan stay on the Xcode 27 job. Tests whose behaviour depends on the
+    # toolchain are conditioned on the compiler or Swift version, as on the minimum Linux toolchain.
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Select the newest Xcode 26.x
+        run: |
+          xcode=$(ls -d /Applications/Xcode_26*.app | sort -V | tail -n 1)
+          echo "Selecting $xcode"
+          sudo xcode-select -s "$xcode"
+          xcodebuild -version
+      - name: Cache SwiftPM
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .build
+          key: ${{ runner.os }}-outskirts-xcode-26-spm-${{ hashFiles('Package.swift', 'Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-outskirts-xcode-26-spm-
+      - name: Build
+        run: swift build
+      - name: Test
+        run: swift test
+  scripts:
+    name: Release scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Test scripts/bottle-block.sh
+        run: scripts/tests/test-bottle-block.sh
   linux:
     name: Linux (Swift 6.4)
     runs-on: ubuntu-latest
