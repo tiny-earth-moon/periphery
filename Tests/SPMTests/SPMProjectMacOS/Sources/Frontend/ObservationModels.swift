@@ -40,6 +40,38 @@ final class PlainStore {
 }
 
 @available(macOS 14, *)
+@Observable final class HydratingStore {
+    private var isHydrating = false
+    private var isLoading: Bool = false
+    private var neverRead: Bool = false
+
+    var title: String = "" {
+        didSet {
+            guard !isHydrating else { return }
+
+            print(title)
+        }
+    }
+
+    var subtitle: String = "" {
+        willSet {
+            guard !isLoading else { return }
+
+            print(newValue)
+        }
+    }
+
+    func hydrate() {
+        isHydrating = true
+        defer { isHydrating = false }
+        isLoading = true
+        neverRead = true
+        title = "title"
+        subtitle = "subtitle"
+    }
+}
+
+@available(macOS 14, *)
 struct ObservedStoreView: View {
     @Bindable var store: ObservedStore
 
@@ -62,6 +94,7 @@ func retainObservationModels() {
     store.bump()
     store.assignedFromOutside = 1
     PlainStore().bump()
+    HydratingStore().hydrate()
     _ = ObservedStoreView(store: store).body
     _ = PersistedItem()
 }

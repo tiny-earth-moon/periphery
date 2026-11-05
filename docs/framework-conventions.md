@@ -60,7 +60,7 @@ Limit: a preview is live only if the view it builds is itself used, directly or 
 
 ### Observation and attached macros
 
-A stored property of an `@Observable` class counts as used only by explicit code, not by the accessors that the `@Observable` macro generates, so unused and assign-only properties are reported ([#178](https://github.com/tiny-earth-moon/outskirts/issues/178)).
+A stored property of an `@Observable` class counts as used only by explicit code, not by the accessors that the `@Observable` macro generates, so unused and assign-only properties are reported ([#178](https://github.com/tiny-earth-moon/outskirts/issues/178)). A read from the `didSet` or `willSet` observer of another property is explicit code, so it counts ([#214](https://github.com/tiny-earth-moon/outskirts/issues/214)).
 
 ```swift
 @Observable final class Model {

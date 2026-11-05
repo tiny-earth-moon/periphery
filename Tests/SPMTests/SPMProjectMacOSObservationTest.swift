@@ -29,6 +29,16 @@
             }
         }
 
+        func testObservablePropertyReadInPropertyObserver() {
+            assertReferenced(.class("HydratingStore")) {
+                self.assertReferenced(.varInstance("isHydrating"))
+                self.assertNotAssignOnlyProperty(.varInstance("isHydrating"))
+                self.assertReferenced(.varInstance("isLoading"))
+                self.assertNotAssignOnlyProperty(.varInstance("isLoading"))
+                self.assertAssignOnlyProperty(.varInstance("neverRead"))
+            }
+        }
+
         func testRetainsModelClassProperties() {
             assertReferenced(.class("PersistedItem")) {
                 self.assertReferenced(.varInstance("title"))
