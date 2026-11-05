@@ -40,7 +40,7 @@ check "one JSON file" "$expected_one" "$("$script" "$golden_gate")"
 
 expected_two="  bottle do
     root_url \"$url\"
-    sha256 cellar: :any_skip_relocation, arm64_tahoe: \"$b\"
+    sha256 cellar: :any_skip_relocation, arm64_tahoe:       \"$b\"
     sha256 cellar: :any_skip_relocation, arm64_golden_gate: \"$a\"
   end
 
