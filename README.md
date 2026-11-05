@@ -1,7 +1,7 @@
 <p align="center">
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="assets/brand/outskirts-logo-dark.svg">
-<img src="assets/brand/outskirts-logo.svg" alt="outskirts" width="420">
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tiny-earth-moon/outskirts/master/assets/brand/outskirts-logo-dark.svg">
+<img src="https://raw.githubusercontent.com/tiny-earth-moon/outskirts/master/assets/brand/outskirts-logo.svg" alt="outskirts" width="420">
 </picture>
 </p>
 
