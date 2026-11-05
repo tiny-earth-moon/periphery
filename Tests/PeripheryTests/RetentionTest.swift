@@ -2697,6 +2697,18 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    func testAssignOnlyPropertyReadInPropertyObserver() {
+        analyze(retainPublic: true, retainAssignOnlyProperties: false) {
+            assertReferenced(.class("FixtureClass1700")) {
+                self.assertReferenced(.varInstance("isHydrating"))
+                self.assertNotAssignOnlyProperty(.varInstance("isHydrating"))
+                self.assertReferenced(.varInstance("isLoading"))
+                self.assertNotAssignOnlyProperty(.varInstance("isLoading"))
+                self.assertAssignOnlyProperty(.varInstance("neverRead"))
+            }
+        }
+    }
+
     func testRetainsAssignOnlyPropertyTypes() {
         analyze(
             retainPublic: true,
