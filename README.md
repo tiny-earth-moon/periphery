@@ -9,6 +9,8 @@
 
 <p align="center"><a href="https://outskirts.dev/docs/">Documentation</a> · <a href="https://outskirts.dev/docs/changelog/">Changelog</a> · <a href="https://outskirts.dev/docs/roadmap/">Roadmap</a> · <a href="https://github.com/tiny-earth-moon/outskirts/releases">Releases</a></p>
 
+<p align="center"><a href="https://swiftpackageindex.com/tiny-earth-moon/outskirts"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Ftiny-earth-moon%2Foutskirts%2Fbadge%3Ftype%3Dswift-versions" alt="Swift versions"></a> <a href="https://swiftpackageindex.com/tiny-earth-moon/outskirts"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Ftiny-earth-moon%2Foutskirts%2Fbadge%3Ftype%3Dplatforms" alt="Platforms"></a></p>
+
 outskirts explores your Xcode project or Swift package, builds a map of what refers to what, and reports the declarations that sit beyond every entry point: unused classes, structs, protocols, functions and properties, assign-only properties, unused parameters and imports, redundant `public` accessibility and protocol conformances, unused String Catalog keys and more. A lot of this code is not dead weight: it is often a feature that was never wired up, a leftover from a refactor, or an API waiting for its first caller. outskirts shows you where it is, and you decide.
 
 > [!NOTE]
