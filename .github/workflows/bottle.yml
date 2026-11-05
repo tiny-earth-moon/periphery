@@ -21,15 +21,24 @@ name: Bottle
 # rpaths to /Applications/Xcode.app, then to the Command Line Tools, at link time; a user with
 # neither installs with `brew install --build-from-source`. Apple's dylib is never bundled.
 on:
+  # Pull requests bottle only when the build itself changes; master bottles every source change, so a broken bottle
+  # shows up before a release tag.
   pull_request:
+    paths:
+      - Package.swift
+      - Package.resolved
+      - .github/workflows/bottle.yml
+      - scripts/bottle-*.sh
+      - scripts/tests/**
+  push:
+    branches:
+      - master
     paths:
       - Package.swift
       - Package.resolved
       - Sources/**
       - .github/workflows/bottle.yml
       - scripts/bottle-*.sh
-      - scripts/tests/**
-  push:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
   workflow_dispatch:
