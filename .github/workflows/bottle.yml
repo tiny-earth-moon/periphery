@@ -1,17 +1,23 @@
 name: Bottle
-# Builds an arm64 Homebrew bottle so that `brew install` pours outskirts in seconds instead of
+# Builds arm64 Homebrew bottles (one per macOS version of the matrix) so that `brew install` pours outskirts in seconds instead of
 # building it from source; building from source stays the fallback. Homebrew itself builds the
 # bottle: a temporary local tap holds a formula equivalent to Formula/outskirts.rb of
 # tiny-earth-moon/homebrew-tap (scripts/bottle-formula.sh), installed with --build-bottle, then
 # `brew bottle`. The job pours the bottle back and runs it, including as on a machine without
 # the runner's Xcode path.
 #
-# Read-only: the bottle and its JSON are a workflow artifact. For a release, the maintainer
-# downloads them, attaches the bottle to the GitHub release and pastes the block printed by
-# scripts/bottle-block.sh (also in the job summary) into the tap formula.
+# The Xcode 27 job also packages the bottled binary as a plain archive,
+# outskirts-X.Y.Z-macos-arm64.tar.gz (outskirts, the periphery symlink and LICENSE.md) with its
+# .sha256, for tools that want a binary without Homebrew; the archive job runs it on macos-26
+# with /Applications/Xcode.app as the only Xcode.
+#
+# Read-only: bottles, JSON files and the archive are workflow artifacts. For a release, the
+# maintainer downloads them, attaches the bottles and the archive to the GitHub release and
+# pastes the block printed by scripts/bottle-block.sh (merged over every JSON file by the block
+# job, also in its summary) into the tap formula.
 #
 # libIndexStore.dylib: outskirts links @rpath/libIndexStore.dylib and swift-index-store only
-# puts the building Xcode in the rpath (/Applications/Xcode_27.2.app here). A bottle build adds
+# puts the building Xcode in the rpath (e.g. /Applications/Xcode_27.2.app). A bottle build adds
 # rpaths to /Applications/Xcode.app, then to the Command Line Tools, at link time; a user with
 # neither installs with `brew install --build-from-source`. Apple's dylib is never bundled.
 on:
@@ -22,6 +28,7 @@ on:
       - Sources/**
       - .github/workflows/bottle.yml
       - scripts/bottle-*.sh
+      - scripts/tests/**
   push:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
@@ -49,17 +56,50 @@ defaults:
     shell: bash
 jobs:
   bottle:
-    name: arm64 bottle (Xcode 27.2)
-    # Same preview image and Xcode as the macOS job of test.yml.
-    runs-on: xcode-27
+    name: ${{ matrix.tag }} bottle (Xcode ${{ matrix.xcode }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Same preview image and Xcode as the macOS job of test.yml. Only this job packages the archive.
+          - runner: xcode-27
+            xcode: "27.2"
+            tag: arm64_golden_gate
+            archive: true
+          - runner: macos-26
+            xcode: "26"
+            tag: arm64_tahoe
+            archive: false
+          - runner: macos-15
+            xcode: "26"
+            tag: arm64_sequoia
+            archive: false
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || '' }}
           persist-credentials: false
-      - name: Select Xcode 27.2
-        run: sudo xcode-select -s /Applications/Xcode_27.2.app
+      - name: Select Xcode ${{ matrix.xcode }}
+        id: xcode
+        # matrix.xcode is a version prefix: the newest /Applications/Xcode_<prefix>*.app of the image.
+        env:
+          XCODE_PREFIX: ${{ matrix.xcode }}
+        run: |
+          shopt -s nullglob
+          candidates=(/Applications/Xcode_"$XCODE_PREFIX"*.app)
+          if [[ ${#candidates[@]} -eq 0 ]]; then
+            echo "::error::No /Applications/Xcode_$XCODE_PREFIX*.app on this runner"
+            ls -d /Applications/Xcode*
+            exit 1
+          fi
+          xcode=$(printf '%s\n' "${candidates[@]}" | sort -V | tail -n 1)
+          sudo xcode-select -s "$xcode"
+          xcodebuild -version
+          echo "path=$xcode" >> "$GITHUB_OUTPUT"
       - name: Resolve the version
         id: version
         env:
@@ -113,6 +153,7 @@ jobs:
         id: bottle
         env:
           VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ matrix.tag }}
         run: |
           mkdir "$RUNNER_TEMP/bottle"
           cd "$RUNNER_TEMP/bottle"
@@ -123,6 +164,11 @@ jobs:
           jsons=(outskirts--*.bottle.json)
           if [[ ${#jsons[@]} -ne 1 ]]; then
             echo "::error::Expected one bottle JSON, found ${#jsons[@]}"
+            exit 1
+          fi
+          json_tag=$(jq -er '.[].bottle.tags | keys[]' "${jsons[0]}")
+          if [[ $json_tag != "$TAG" ]]; then
+            echo "::error::brew bottle produced $json_tag, the matrix expects $TAG"
             exit 1
           fi
           cellar=$(jq -er '.[].bottle.cellar' "${jsons[0]}")
@@ -152,7 +198,7 @@ jobs:
           brew test "$BOTTLE_TAP/outskirts"
           keg="$(brew --cellar "$BOTTLE_TAP/outskirts")/$VERSION"
           cd "$RUNNER_TEMP"
-          for binary in "$keg/bin/outskirts" "$keg/bin/outskirts" "$(brew --prefix)/bin/outskirts" "$(brew --prefix)/bin/outskirts"; do
+          for binary in "$keg/bin/outskirts" "$keg/bin/periphery" "$(brew --prefix)/bin/outskirts" "$(brew --prefix)/bin/periphery"; do
             output=$("$binary" version)
             echo "$binary version: $output"
             if [[ $output != "$VERSION" ]]; then
@@ -161,14 +207,15 @@ jobs:
             fi
           done
       - name: Run the bottle without the runner's Xcode
-        # A user machine has no /Applications/Xcode_27.2.app: drop every rpath under /Applications
+        # A user machine has no /Applications/Xcode_<version>.app: drop every rpath under /Applications
         # except /Applications/Xcode.app from a copy of the poured binary, which must then load
         # libIndexStore.dylib from /Applications/Xcode.app.
         env:
           VERSION: ${{ steps.version.outputs.version }}
+          XCODE_PATH: ${{ steps.xcode.outputs.path }}
         run: |
           if [[ ! -e /Applications/Xcode.app ]]; then
-            sudo ln -s /Applications/Xcode_27.2.app /Applications/Xcode.app
+            sudo ln -s "$XCODE_PATH" /Applications/Xcode.app
           fi
           ls -ld /Applications/Xcode.app
           user_dir="$RUNNER_TEMP/user-machine"
@@ -246,14 +293,41 @@ jobs:
           block=$("$GITHUB_WORKSPACE/scripts/bottle-block.sh" "$JSON")
           echo "$block"
           {
-            echo "### Homebrew bottle"
+            echo "### Homebrew bottle ${{ matrix.tag }}"
             echo '```'
             echo "$block"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Package the archive
+        if: matrix.archive
+        # The bottled binary itself, so the archive has the same rpaths as the bottle.
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          name="outskirts-$VERSION-macos-arm64"
+          mkdir -p "$RUNNER_TEMP/archive/$name"
+          cd "$RUNNER_TEMP/archive"
+          cp "$(brew --cellar "$BOTTLE_TAP/outskirts")/$VERSION/bin/outskirts" "$name/outskirts"
+          chmod 755 "$name/outskirts"
+          ln -s outskirts "$name/periphery"
+          cp "$GITHUB_WORKSPACE/LICENSE.md" "$name/LICENSE.md"
+          COPYFILE_DISABLE=1 tar -czf "$name.tar.gz" "$name"
+          shasum -a 256 "$name.tar.gz" > "$name.tar.gz.sha256"
+          tar -tvzf "$name.tar.gz"
+          cat "$name.tar.gz.sha256"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: matrix.archive
+        with:
+          name: outskirts-archive-${{ steps.version.outputs.version }}
+          path: |
+            ${{ runner.temp }}/archive/*.tar.gz
+            ${{ runner.temp }}/archive/*.tar.gz.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: ${{ github.event_name == 'pull_request' && 7 || 90 }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: outskirts-bottle-${{ steps.version.outputs.version }}
+          name: outskirts-bottle-${{ steps.version.outputs.version }}-${{ matrix.tag }}
           path: |
             ${{ runner.temp }}/bottle/*.bottle.tar.gz
             ${{ runner.temp }}/bottle/*.bottle.json
@@ -265,7 +339,110 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: homebrew-logs
+          name: homebrew-logs-${{ matrix.tag }}
           path: ~/Library/Logs/Homebrew
           if-no-files-found: ignore
           retention-days: 7
+  block:
+    name: Merged bottle block
+    needs: bottle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || '' }}
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: outskirts-bottle-${{ needs.bottle.outputs.version }}-*
+          path: ${{ runner.temp }}/bottles
+          merge-multiple: true
+      - name: Print the bottle block
+        env:
+          VERSION: ${{ needs.bottle.outputs.version }}
+          DIR: ${{ runner.temp }}/bottles
+        run: |
+          # Newest macOS first, as Homebrew orders the tags.
+          jsons=()
+          for tag in arm64_golden_gate arm64_tahoe arm64_sequoia; do
+            jsons+=("$DIR/outskirts--$VERSION.$tag.bottle.json")
+          done
+          block=$(scripts/bottle-block.sh "${jsons[@]}")
+          echo "$block"
+          {
+            echo "### Homebrew bottles"
+            echo '```'
+            echo "$block"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+  archive:
+    name: Run the archive on macos-26 (Xcode 26)
+    needs: bottle
+    # Only the Xcode 27 bottle job packages the archive: run even if another bottle of the matrix failed.
+    if: ${{ !cancelled() && needs.bottle.outputs.version != '' }}
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: outskirts-archive-${{ needs.bottle.outputs.version }}
+          path: ${{ runner.temp }}/download
+      - name: Make /Applications/Xcode.app the only Xcode
+        # As on a user machine with a single Xcode: /Applications/Xcode.app is the newest Xcode 26.x, selected.
+        run: |
+          xcode=$(ls -d /Applications/Xcode_26*.app | sort -V | tail -n 1)
+          if [[ -e /Applications/Xcode.app && ! -L /Applications/Xcode.app ]]; then
+            echo "::error::/Applications/Xcode.app is not a symlink on this runner"
+            exit 1
+          fi
+          sudo ln -sfn "$xcode" /Applications/Xcode.app
+          sudo xcode-select -s /Applications/Xcode.app
+          xcodebuild -version
+      - name: Verify and extract the archive
+        env:
+          VERSION: ${{ needs.bottle.outputs.version }}
+        run: |
+          cd "$RUNNER_TEMP/download"
+          shasum -a 256 -c "outskirts-$VERSION-macos-arm64.tar.gz.sha256"
+          mkdir "$RUNNER_TEMP/user"
+          tar -xzf "outskirts-$VERSION-macos-arm64.tar.gz" -C "$RUNNER_TEMP/user"
+          ls -l "$RUNNER_TEMP/user/outskirts-$VERSION-macos-arm64"
+      - name: Run the archive's binary
+        env:
+          VERSION: ${{ needs.bottle.outputs.version }}
+        run: |
+          bin="$RUNNER_TEMP/user/outskirts-$VERSION-macos-arm64"
+          cd "$RUNNER_TEMP"
+          DYLD_PRINT_LIBRARIES=1 "$bin/outskirts" version > /dev/null 2> dyld.log
+          grep libIndexStore dyld.log
+          resolved_lib=$(cd "$XCODE_LIB" && pwd -P)
+          if ! grep -Fq -e "$XCODE_LIB/libIndexStore.dylib" -e "$resolved_lib/libIndexStore.dylib" dyld.log; then
+            echo "::error::libIndexStore.dylib was not loaded from $XCODE_LIB"
+            exit 1
+          fi
+          for binary in "$bin/outskirts" "$bin/periphery"; do
+            output=$("$binary" version)
+            echo "$binary version: $output"
+            if [[ $output != "$VERSION" ]]; then
+              echo "::error::$binary version printed '$output', expected $VERSION"
+              exit 1
+            fi
+          done
+      - name: Scan a fixture package
+        env:
+          VERSION: ${{ needs.bottle.outputs.version }}
+        run: |
+          fixture="$RUNNER_TEMP/fixture"
+          mkdir -p "$fixture/Sources/Fixture"
+          printf '%s\n' '// swift-tools-version:5.9' 'import PackageDescription' \
+            'let package = Package(name: "Fixture", targets: [.executableTarget(name: "Fixture")])' \
+            > "$fixture/Package.swift"
+          printf '%s\n' 'func usedFunction() {}' 'func archiveUnusedFunction() {}' 'usedFunction()' \
+            > "$fixture/Sources/Fixture/main.swift"
+          cd "$fixture"
+          "$RUNNER_TEMP/user/outskirts-$VERSION-macos-arm64/outskirts" scan --disable-update-check > results.txt
+          cat results.txt
+          if ! grep -q archiveUnusedFunction results.txt; then
+            echo "::error::The scan did not report archiveUnusedFunction"
+            exit 1
+          fi
