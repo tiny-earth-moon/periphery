@@ -1,0 +1,17 @@
+{
+  "tiny-earth-moon/tap/outskirts": {
+    "formula": { "name": "outskirts", "pkg_version": "3.16.0", "path": "Formula/outskirts.rb" },
+    "bottle": {
+      "root_url": "https://github.com/tiny-earth-moon/outskirts/releases/download/3.16.0",
+      "cellar": "any_skip_relocation",
+      "rebuild": 0,
+      "tags": {
+        "arm64_tahoe": {
+          "filename": "outskirts-3.16.0.arm64_tahoe.bottle.tar.gz",
+          "local_filename": "outskirts--3.16.0.arm64_tahoe.bottle.tar.gz",
+          "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      }
+    }
+  }
+}

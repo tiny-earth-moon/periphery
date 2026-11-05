@@ -48,21 +48,33 @@
             assertReferenced(.localizedString("mac_ternary_return_count_key %lld"))
         }
 
-        func testRetainsTypedCollectionAndStructInitKeys() {
+        func testRetainsTypedCollectionAndStructInitKeys() throws {
             assertReferenced(.localizedString("mac_typed_array_key"))
             assertReferenced(.localizedString("mac_typed_dictionary_key"))
             assertReferenced(.localizedString("mac_typed_tuple_key"))
             assertReferenced(.localizedString("mac_struct_init_key"))
             assertReferenced(.localizedString("mac_struct_trailing_key"))
             assertNotReferenced(.localizedString("mac_typed_tuple_symbol_key"))
+            // The `systemImage:` parameter is resolved as a plain String from the macOS 27 SDK (Xcode 27) on; under
+            // Xcode 26 the key is retained, a missed result rather than a false positive.
+            try XCTSkipIf(
+                Self.swiftVersion.version.isVersion(lessThan: "6.4"),
+                "systemImage: keys are pinned on the macOS 27 SDK (Xcode 27, Swift 6.4) and later"
+            )
             assertNotReferenced(.localizedString("mac_struct_image_key"))
         }
 
-        func testDoesNotRetainKeysPassedToStringParameters() {
+        func testDoesNotRetainKeysPassedToStringParameters() throws {
             assertNotReferenced(.localizedString("mac_plain_string_param_key"))
-            assertNotReferenced(.localizedString("mac_label_system_image_key"))
             assertNotReferenced(.localizedString("mac_unused_key"))
             assertNotReferenced(.localizedString("mac_dynamic.alpha"))
+            // The `systemImage:` parameter is resolved as a plain String from the macOS 27 SDK (Xcode 27) on; under
+            // Xcode 26 the key is retained, a missed result rather than a false positive.
+            try XCTSkipIf(
+                Self.swiftVersion.version.isVersion(lessThan: "6.4"),
+                "systemImage: keys are pinned on the macOS 27 SDK (Xcode 27, Swift 6.4) and later"
+            )
+            assertNotReferenced(.localizedString("mac_label_system_image_key"))
         }
 
         func testExcludesInfoPlistAndAppShortcutsCatalogsByDefault() {

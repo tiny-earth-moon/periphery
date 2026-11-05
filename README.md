@@ -27,6 +27,7 @@ outskirts explores your Xcode project or Swift package, builds a map of what ref
 
 - **Build from source** (Homebrew without a bottle, Mint or `swift build`): macOS 15 or later (`Package.swift`), Swift 6.1.2 or later (checked at every scan) and Xcode 26.0 or later (required by the Homebrew formula). Xcode or the Command Line Tools must be installed, as outskirts loads `libIndexStore.dylib` from the toolchain.
 - **Homebrew bottle**: Apple silicon with macOS 27 or later, built with Xcode 27.2. It loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools.
+- **Prebuilt archive**: Apple silicon with macOS 15 or later. Like the bottle, it loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools.
 - **Linux**: Swift Package Manager projects only, see [Platforms](https://outskirts.dev/docs/getting-started/#platforms).
 
 ### Homebrew
@@ -44,6 +45,22 @@ mint install tiny-earth-moon/outskirts
 ```
 
 `Package.swift` declares two executable products, `outskirts` and `periphery`, both built from the same target. [Mint](https://github.com/yonaskolb/mint) links the executable products of a package, so both commands are available after the install; `outskirts` is the one to use, `periphery` is the compatibility alias. Pin a release with `tiny-earth-moon/outskirts@<version>`.
+
+### Prebuilt archive
+
+Each release has a plain archive of the bottled binary, for CI scripts and tools that do not use Homebrew. Download it with its checksum, verify, then extract:
+
+```sh
+version=X.Y.Z
+base=https://github.com/tiny-earth-moon/outskirts/releases/download/$version
+curl -fLO "$base/outskirts-$version-macos-arm64.tar.gz"
+curl -fLO "$base/outskirts-$version-macos-arm64.tar.gz.sha256"
+shasum -a 256 -c "outskirts-$version-macos-arm64.tar.gz.sha256"
+tar xzf "outskirts-$version-macos-arm64.tar.gz"
+"./outskirts-$version-macos-arm64/outskirts" version
+```
+
+The archive holds `outskirts`, the `periphery` compatibility symlink and `LICENSE.md`; put the folder on your `PATH` or copy both entries to it. Without the checksum check, `curl -fL "$base/outskirts-$version-macos-arm64.tar.gz" | tar xz` extracts it in one step. The binary does not bundle `libIndexStore.dylib`: Xcode at `/Applications/Xcode.app` or the Command Line Tools must be installed. It is not signed or notarized; that is fine when fetched with `curl`, which sets no quarantine attribute, but a copy downloaded with a browser is blocked by Gatekeeper until you run `xattr -d com.apple.quarantine` on it.
 
 ### From source
 
