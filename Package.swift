@@ -202,7 +202,7 @@ var targets: [PackageDescription.Target] = [
 #endif
 
 let package = Package(
-    name: "Periphery",
+    name: "outskirts",
     platforms: [.macOS(.v15)],
     products: [
         .executable(name: "outskirts", targets: ["Frontend"]),
