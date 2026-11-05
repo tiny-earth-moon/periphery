@@ -12,6 +12,7 @@ Issues carry a priority label, from `P1` (first) to `P3`.
 
 Recent releases, newest first:
 
+- **3.20.0** (2026-11-05): prebuilt archive and bottles for macOS 15, 26 and 27; assign-only analysis without type annotations; platform `#if` retention limited to uncompiled clauses.
 - **3.19.1** (2026-11-05): stale index units no longer cause random false positives when an index store is reused; the Swift package is named outskirts.
 - **3.19.0** (2026-11-05): bounded build cache, orphaned folders evicted and `cache_max_size_gb` ([#310](https://github.com/tiny-earth-moon/outskirts/issues/310)); types of `where Self ==` protocol extensions reported when unused ([#223](https://github.com/tiny-earth-moon/outskirts/issues/223)).
 - **3.18.1** (2026-11-04): documentation site at outskirts.dev/docs; job pool data race fixed and Swift 6 language mode ([#181](https://github.com/tiny-earth-moon/outskirts/issues/181)); blocking strict self-scan in CI ([#220](https://github.com/tiny-earth-moon/outskirts/issues/220)).
