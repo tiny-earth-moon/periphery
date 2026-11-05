@@ -306,7 +306,10 @@ final class SwiftIndexer: Indexer {
             if !configuration.disablePlatformConditionalRetention,
                !configuration.isAnalyzedGeneratedAssetSymbolsFile(sourceFile.path)
             {
-                let names = PlatformConditionalNameCollector.collect(from: multiplexingSyntaxVisitor.syntax)
+                let names = PlatformConditionalNameCollector.collect(
+                    from: multiplexingSyntaxVisitor.syntax,
+                    configurations: platformBuildConfigurations()
+                )
 
                 if !names.isEmpty {
                     graph.withLock { $0.addPlatformConditionalNames(names, in: sourceFile) }
@@ -404,6 +407,20 @@ final class SwiftIndexer: Indexer {
             "c:objc(cs)MTLFunctionDescriptor(py)name",
             "c:objc(cs)MTLFunctionDescriptor(im)setName:",
         ]
+
+        /// The configurations the file's units were compiled for, or none when one of their triples is not understood,
+        /// in which case every clause of the file's platform conditionals is collected.
+        private func platformBuildConfigurations() -> [PlatformBuildConfiguration] {
+            var configurations: Set<PlatformBuildConfiguration> = []
+
+            for indexUnit in units {
+                guard let configuration = PlatformBuildConfiguration(triple: indexUnit.unit.target) else { return [] }
+
+                configurations.insert(configuration)
+            }
+
+            return Array(configurations)
+        }
 
         /// Calls are recognized from syntax, an assignment to a `name` property only when the index store records
         /// a reference to `MTLFunctionDescriptor.name` at its `name` token.

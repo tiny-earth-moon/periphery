@@ -140,6 +140,7 @@ The index store only describes the platform outskirts built for, so code that is
 
 - Declarations marked `@available(<platform>, unavailable)` (e.g. `@available(tvOS, unavailable)`), along with their members. `@available(*, unavailable)`, `swift` and `*ApplicationExtension` platforms are not affected.
 - Declarations whose name is written inside an `#if` block conditioned on `os()`, `targetEnvironment()`, `arch()` or `canImport()`, including its `#else` branches. Matching is done by name on the syntax tree, so unrelated declarations that share the name are retained too.
+  - The clauses the indexed build compiled are already in the index store, so their names are skipped. This applies when every condition of the block combines only `os()`, `arch()` and `targetEnvironment()` with `!`, `&&` and `||`, the block is not nested in another `#if`, and the target triple of every index unit of the file is understood (macOS, iOS, tvOS, watchOS, visionOS, their simulators, Mac Catalyst and Linux, on `arm64` or `x86_64`). A clause counts as compiled when any of these units compiled it. Otherwise, for example with a custom flag, `canImport()` or `swift()`, every clause of the block is collected.
 - Imports of the modules declaring a name written inside such a block, or named there. With `--enable-unused-system-imports`, a file whose blocks write a name that no scanned declaration accounts for keeps all its system imports.
 
 ```swift
