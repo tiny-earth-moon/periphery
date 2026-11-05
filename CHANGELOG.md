@@ -12,6 +12,20 @@
 
 - None.
 
+## 3.19.1 (2026-11-05)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- The Swift package is named `outskirts` (it was still `Periphery`), so package indexes show the right name. Package identity comes from the URL: dependents and the `outskirts` and `periphery` executables are unaffected (#314).
+
+##### Bug Fixes
+
+- Index units written before the last change of their source file are ignored when the same module has a newer unit for that file. An index store reused across builds (for example after renaming a package) could hold both, which duplicated declarations at stale positions and reported used code as unused, differently from one run to the next (#317).
+
 ## 3.19.0 (2026-11-05)
 
 ##### Breaking
