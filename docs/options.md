@@ -124,7 +124,7 @@ Total size in gigabytes above which the least recently used Xcode build caches a
 
 Key `cache_max_size_gb` · integer · default `20`.
 
-See [Getting started: How a scan works](getting-started.md#how-a-scan-works).
+See [Getting started: How a scan works](getting-started.md#how-a-scan-works), [Roadmap: Published](roadmap.md#published).
 
 ## Files and scope
 

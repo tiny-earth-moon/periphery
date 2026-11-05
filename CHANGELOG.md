@@ -12,6 +12,20 @@
 
 - None.
 
+## 3.19.0 (2026-11-05)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- The build cache is bounded: each `DerivedData-*` folder records the project it was built for, and folders whose project no longer exists are evicted at the end of a scan. New `cache_max_size_gb` (`--cache-max-size-gb`, default 20, 0 disables) evicts the least recently used folders until the cache fits, never the folder of the current scan. Closes #310 (#311).
+
+##### Bug Fixes
+
+- A type named in the where clause of a protocol extension (`extension Style where Self == DeadStyle`) is no longer kept alive by the extension itself: it is retained only when a member of the extension is used, so an unused static lookup type is reported in the same scan as its member. Closes #223 (#312).
+
 ## 3.18.1 (2026-11-04)
 
 ##### Breaking
