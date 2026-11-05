@@ -142,21 +142,21 @@ final class CacheManagerTest: XCTestCase {
         XCTAssertFalse(fm.fileExists(atPath: orphan.path))
     }
 
-    private func makeBigDerivedData(_ name: String, ageDays: Int, megabytes: Int) throws -> URL {
+    private func makeBigDerivedData(_ name: String, ageDays: Int, kilobytes: Int) throws -> URL {
         let dir = cache.appendingPathComponent(name)
         try fm.createDirectory(at: dir, withIntermediateDirectories: true)
-        try Data(repeating: 1, count: megabytes << 20).write(to: dir.appendingPathComponent("blob"))
+        try Data(repeating: 1, count: kilobytes << 10).write(to: dir.appendingPathComponent("blob"))
         try fm.setAttributes([.modificationDate: Date().addingTimeInterval(-Double(ageDays) * 86400)], ofItemAtPath: dir.path)
         return dir
     }
 
     func testEvict_sizeCapEvictsLeastRecentlyUsedFirst() throws {
-        // 3 folders of 400 MB under a 1 GB cap: the oldest goes, the two others fit.
-        let oldest = try makeBigDerivedData("DerivedData-oldest", ageDays: 3, megabytes: 400)
-        let middle = try makeBigDerivedData("DerivedData-middle", ageDays: 2, megabytes: 400)
-        let newest = try makeBigDerivedData("DerivedData-newest", ageDays: 1, megabytes: 400)
+        // 3 folders of 400 KB under a 1000 KB cap: the oldest goes, the two others fit.
+        let oldest = try makeBigDerivedData("DerivedData-oldest", ageDays: 3, kilobytes: 400)
+        let middle = try makeBigDerivedData("DerivedData-middle", ageDays: 2, kilobytes: 400)
+        let newest = try makeBigDerivedData("DerivedData-newest", ageDays: 1, kilobytes: 400)
 
-        let evicted = try CacheManager.evictStale(cacheDirectory: cache, maxAgeDays: 14, maxSizeGB: 1, keeping: nil)
+        let evicted = try CacheManager.evictStale(cacheDirectory: cache, maxAgeDays: 14, maxSizeBytes: 1000 << 10, keeping: nil)
 
         XCTAssertEqual(evicted.map(\.name), ["DerivedData-oldest"])
         XCTAssertFalse(fm.fileExists(atPath: oldest.path))
@@ -165,10 +165,10 @@ final class CacheManagerTest: XCTestCase {
     }
 
     func testEvict_sizeCapNeverEvictsCurrentFolder() throws {
-        let current = try makeBigDerivedData("DerivedData-current", ageDays: 10, megabytes: 600)
-        let other = try makeBigDerivedData("DerivedData-other", ageDays: 1, megabytes: 600)
+        let current = try makeBigDerivedData("DerivedData-current", ageDays: 10, kilobytes: 600)
+        let other = try makeBigDerivedData("DerivedData-other", ageDays: 1, kilobytes: 600)
 
-        let evicted = try CacheManager.evictStale(cacheDirectory: cache, maxAgeDays: 14, maxSizeGB: 1, keeping: current)
+        let evicted = try CacheManager.evictStale(cacheDirectory: cache, maxAgeDays: 14, maxSizeBytes: 1000 << 10, keeping: current)
 
         XCTAssertEqual(evicted.map(\.name), ["DerivedData-other"])
         XCTAssertTrue(fm.fileExists(atPath: current.path))
@@ -176,10 +176,10 @@ final class CacheManagerTest: XCTestCase {
     }
 
     func testEvict_sizeCapAppliesEvenWhenAgeEvictionIsDisabled() throws {
-        let oldest = try makeBigDerivedData("DerivedData-oldest", ageDays: 300, megabytes: 600)
-        let newest = try makeBigDerivedData("DerivedData-newest", ageDays: 200, megabytes: 600)
+        let oldest = try makeBigDerivedData("DerivedData-oldest", ageDays: 300, kilobytes: 600)
+        let newest = try makeBigDerivedData("DerivedData-newest", ageDays: 200, kilobytes: 600)
 
-        let evicted = try CacheManager.evictStale(cacheDirectory: cache, maxAgeDays: 0, maxSizeGB: 1, keeping: nil)
+        let evicted = try CacheManager.evictStale(cacheDirectory: cache, maxAgeDays: 0, maxSizeBytes: 1000 << 10, keeping: nil)
 
         XCTAssertEqual(evicted.map(\.name), ["DerivedData-oldest"])
         XCTAssertFalse(fm.fileExists(atPath: oldest.path))
@@ -187,10 +187,10 @@ final class CacheManagerTest: XCTestCase {
     }
 
     func testEvict_zeroSizeCapDisablesLimit() throws {
-        let first = try makeBigDerivedData("DerivedData-first", ageDays: 2, megabytes: 600)
-        let second = try makeBigDerivedData("DerivedData-second", ageDays: 1, megabytes: 600)
+        let first = try makeBigDerivedData("DerivedData-first", ageDays: 2, kilobytes: 600)
+        let second = try makeBigDerivedData("DerivedData-second", ageDays: 1, kilobytes: 600)
 
-        let evicted = try CacheManager.evictStale(cacheDirectory: cache, maxAgeDays: 14, maxSizeGB: 0, keeping: nil)
+        let evicted = try CacheManager.evictStale(cacheDirectory: cache, maxAgeDays: 14, maxSizeBytes: 0, keeping: nil)
 
         XCTAssertTrue(evicted.isEmpty)
         XCTAssertTrue(fm.fileExists(atPath: first.path))

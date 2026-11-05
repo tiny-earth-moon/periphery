@@ -105,6 +105,26 @@ public enum CacheManager {
         now: Date = Date(),
         fileManager: FileManager = .default
     ) throws -> [EvictedCacheEntry] {
+        try evictStale(
+            cacheDirectory: cacheDirectory,
+            maxAgeDays: maxAgeDays,
+            maxSizeBytes: Int64(maxSizeGB) << 30,
+            keeping: keeping,
+            now: now,
+            fileManager: fileManager
+        )
+    }
+
+    /// Same as the gigabyte variant, with the size limit in bytes. 0 disables the limit.
+    @discardableResult
+    static func evictStale(
+        cacheDirectory: URL,
+        maxAgeDays: Int,
+        maxSizeBytes: Int64,
+        keeping: URL?,
+        now: Date = Date(),
+        fileManager: FileManager = .default
+    ) throws -> [EvictedCacheEntry] {
         guard fileManager.fileExists(atPath: cacheDirectory.path) else { return [] }
 
         let cutoff = now.addingTimeInterval(-Double(maxAgeDays) * 86400)
@@ -139,7 +159,7 @@ public enum CacheManager {
             let modified = try entry.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
             let isStale = !isKept
                 && (isOrphan(entry, fileManager: fileManager) || (maxAgeDays > 0 && (modified.map { $0 < cutoff } ?? false)))
-            if !isStale, maxSizeGB == 0 {
+            if !isStale, maxSizeBytes == 0 {
                 continue
             }
 
@@ -153,8 +173,8 @@ public enum CacheManager {
             }
         }
 
-        if maxSizeGB > 0 {
-            let limit = Int64(maxSizeGB) << 30
+        if maxSizeBytes > 0 {
+            let limit = maxSizeBytes
             var total = keptSize + remaining.reduce(0) { $0 + $1.size }
             for candidate in remaining.sorted(by: { $0.modified < $1.modified }) where total > limit {
                 if remove(candidate.url, size: candidate.size) {
@@ -188,16 +208,16 @@ public enum CacheManager {
     private static func directorySize(_ url: URL, fileManager: FileManager) -> Int64 {
         guard let enumerator = fileManager.enumerator(
             at: url,
-            includingPropertiesForKeys: [.totalFileAllocatedSizeKey, .isRegularFileKey],
+            includingPropertiesForKeys: [.fileSizeKey, .isRegularFileKey],
             options: []
         ) else { return 0 }
 
         var total: Int64 = 0
         for case let file as URL in enumerator {
-            guard let values = try? file.resourceValues(forKeys: [.totalFileAllocatedSizeKey, .isRegularFileKey]),
+            guard let values = try? file.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey]),
                   values.isRegularFile == true else { continue }
 
-            total += Int64(values.totalFileAllocatedSize ?? 0)
+            total += Int64(values.fileSize ?? 0)
         }
         return total
     }
