@@ -202,6 +202,9 @@ struct ScanCommand: ParsableCommand {
     @Option(help: "Maximum age in days of unused Xcode build caches before they are evicted at the end of a scan. 0 disables eviction (default: 14)")
     var cacheMaxAgeDays: Int?
 
+    @Option(help: "Maximum total size in gigabytes of the Xcode build caches; the least recently used are evicted at the end of a scan. 0 disables the limit (default: 20)")
+    var cacheMaxSizeGb: Int?
+
     @Option(help: "Baseline file path used to filter results. A relative path is resolved from '--project-root'")
     var baseline: FilePath?
 
@@ -302,6 +305,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$skipSchemesValidation, skipSchemesValidation)
         configuration.apply(\.$cleanBuild, cleanBuild)
         configuration.apply(\.$cacheMaxAgeDays, cacheMaxAgeDays)
+        configuration.apply(\.$cacheMaxSizeGB, cacheMaxSizeGb)
         configuration.apply(\.$buildArguments, given(buildArguments))
         configuration.apply(\.$relativeResults, relativeResults)
         configuration.apply(\.$relativeResultsBase, relativeTo)

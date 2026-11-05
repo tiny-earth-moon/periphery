@@ -112,9 +112,17 @@ See [Configuration: Paths](configuration.md#paths).
 
 ### `--cache-max-age-days`
 
-Age in days after which unused Xcode build caches are evicted at the end of a scan; 0 disables eviction.
+Age in days after which unused Xcode build caches are evicted at the end of a scan; 0 disables the age rule. Caches of projects that no longer exist are always evicted.
 
 Key `cache_max_age_days` · integer · default `14`.
+
+See [Getting started: How a scan works](getting-started.md#how-a-scan-works).
+
+### `--cache-max-size-gb`
+
+Total size in gigabytes above which the least recently used Xcode build caches are evicted at the end of a scan; 0 disables the limit.
+
+Key `cache_max_size_gb` · integer · default `20`.
 
 See [Getting started: How a scan works](getting-started.md#how-a-scan-works).
 

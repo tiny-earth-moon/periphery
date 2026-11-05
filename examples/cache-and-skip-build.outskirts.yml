@@ -12,3 +12,6 @@ index_store_path:
 # Unused Xcode build caches older than this are evicted at the end of a scan.
 # Default 14, 0 disables eviction.
 cache_max_age_days: 7
+# The least recently used caches are also evicted above this total size.
+# Default 20, 0 disables the limit.
+cache_max_size_gb: 10
