@@ -12,6 +12,7 @@ Issues carry a priority label, from `P1` (first) to `P3`.
 
 Recent releases, newest first:
 
+- **3.18.2** (2026-11-05): bounded build cache, orphaned folders evicted and `cache_max_size_gb` ([#310](https://github.com/tiny-earth-moon/outskirts/issues/310)); types of `where Self ==` protocol extensions reported when unused ([#223](https://github.com/tiny-earth-moon/outskirts/issues/223)).
 - **3.18.1** (2026-11-04): documentation site at outskirts.dev/docs; job pool data race fixed and Swift 6 language mode ([#181](https://github.com/tiny-earth-moon/outskirts/issues/181)); blocking strict self-scan in CI ([#220](https://github.com/tiny-earth-moon/outskirts/issues/220)).
 - **3.18.0** (2026-11-04): JSON Schema of the configuration file and `outskirts config check` ([#228](https://github.com/tiny-earth-moon/outskirts/issues/228)); `--changed-since` and `--changed-lines` for pull request checks ([#231](https://github.com/tiny-earth-moon/outskirts/issues/231)); `--quiet` prints nothing when there is no result ([#296](https://github.com/tiny-earth-moon/outskirts/issues/296)).
 - **3.17.0** (2026-11-04): Metal functions analysis (`--detect-unused-metal-functions`); the build cache is keyed by the build arguments.
