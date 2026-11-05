@@ -107,6 +107,7 @@ var targets: [PackageDescription.Target] = [
             .target(name: "Shared"),
             .product(name: "SwiftSyntax", package: "swift-syntax"),
             .product(name: "SwiftParser", package: "swift-syntax"),
+            .product(name: "SwiftIfConfig", package: "swift-syntax"),
         ],
         swiftSettings: swift6
     ),

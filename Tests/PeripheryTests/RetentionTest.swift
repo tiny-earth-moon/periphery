@@ -569,6 +569,70 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    /// The clause the indexed build compiled is in the index store, so its names retain nothing more.
+    func testReportsSameNamedMembersCalledOnlyInCompiledPlatformConditionalClause() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureCompiledClauseAlpha")) {
+                self.assertReferenced(.functionMethodInstance("compiledClauseDraw()"))
+            }
+            assertReferenced(.struct("FixtureCompiledClauseBeta")) {
+                self.assertNotReferenced(.functionMethodInstance("compiledClauseDraw()"))
+                self.assertNotReferenced(.functionMethodInstance("compiledClauseUnused()"))
+            }
+            // A call in a clause that was not compiled still retains every same-named member.
+            assertReferenced(.struct("FixtureCompiledClauseGamma")) {
+                self.assertReferenced(.functionMethodInstance("compiledClausePaint()"))
+            }
+            assertReferenced(.struct("FixtureCompiledClauseDelta")) {
+                self.assertReferenced(.functionMethodInstance("compiledClausePaint()"))
+            }
+        }
+    }
+
+    func testRetainsNamesFromUncompiledClausesOfPlatformConditionalChain() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureUncompiledChainHelper")) {
+                self.assertReferenced(.struct("Nested")) {
+                    self.assertReferenced(.functionMethodInstance("uncompiledChainRender()"))
+                }
+                self.assertReferenced(.functionMethodInstance("uncompiledChainPrepare()"))
+            }
+            assertReferenced(.class("FixtureUncompiledChainUser")) {
+                self.assertReferenced(.functionMethodInstance("onlyOnTVOS()"))
+                self.assertReferenced(.functionMethodInstance("onlyInElse()"))
+            }
+            assertReferenced(.struct("FixtureUncompiledChainActive")) {
+                self.assertReferenced(.functionMethodInstance("uncompiledChainCompiled()"))
+            }
+            assertReferenced(.struct("FixtureUncompiledChainDecoy")) {
+                self.assertNotReferenced(.functionMethodInstance("uncompiledChainCompiled()"))
+            }
+        }
+    }
+
+    func testRetainsTypeDeclaredInEveryClauseOfPlatformConditional() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixturePlatformSpecificView")) {
+                self.assertReferenced(.functionMethodInstance("platformSpecificTitle()"))
+            }
+        }
+    }
+
+    /// Custom flags, `canImport()`, version checks and nested blocks keep the whole-block retention.
+    func testRetainsWholeBlockWhenPlatformConditionalCannotBeEvaluated() {
+        analyze(retainPublic: true) {
+            for name in ["Flag", "Import", "Version", "Nested", "Inner"] {
+                let member = "unevaluated\(name)()"
+                assertReferenced(.struct("FixtureUnevaluated\(name)Alpha")) {
+                    self.assertReferenced(.functionMethodInstance(member))
+                }
+                assertReferenced(.struct("FixtureUnevaluated\(name)Beta")) {
+                    self.assertReferenced(.functionMethodInstance(member))
+                }
+            }
+        }
+    }
+
     func testRetainsSameNamedMembersCalledThroughUnknownReceiver() {
         analyze(retainPublic: true) {
             assertReferenced(.struct("FixtureStruct234")) {
