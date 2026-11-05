@@ -193,6 +193,9 @@ public final class Configuration {
     @Setting(key: "cache_max_age_days", defaultValue: 14)
     public var cacheMaxAgeDays: Int
 
+    @Setting(key: "cache_max_size_gb", defaultValue: 20)
+    public var cacheMaxSizeGB: Int
+
     @Setting(key: "baseline", defaultValue: nil, convert: SettingConverter.filePath)
     public var baseline: FilePath?
 
@@ -395,7 +398,7 @@ public final class Configuration {
         $disablePlatformConditionalRetention, $disableUnusedImportAnalysis, $enableUnusedSystemImports, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $retainRuntimeLocalizedKeys, $superfluousIgnoreComments, $retainUnusedImportedModules,
         $externalEncodableProtocols, $externalCodableProtocols, $externalTestCaseClasses, $verbose, $quiet, $color,
         $disableUpdateCheck, $strict, $indexStorePath,
-        $skipBuild, $skipSchemesValidation, $cleanBuild, $cacheMaxAgeDays, $buildArguments, $xcodeListArguments, $relativeResults, $relativeResultsBase, $changedSince, $changedLines,
+        $skipBuild, $skipSchemesValidation, $cleanBuild, $cacheMaxAgeDays, $cacheMaxSizeGB, $buildArguments, $xcodeListArguments, $relativeResults, $relativeResultsBase, $changedSince, $changedLines,
         $jsonPackageManifestPath, $retainCodableProperties, $retainEncodableProperties, $retainEquatableProperties,
         $retainHashableProperties, $baseline, $writeBaseline, $pruneBaseline, $strictBaseline,
         $writeResults, $skipStdoutResults, $genericProjectConfig,

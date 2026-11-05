@@ -130,7 +130,8 @@
                     project: project,
                     schemes: Array(schemes),
                     buildArguments: configuration.buildArguments,
-                    maxAgeDays: configuration.cacheMaxAgeDays
+                    maxAgeDays: configuration.cacheMaxAgeDays,
+                    maxSizeGB: configuration.cacheMaxSizeGB
                 )
                 for entry in evicted {
                     let size = ByteCountFormatter.string(fromByteCount: entry.size, countStyle: .file)

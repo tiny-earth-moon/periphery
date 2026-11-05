@@ -25,6 +25,7 @@ public struct EvictedCacheEntry: Equatable {
 
 public enum CacheManager {
     public static let derivedDataPrefix = "DerivedData-"
+    static let projectSidecarName = ".outskirts-project"
 
     /// Clears the outskirts cache directory and the one left by releases that predate the rename.
     public static func clearIncludingLegacy(cachesDirectory: URL? = nil, fileManager: FileManager = .default) throws {
@@ -80,17 +81,31 @@ public enum CacheManager {
         try fileManager.setAttributes([.modificationDate: now], ofItemAtPath: directory.path)
     }
 
-    /// Removes the `DerivedData-*` folders of the cache whose modification date is older than `maxAgeDays`,
-    /// except `keeping`. `maxAgeDays` of 0 disables eviction.
+    /// Records the project a DerivedData folder was built for, so that the folder can be evicted once the project is gone.
+    /// Call it before `touch`: creating the file changes the folder's modification date.
+    public static func recordProject(_ projectPath: String, in directory: URL, fileManager: FileManager = .default) throws {
+        let sidecar = directory.appendingPathComponent(projectSidecarName)
+        guard let data = projectPath.data(using: .utf8) else { return }
+
+        if !fileManager.createFile(atPath: sidecar.path, contents: data) {
+            throw CacheEntryError(path: sidecar.path, underlying: CocoaError(.fileWriteUnknown))
+        }
+    }
+
+    /// Removes the `DerivedData-*` folders of the cache, except `keeping`, that are stale. A folder is stale when
+    /// the project recorded in its sidecar no longer exists, or when its modification date is older than
+    /// `maxAgeDays` (0 disables this age rule). Then, when `maxSizeGB` is above 0, the least recently
+    /// used folders are removed until the folders left fit in `maxSizeGB` gigabytes (the size of `keeping` counts).
     @discardableResult
     public static func evictStale(
         cacheDirectory: URL,
         maxAgeDays: Int,
+        maxSizeGB: Int = 0,
         keeping: URL?,
         now: Date = Date(),
         fileManager: FileManager = .default
     ) throws -> [EvictedCacheEntry] {
-        guard maxAgeDays > 0, fileManager.fileExists(atPath: cacheDirectory.path) else { return [] }
+        guard fileManager.fileExists(atPath: cacheDirectory.path) else { return [] }
 
         let cutoff = now.addingTimeInterval(-Double(maxAgeDays) * 86400)
         let keptName = keeping?.lastPathComponent
@@ -102,17 +117,48 @@ public enum CacheManager {
 
         var evicted: [EvictedCacheEntry] = []
         var failures: [CacheEntryError] = []
-        for entry in entries where entry.lastPathComponent.hasPrefix(derivedDataPrefix) && entry.lastPathComponent != keptName {
-            guard let modified = try entry.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate,
-                  modified < cutoff else { continue }
+        var remaining: [(url: URL, modified: Date, size: Int64)] = []
+        var keptSize: Int64 = 0
 
-            let size = directorySize(entry, fileManager: fileManager)
+        func remove(_ entry: URL, size: Int64) -> Bool {
             do {
                 try fileManager.removeItem(at: entry)
                 evicted.append(EvictedCacheEntry(name: entry.lastPathComponent, size: size))
+                return true
             } catch {
-                if !isMissing(error) {
-                    failures.append(CacheEntryError(path: entry.path, underlying: error))
+                if isMissing(error) {
+                    return true
+                }
+                failures.append(CacheEntryError(path: entry.path, underlying: error))
+                return false
+            }
+        }
+
+        for entry in entries where entry.lastPathComponent.hasPrefix(derivedDataPrefix) {
+            let isKept = entry.lastPathComponent == keptName
+            let modified = try entry.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
+            let isStale = !isKept
+                && (isOrphan(entry, fileManager: fileManager) || (maxAgeDays > 0 && (modified.map { $0 < cutoff } ?? false)))
+            if !isStale, maxSizeGB == 0 {
+                continue
+            }
+
+            let size = directorySize(entry, fileManager: fileManager)
+            if isStale {
+                _ = remove(entry, size: size)
+            } else if isKept {
+                keptSize += size
+            } else {
+                remaining.append((entry, modified ?? .distantPast, size))
+            }
+        }
+
+        if maxSizeGB > 0 {
+            let limit = Int64(maxSizeGB) << 30
+            var total = keptSize + remaining.reduce(0) { $0 + $1.size }
+            for candidate in remaining.sorted(by: { $0.modified < $1.modified }) where total > limit {
+                if remove(candidate.url, size: candidate.size) {
+                    total -= candidate.size
                 }
             }
         }
@@ -124,6 +170,15 @@ public enum CacheManager {
     }
 
     // MARK: - Private
+
+    /// Whether the folder records a project path that no longer exists. A folder without a sidecar is never an orphan.
+    private static func isOrphan(_ directory: URL, fileManager: FileManager) -> Bool {
+        let sidecar = directory.appendingPathComponent(projectSidecarName)
+        guard let data = fileManager.contents(atPath: sidecar.path),
+              let path = String(data: data, encoding: .utf8), !path.isEmpty else { return false }
+
+        return !fileManager.fileExists(atPath: path)
+    }
 
     private static func isMissing(_ error: Error) -> Bool {
         let nsError = error as NSError
