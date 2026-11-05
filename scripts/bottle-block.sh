@@ -28,7 +28,8 @@ cellar_arg() {
   esac
 }
 
-version="" root_url="" rebuild="" lines="" assets="" seen_tags=" "
+version="" root_url="" rebuild="" assets="" seen_tags=" " width=0
+prefixes=() digests=()
 for json in "$@"; do
   if [[ ! -f $json ]]; then
     echo "error: $json not found" >&2
@@ -61,7 +62,10 @@ for json in "$@"; do
     exit 65
   fi
   seen_tags+="$tag "
-  lines+="    sha256 $(cellar_arg "$cellar")${tag}: \"$sha256\""$'\n'
+  prefix="sha256 $(cellar_arg "$cellar")${tag}:"
+  ((${#prefix} > width)) && width=${#prefix}
+  prefixes+=("$prefix")
+  digests+=("$sha256")
   assets+="$filename"$'\n'
 done
 
@@ -75,7 +79,10 @@ if [[ $rebuild != 0 ]]; then
   echo "    rebuild $rebuild"
 fi
 # Tags keep the order of the arguments: pass the JSON files newest macOS first, as Homebrew does.
-printf '%s' "$lines"
+# Digests are aligned in one column, as `brew style` (FormulaAudit/BottleDigestIndentation) requires.
+for i in "${!prefixes[@]}"; do
+  printf '    %-*s "%s"\n' "$width" "${prefixes[$i]}" "${digests[$i]}"
+done
 echo "  end"
 echo
 while read -r filename; do
