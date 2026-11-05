@@ -15,8 +15,8 @@ enum AssignOnlyPropertyAnalyzer {
 
         guard !configuration.retainAssignOnlyProperties,
               property.kind.isVariableKind,
-              let declaredType = property.declaredType,
-              !retainAssignOnlyPropertyTypes.contains(declaredType),
+              let type = property.declaredType ?? property.inferredType,
+              !isRetainedType(type, retainedTypes: retainAssignOnlyPropertyTypes),
               property.attributes.isEmpty,
               !property.isComplexProperty,
               // A protocol property can technically be assigned and never used when the protocol is
@@ -32,6 +32,23 @@ enum AssignOnlyPropertyAnalyzer {
         else { return false }
 
         return true
+    }
+
+    /// Inferred types are fully qualified (`Swift.Set<Combine.AnyCancellable>`), so a type is also
+    /// retained when it matches once module and parent type qualifiers are stripped from both sides.
+    private static func isRetainedType(_ type: String, retainedTypes: [String]) -> Bool {
+        if retainedTypes.contains(type) {
+            return true
+        }
+
+        let unqualifiedType = unqualified(type)
+        return retainedTypes.contains { unqualified($0) == unqualifiedType }
+    }
+
+    private static func unqualified(_ type: String) -> String {
+        PropertyTypeSanitizer.sanitize(
+            type.replacingOccurrences(of: #"[A-Za-z_][A-Za-z0-9_]*\."#, with: "", options: .regularExpression)
+        )
     }
 }
 

@@ -233,6 +233,8 @@ public final class Declaration {
     public var commentCommands: Set<CommentCommand> = []
     public var references: Set<Reference> = []
     public var declaredType: String?
+    /// The variable type recovered from the index (demangled USR) when there is no type annotation.
+    public var inferredType: String?
     /// Whether the declared type annotation is optional (`T?`, `T!`, `Optional<T>`). Only meaningful for variables.
     public var isOptionalType: Bool = false
     /// Whether the variable is declared with an initial value other than `nil`. Only meaningful for variables.
