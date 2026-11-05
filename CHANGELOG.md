@@ -12,6 +12,26 @@
 
 - None.
 
+## 3.20.0 (2026-11-05)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- Each release ships a prebuilt `outskirts-<version>-macos-arm64.tar.gz` archive with its SHA-256, and Homebrew bottles for macOS 15, 26 and 27 (#229, #315).
+- Assign-only property analysis covers properties without a type annotation: their type is recovered from the index, so `var count = 0` assigned and never read is reported like `var count: Int = 0`. Known limit: a retained type configured by a typealias name does not match an inferred property whose type is the underlying type (#214, #319).
+- Names written in a platform `#if` are retained only from the clauses the scanned build did not compile, for conditions combining `os()`, `arch()` and `targetEnvironment()`; names in compiled clauses are resolved from the index. Other conditions (`canImport`, custom flags, `swift()`…) keep the whole block retained (#218, #320).
+
+##### Bug Fixes
+
+- In an `@Observable` class, a property read inside the `didSet` or `willSet` of another property is no longer reported as assign-only. The macro places its generated references at the attribute's position, and removing them also removed the observer's read (#214, #322).
+
+##### Upgrade notes
+
+- Because platform conditions no longer retain every homonym, a project may see new assign-only results for stored properties read only by a synthesized `Equatable`, `Hashable` or `Codable` conformance. Such properties are reported by default, as before; keep them with `retain_equatable_properties`, `retain_hashable_properties`, `retain_encodable_properties` or `retain_codable_properties`.
+
 ## 3.19.1 (2026-11-05)
 
 ##### Breaking
