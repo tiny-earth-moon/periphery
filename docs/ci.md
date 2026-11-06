@@ -21,7 +21,7 @@ The `github-actions`, `gitlab-codequality`, `codeclimate` and `sarif` formats al
 
 ## GitHub Actions
 
-On a macOS runner, install outskirts, build with the index store enabled and scan without building again:
+The shortest setup is the [outskirts action](getting-started.md#github-actions), which installs a release and scans with annotations in one step. To reuse a build, for example the one that ran your tests, install outskirts yourself on a macOS runner, build with the index store enabled and scan without building again:
 
 ```yaml
 - run: brew install tiny-earth-moon/tap/outskirts
