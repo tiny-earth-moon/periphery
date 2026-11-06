@@ -58,7 +58,10 @@ struct ScanCommand: ParsableCommand {
     @Flag(inversion: .prefixedNo, help: "Retain all public declarations, recommended for framework/library projects")
     var retainPublic: Bool?
 
-    @Option(parsing: .upToNextOption, help: "Public SPIs (System Programming Interfaces) to check for unused code even when '--retain-public' is enabled")
+    @Option(parsing: .upToNextOption, help: "Modules whose public declarations are retained, for packages that mix libraries with apps or tools. '--no-retain-public' clears the modules of the configuration file")
+    var retainPublicModules: [String] = defaultConfiguration.$retainPublicModules.defaultValue
+
+    @Option(parsing: .upToNextOption, help: "Public SPIs (System Programming Interfaces) to check for unused code even when '--retain-public' or '--retain-public-modules' is enabled")
     var noRetainSPI: [String] = defaultConfiguration.$noRetainSPI.defaultValue
 
     @Flag(inversion: .prefixedNo, help: "Disable retention of declarations that are unavailable on a platform, or referenced from platform conditional compilation blocks")
@@ -264,6 +267,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$outputFormat, format)
         configuration.apply(\.$retainFiles, given(retainFiles))
         configuration.apply(\.$retainPublic, retainPublic)
+        configuration.apply(\.$retainPublicModules, given(retainPublicModules) ?? (retainPublic == false ? [] : nil))
         configuration.apply(\.$noRetainSPI, given(noRetainSPI))
         configuration.apply(\.$retainAssignOnlyProperties, retainAssignOnlyProperties)
         configuration.apply(\.$retainAssignOnlyPropertyTypes, given(retainAssignOnlyPropertyTypes))

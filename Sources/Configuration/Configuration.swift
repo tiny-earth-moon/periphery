@@ -70,8 +70,12 @@ public final class Configuration {
     @Setting(key: "retain_files", defaultValue: [])
     public var retainFiles: [String]
 
-    @Setting(key: "retain_public", defaultValue: false)
+    /// Also takes a list of modules in the configuration file, read as `retain_public_modules`.
+    @Setting(key: "retain_public", defaultValue: false, kind: .boolOrStringList, convert: SettingConverter.bool)
     public var retainPublic: Bool
+
+    @Setting(key: "retain_public_modules", defaultValue: [])
+    public var retainPublicModules: [String]
 
     @Setting(key: "no_retain_spi", defaultValue: [])
     public var noRetainSPI: [String]
@@ -277,7 +281,11 @@ public final class Configuration {
         }
 
         for (key, value, isString) in entries {
-            if isString, let setting = settings.first(where: { key == $0.key }) {
+            if isString, key == $retainPublic.key, value is [Any] {
+                if let message = $retainPublicModules.assign(value, reportedKey: key) {
+                    warn("\(path.string): \(message)")
+                }
+            } else if isString, let setting = settings.first(where: { key == $0.key }) {
                 if let message = setting.assign(value) {
                     warn("\(path.string): \(message)")
                 }
@@ -303,6 +311,16 @@ public final class Configuration {
         guard let value else { return }
 
         self[keyPath: path].wrappedValue = value
+    }
+
+    /// Whether some public declarations are retained, by `retain_public` or `retain_public_modules`.
+    public var retainsPublicDeclarations: Bool {
+        retainPublic || !retainPublicModules.isEmpty
+    }
+
+    /// Whether the public declarations of a file compiled into the given modules are retained.
+    public func retainsPublicDeclarations(inModules modules: Set<String>) -> Bool {
+        retainPublic || retainPublicModules.contains(where: modules.contains)
     }
 
     public func buildFilenameMatchers() {
@@ -393,7 +411,7 @@ public final class Configuration {
 
     lazy var settings: [any AbstractSetting] = [
         $project, $schemes, $excludeTargets, $excludeTests, $indexExclude, $reportExclude, $reportInclude, $outputFormat,
-        $retainPublic, $noRetainSPI, $retainFiles, $retainAssignOnlyProperties, $retainAssignOnlyPropertyTypes, $enableUnassignedOptionalAnalysis, $retainObjcAccessible,
+        $retainPublic, $retainPublicModules, $noRetainSPI, $retainFiles, $retainAssignOnlyProperties, $retainAssignOnlyPropertyTypes, $enableUnassignedOptionalAnalysis, $retainObjcAccessible,
         $retainJsAccessible, $retainObjcAnnotated, $retainUnusedProtocolFuncParams, $retainUnusedParametersWithoutDefault, $retainSwiftUIPreviews, $disableRedundantPublicAnalysis, $enableRedundantPublicMembers, $enableOpenFinalAnalysis, $enableEmptyExtensionAnalysis, $enableRedundantAccessLevelAnalysis, $reportUnusedTypeParameters,
         $disablePlatformConditionalRetention, $disableUnusedImportAnalysis, $enableUnusedSystemImports, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $retainRuntimeLocalizedKeys, $superfluousIgnoreComments, $retainUnusedImportedModules,
         $externalEncodableProtocols, $externalCodableProtocols, $externalTestCaseClasses, $verbose, $quiet, $color,

@@ -105,7 +105,7 @@ Limit: retention is by name, so another method with one of these names is retain
 
 ### String interpolation
 
-The index store does not record a call to `appendInterpolation` made by a string literal ([apple/swift#56189](https://github.com/apple/swift/issues/56189)), so every `appendInterpolation(` method declared in a struct extension is retained.
+The index store does not record a call to `appendInterpolation` made by a string literal ([apple/swift#56189](https://github.com/apple/swift/issues/56189)), so on Swift older than 6.4 every `appendInterpolation(` method declared in a struct extension is retained. From Swift 6.4 the call is recorded and unused overloads are reported.
 
 ```swift
 extension String.StringInterpolation {
@@ -251,7 +251,7 @@ Files inside Xcode 16+ synchronized folders (`PBXFileSystemSynchronizedRootGroup
 
 Swift's `@_spi` attribute (System Programming Interface) marks declarations as pseudo-private, accessible only to clients that explicitly import the SPI. While these declarations are technically `public`, they are intended for internal or restricted use.
 
-With [`--retain-public`](options.md), for framework projects, all public declarations are retained, including those marked with `@_spi`. To check for unused code within specific SPIs anyway, list them with [`--no-retain-spi`](options.md) (`no_retain_spi`).
+With [`--retain-public`](options.md), for framework projects, all public declarations are retained, including those marked with `@_spi`; with [`--retain-public-modules`](options.md), those of the listed modules. To check for unused code within specific SPIs anyway, list them with [`--no-retain-spi`](options.md) (`no_retain_spi`).
 
 For example, with `--retain-public --no-retain-spi Internal`, outskirts:
 

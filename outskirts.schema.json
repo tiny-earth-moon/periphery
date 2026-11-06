@@ -94,12 +94,29 @@
       "default": "xcode"
     },
     "retain_public": {
-      "description": "Retain all public declarations, recommended for framework and library projects.",
-      "type": "boolean",
+      "description": "Retain all public declarations, recommended for framework and library projects. A list of modules is read as retain_public_modules.",
+      "type": [
+        "boolean",
+        "array"
+      ],
+      "items": {
+        "type": "string"
+      },
       "default": false
     },
+    "retain_public_modules": {
+      "description": "Modules whose public declarations are retained, for packages that mix libraries with apps or tools.",
+      "type": [
+        "array",
+        "string"
+      ],
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
     "no_retain_spi": {
-      "description": "Public SPIs to analyze even when retain_public is enabled.",
+      "description": "Public SPIs to analyze even when retain_public or retain_public_modules is enabled.",
       "type": [
         "array",
         "string"

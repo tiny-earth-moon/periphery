@@ -195,6 +195,27 @@ final class CommandLinePrecedenceTest: XCTestCase {
         XCTAssertEqual(configuration.reportExclude, [.pattern("**/Mocks/**")])
     }
 
+    func testRetainPublicModulesOnTheCommandLineReplaceTheOnesOfTheFile() throws {
+        let configuration = try merge(["--retain-public-modules", "Kit"], file: "retain_public: [Lib]\n")
+
+        XCTAssertEqual(configuration.retainPublicModules, ["Kit"])
+        XCTAssertFalse(configuration.retainPublic)
+    }
+
+    func testNoRetainPublicClearsTheModulesOfTheFile() throws {
+        let configuration = try merge(["--no-retain-public"], file: "retain_public: [Lib]\n")
+
+        XCTAssertFalse(configuration.retainPublic)
+        XCTAssertEqual(configuration.retainPublicModules, [])
+    }
+
+    func testRetainPublicOnTheCommandLineKeepsTheModulesOfTheFile() throws {
+        let configuration = try merge(["--retain-public"], file: "retain_public_modules: [Lib]\n")
+
+        XCTAssertTrue(configuration.retainPublic)
+        XCTAssertEqual(configuration.retainPublicModules, ["Lib"])
+    }
+
     func testPathsOnTheCommandLineOverrideTheFile() throws {
         let configuration = try merge(
             ["--project", "Cli.xcodeproj", "--baseline", "cli.json"],

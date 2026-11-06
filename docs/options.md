@@ -352,15 +352,23 @@ See [Analysis: Keys built at runtime](analysis.md#keys-built-at-runtime).
 
 ### `--retain-public`
 
-Retain all public declarations, recommended for framework and library projects.
+Retain all public declarations, recommended for framework and library projects. A list of modules is read as retain_public_modules.
 
-Key `retain_public` · flag, `--no-retain-public` to switch off · default `false`.
+Key `retain_public` · flag, `--no-retain-public` to switch off, or in the file a list of strings · default `false`.
 
 See [Getting started: Quick start](getting-started.md#quick-start), [Configuration: The configuration file](configuration.md#the-configuration-file), [Analysis: Open and final](analysis.md#open-and-final), [Framework conventions and retention: SPI](framework-conventions.md#spi).
 
+### `--retain-public-modules`
+
+Modules whose public declarations are retained, for packages that mix libraries with apps or tools.
+
+Key `retain_public_modules` · list of strings · default empty.
+
+See [Getting started: Quick start](getting-started.md#quick-start), [Framework conventions and retention: SPI](framework-conventions.md#spi).
+
 ### `--no-retain-spi`
 
-Public SPIs to analyze even when retain_public is enabled.
+Public SPIs to analyze even when retain_public or retain_public_modules is enabled.
 
 Key `no_retain_spi` · list of strings · default empty.
 

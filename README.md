@@ -97,6 +97,14 @@ The guided setup is meant as an introduction. Once you know which options your p
 
 If your project consists of one or more standalone frameworks that do not also contain some kind of application that consumes their interfaces, tell outskirts to assume that all public declarations are used with the `--retain-public` option. For projects that mix Objective-C and Swift, read about [the implications](https://outskirts.dev/docs/framework-conventions/#objective-c) this has on the results.
 
+If your project mixes such libraries with an app, a command line tool or a demo, retain only the public declarations of the libraries with `--retain-public-modules`, so that the unused public declarations of the other modules are still reported:
+
+```sh
+outskirts scan --retain-public-modules MyLibrary OtherKit
+```
+
+In the configuration file, write `retain_public_modules: [MyLibrary, OtherKit]`, or `retain_public: [MyLibrary, OtherKit]`. `--retain-public` keeps retaining the public declarations of every module, and `--no-retain-public` retains none, the modules of the configuration file included.
+
 <!-- docs:end -->
 
 ## Migrating from Periphery
