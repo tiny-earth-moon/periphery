@@ -78,6 +78,23 @@ The guided setup is meant as an introduction. Once you know which options your p
 
 If your project consists of one or more standalone frameworks that do not also contain some kind of application that consumes their interfaces, tell outskirts to assume that all public declarations are used with the `--retain-public` option. For projects that mix Objective-C and Swift, read about [the implications](framework-conventions.md#objective-c) this has on the results.
 
+## GitHub Actions
+
+On a macOS runner, the [outskirts action](https://github.com/tiny-earth-moon/outskirts-action) installs the latest release, checks the archive checksum and runs `outskirts scan`, with each result shown as an annotation on the pull request:
+
+```yaml
+jobs:
+  outskirts:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: tiny-earth-moon/outskirts-action@v1
+        with:
+          args: --project MyApp.xcodeproj --schemes MyApp
+```
+
+Leave `args` empty for a Swift package, or when a `.outskirts.yml` holds your options. The step fails when results are reported; set `fail-on-results: false` to only annotate, and `version` to pin a release. The action's README lists every input; other CI setups are covered in [Continuous integration](ci.md).
+
 ## How a scan works
 
 outskirts first builds your project to generate the index store. The index store contains detailed information about the declarations (class, struct, func, etc.) in your project and their references to other declarations. From this store, outskirts builds an in-memory graph of the relational structure of your project, supplemented with information obtained by parsing each source file. The graph is then adjusted to suit the detection of unused code, e.g. by marking your project's entry points. Finally, the graph is traversed from its roots, and the declarations it never reaches are reported.
