@@ -27,7 +27,7 @@ outskirts explores your Xcode project or Swift package, builds a map of what ref
 
 - **Build from source** (Homebrew without a bottle, Mint or `swift build`): macOS 15 or later (`Package.swift`), Swift 6.1.2 or later (checked at every scan) and Xcode 26.0 or later (required by the Homebrew formula). Xcode or the Command Line Tools must be installed, as outskirts loads `libIndexStore.dylib` from the toolchain.
 - **Homebrew bottle**: Apple silicon with macOS 27 or later, built with Xcode 27.2. It loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools.
-- **Prebuilt archive**: Apple silicon with macOS 15 or later. Like the bottle, it loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools.
+- **Prebuilt archive** (also installed by aqua and mise): Apple silicon with macOS 15 or later. Like the bottle, it loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools.
 - **Linux**: Swift Package Manager projects only, see [Platforms](https://outskirts.dev/docs/getting-started/#platforms).
 
 ### Homebrew
@@ -45,6 +45,23 @@ mint install tiny-earth-moon/outskirts
 ```
 
 `Package.swift` declares two executable products, `outskirts` and `periphery`, both built from the same target. [Mint](https://github.com/yonaskolb/mint) links the executable products of a package, so both commands are available after the install; `outskirts` is the one to use, `periphery` is the compatibility alias. Pin a release with `tiny-earth-moon/outskirts@<version>`.
+
+### aqua and mise
+
+[aqua](https://aquaproj.github.io/) has outskirts in its standard registry. Add it to your `aqua.yaml`, then install:
+
+```sh
+aqua g -i tiny-earth-moon/outskirts
+aqua i
+```
+
+[mise](https://mise.jdx.dev/) installs it from the GitHub releases:
+
+```sh
+mise use github:tiny-earth-moon/outskirts
+```
+
+Both install the [prebuilt archive](https://outskirts.dev/docs/getting-started/#prebuilt-archive) for macOS on Apple silicon, so the same [requirements](https://outskirts.dev/docs/getting-started/#requirements) apply: Xcode at `/Applications/Xcode.app` or the Command Line Tools must be installed, as the binary loads `libIndexStore.dylib` from there, like the bottle.
 
 ### Prebuilt archive
 
