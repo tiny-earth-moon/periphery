@@ -105,7 +105,7 @@ Limit: retention is by name, so another method with one of these names is retain
 
 ### String interpolation
 
-The index store does not record a call to `appendInterpolation` made by a string literal ([apple/swift#56189](https://github.com/apple/swift/issues/56189)), so every `appendInterpolation(` method declared in a struct extension is retained.
+The index store does not record a call to `appendInterpolation` made by a string literal ([apple/swift#56189](https://github.com/apple/swift/issues/56189)), so on Swift older than 6.4 every `appendInterpolation(` method declared in a struct extension is retained. From Swift 6.4 the call is recorded and unused overloads are reported.
 
 ```swift
 extension String.StringInterpolation {
