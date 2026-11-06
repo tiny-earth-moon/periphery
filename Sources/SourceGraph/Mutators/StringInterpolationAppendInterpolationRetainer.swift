@@ -4,15 +4,21 @@ import Shared
 
 /// https://github.com/apple/swift/issues/56189
 /// Older index stores do not contain references to `appendInterpolation` functions from their use in string literals;
-/// Swift 6.4 records them (`KnownSwiftBugsTest`), the retainer stays for the older toolchains.
+/// Swift 6.4 records them (`KnownSwiftBugsTest`), so the retainer only runs on older toolchains.
 final class StringInterpolationAppendInterpolationRetainer: SourceGraphMutator {
-    private let graph: SourceGraph
+    static let firstVersionRecordingReference = "6.4"
 
-    required init(graph: SourceGraph, configuration _: Configuration, swiftVersion _: SwiftVersion) {
+    private let graph: SourceGraph
+    private let swiftVersion: SwiftVersion
+
+    required init(graph: SourceGraph, configuration _: Configuration, swiftVersion: SwiftVersion) {
         self.graph = graph
+        self.swiftVersion = swiftVersion
     }
 
     func mutate() {
+        guard swiftVersion.version.isVersion(lessThan: Self.firstVersionRecordingReference) else { return }
+
         for declaration in graph.declarations(ofKind: .extensionStruct) {
             declaration.declarations.filter {
                 $0.kind == .functionMethodInstance &&
