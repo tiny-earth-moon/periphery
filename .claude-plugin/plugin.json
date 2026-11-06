@@ -1,0 +1,9 @@
+{
+  "name": "outskirts",
+  "description": "Find and safely remove unused Swift code with outskirts, a maintained fork of Periphery.",
+  "author": { "name": "tiny-earth-moon" },
+  "homepage": "https://github.com/tiny-earth-moon/outskirts",
+  "repository": "https://github.com/tiny-earth-moon/outskirts",
+  "license": "MIT",
+  "keywords": ["swift", "dead-code", "periphery", "xcode"]
+}
