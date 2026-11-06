@@ -10,11 +10,17 @@ Most surprising results come from what the index store saw, or did not see. This
 
 The index store can become corrupt or out of sync with the source files, for example when a scan is forcefully interrupted (Ctrl-C). Pass `--clean-build` to remove the existing build artifacts and build again.
 
+### Index data older than its source
+
+Since 3.21.0.
+
 outskirts compares the modification time of each source file with the index data it reads for it. When a file was edited after its last build, for example when you scan with `--skip-build` or `--index-store-path` without building first, it prints a single warning for the scan:
 
 > warning: 2 source files are newer than their index data in .build/out: Sources/Kit/Beta.swift, Sources/Kit/SameName.swift. Results in them may be at the wrong lines or missing: rebuild the project before scanning, or pass '--clean-build' to start from an empty index store.
 
 The warning names each index store with the number of files concerned and the first three of them. The results are left unchanged: the index data is still the only description of these files, but it describes an older version of them, so a result may point to a line that has moved, and a declaration added since is not seen. Build the project again, or scan without `--skip-build` so that outskirts builds it. Index data older than its source file is ignored, without a warning, when another index store holds data for the same file and module written after the last edit.
+
+In CI, pass [`--strict-index`](options.md#--strict-index) (`strict_index: true`) to fail the scan instead of printing the warning.
 
 ## Code referenced only in an #if DEBUG branch
 
@@ -45,6 +51,8 @@ Platform conditions (`#if os(...)`, `canImport(...)` and the like) are handled d
 
 ## Scanning several platforms or configurations
 
+Since 3.21.0.
+
 outskirts reads every index store it is given and merges their data per source file. A declaration referenced in any of them is used, so scanning the stores of all your build configurations, or of all your platforms, together reports only the code that none of them uses. This union also covers code compiled in a single configuration (`releaseName` above is used in the Release store, `debugName` in the Debug one) and the imports needed by only one platform.
 
 When every platform is built, also pass [`--disable-platform-conditional-retention`](options.md#--disable-platform-conditional-retention): code under `#if os(...)` is then checked like any other code, instead of being kept because outskirts cannot see the other branches.
@@ -74,7 +82,7 @@ When every platform is built, also pass [`--disable-platform-conditional-retenti
 
 - **Swift packages**: give each platform its own `--scratch-path` and build it with `--triple` and `--sdk`, see [Swift package is platform-specific](#swift-package-is-platform-specific). With the `swiftbuild` build system (the default since Swift 6.4), the index store of a scratch path is `<scratch-path>/out`.
 
-Build all the stores from the same version of the sources. If one of them was built before an edit, outskirts prints the [warning above](#results-in-the-wrong-place-or-false-positives-in-one-file) for the files concerned.
+Build all the stores from the same version of the sources. If one of them was built before an edit, outskirts prints the [warning above](#index-data-older-than-its-source) for the files concerned.
 
 ### Merging the results of separate scans
 

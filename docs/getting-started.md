@@ -59,6 +59,8 @@ The executable is written to `.build/release/outskirts`. Xcode or the Command Li
 
 ### Shell completions
 
+Since 3.21.0.
+
 The Homebrew formula installs the bash, zsh and fish completions. With another install, generate them, e.g. for zsh with `~/.zfunc` in `fpath`:
 
 ```sh
@@ -199,7 +201,7 @@ Linux is built and tested in CI on Ubuntu, in the official Swift container. Mini
 | `outskirts clear-cache` | Clear the build cache of outskirts. |
 | `outskirts config check` | Check the configuration file without scanning, exit status 1 on any problem. |
 | `outskirts config schema` | Print the JSON Schema of the configuration file. |
-| `outskirts version` | Print the version of outskirts, also printed by `outskirts --version`. |
+| `outskirts version` | Print the version of outskirts, also printed by `outskirts --version` since 3.21.0. |
 
 ## Exit status
 

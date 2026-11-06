@@ -43,10 +43,8 @@ Analysis and retention:
 
 Tooling and distribution:
 
-- Warn when an index store is older than its sources, and document merging variant stores ([#230](https://github.com/tiny-earth-moon/outskirts/issues/230)).
 - A strict self-scan in CI ([#220](https://github.com/tiny-earth-moon/outskirts/issues/220)).
 - Prebuilt binaries beyond macOS 27 ([#229](https://github.com/tiny-earth-moon/outskirts/issues/229)).
-- CLI polish: `--version`, grouped help and shell completions ([#226](https://github.com/tiny-earth-moon/outskirts/issues/226)).
 
 ## Toward 4.0
 
