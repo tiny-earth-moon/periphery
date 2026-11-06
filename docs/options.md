@@ -360,6 +360,8 @@ See [Getting started: Quick start](getting-started.md#quick-start), [Configurati
 
 ### `--retain-public-modules`
 
+Since 3.21.0.
+
 Modules whose public declarations are retained, for packages that mix libraries with apps or tools.
 
 Key `retain_public_modules` · list of strings · default empty.

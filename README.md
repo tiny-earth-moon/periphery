@@ -105,6 +105,8 @@ The guided setup is meant as an introduction. Once you know which options your p
 
 If your project consists of one or more standalone frameworks that do not also contain some kind of application that consumes their interfaces, tell outskirts to assume that all public declarations are used with the `--retain-public` option. For projects that mix Objective-C and Swift, read about [the implications](https://outskirts.dev/docs/framework-conventions/#objective-c) this has on the results.
 
+Since 3.21.0.
+
 If your project mixes such libraries with an app, a command line tool or a demo, retain only the public declarations of the libraries with `--retain-public-modules`, so that the unused public declarations of the other modules are still reported:
 
 ```sh

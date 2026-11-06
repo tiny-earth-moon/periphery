@@ -27,6 +27,8 @@ const pages = loadPages();
 const groups = navigation(pages);
 const ordered = [pages.find((p) => p.name === ""), ...groups.flatMap((g) => g.items.map((i) => i.page))];
 const release = latestRelease();
+const currentVersion = readFileSync(join(REPO_DIR, "Sources/Shared/Version.swift"), "utf8").match(/"(\d+\.\d+\.\d+)"/)?.[1];
+if (!currentVersion) throw new Error("Sources/Shared/Version.swift has no version");
 const footer = readFileSync(join(PUBLIC_DIR, "index.html"), "utf8").match(/<footer>[\s\S]*?<\/footer>/)?.[0];
 if (!footer) throw new Error("public/index.html has no <footer> to share");
 
@@ -161,6 +163,7 @@ function calloutize(tokens, index, state) {
 function renderPage(page) {
   const { md, headings } = markdown(page);
   let body = md.render(page.body);
+  if (page.name !== "changelog") body = body.replace(/<p>Since (\d+\.\d+\.\d+)\.<\/p>/g, (_, version) => since(version));
 
   const changelog = page.name === "changelog";
   const toc = tableOfContents(headings, { topLevelOnly: changelog || headings.length > MAX_TOC_ENTRIES, closed: changelog });
@@ -285,6 +288,18 @@ function pngSize(file) {
   const data = readFileSync(file);
   if (data.toString("ascii", 12, 16) !== "IHDR") throw new Error(`${file} is not a PNG`);
   return { width: data.readUInt32BE(16), height: data.readUInt32BE(20) };
+}
+
+/** A paragraph that is exactly `Since X.Y.Z.` marks what that version adds; badged until that version is released. */
+function since(version) {
+  const unreleased = compareVersions(version, currentVersion) > 0 ? ' <span class="unreleased">not yet released</span>' : "";
+  return `<p class="since">Since ${version}${unreleased}</p>`;
+}
+
+function compareVersions(a, b) {
+  const [x, y] = [a, b].map((v) => v.split(".").map(Number));
+  for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] - y[i];
+  return 0;
 }
 
 function escapeHTML(text) {
