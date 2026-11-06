@@ -77,6 +77,8 @@ h2:hover .anchor,h3:hover .anchor,.anchor:focus-visible{opacity:1}
 .callout-title{margin:var(--space-1) 0;font-weight:700;color:var(--note)}
 .callout-tip .callout-title{color:var(--tip)}
 .callout-warning .callout-title,.callout-caution .callout-title,.callout-important .callout-title{color:var(--warning)}
+.since{margin:0 0 var(--space-2);font-size:.875rem;color:var(--muted)}
+.unreleased{display:inline-block;margin-left:var(--space-1);padding:0 var(--space-1);border:1px solid var(--accent);border-radius:var(--radius-m);color:var(--accent);font-size:.75rem;font-weight:600}
 blockquote{margin:var(--space-3) 0}
 .table-scroll{margin:var(--space-3) 0;overflow-x:auto;background:linear-gradient(to right,var(--bg) 40%,transparent) left/1.5rem 100% no-repeat local,linear-gradient(to left,var(--bg) 40%,transparent) right/1.5rem 100% no-repeat local,radial-gradient(farthest-side at 0 50%,var(--line),transparent) left/.6rem 100% no-repeat scroll,radial-gradient(farthest-side at 100% 50%,var(--line),transparent) right/.6rem 100% no-repeat scroll}
 table{width:100%;border-collapse:collapse;font-size:var(--text-small)}

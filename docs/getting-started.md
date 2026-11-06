@@ -57,6 +57,14 @@ swift build -c release --product outskirts
 
 The executable is written to `.build/release/outskirts`. Xcode or the Command Line Tools must be installed: outskirts links `libIndexStore.dylib` through an rpath to the toolchain that built it.
 
+### Shell completions
+
+The Homebrew formula installs the bash, zsh and fish completions. With another install, generate them, e.g. for zsh with `~/.zfunc` in `fpath`:
+
+```sh
+outskirts --generate-completion-script zsh > ~/.zfunc/_outskirts
+```
+
 ## Quick start
 
 From the root of your project, the guided setup detects the project type, asks a few questions, prints the full scan command and runs it:
@@ -77,6 +85,8 @@ Keep your options in a `.outskirts.yml` file at the project root, see [Configura
 The guided setup is meant as an introduction. Once you know which options your project needs, run `outskirts scan` with them, or with a configuration file.
 
 If your project consists of one or more standalone frameworks that do not also contain some kind of application that consumes their interfaces, tell outskirts to assume that all public declarations are used with the `--retain-public` option. For projects that mix Objective-C and Swift, read about [the implications](framework-conventions.md#objective-c) this has on the results.
+
+Since 3.21.0.
 
 If your project mixes such libraries with an app, a command line tool or a demo, retain only the public declarations of the libraries with `--retain-public-modules`, so that the unused public declarations of the other modules are still reported:
 
@@ -200,7 +210,7 @@ Linux is built and tested in CI on Ubuntu, in the official Swift container. Mini
 | `outskirts clear-cache` | Clear the build cache of outskirts. |
 | `outskirts config check` | Check the configuration file without scanning, exit status 1 on any problem. |
 | `outskirts config schema` | Print the JSON Schema of the configuration file. |
-| `outskirts version` | Print the version of outskirts. |
+| `outskirts version` | Print the version of outskirts, also printed by `outskirts --version`. |
 
 ## Exit status
 

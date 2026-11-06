@@ -36,6 +36,7 @@ The Markdown files of `docs/` are the documentation: they are published as https
 
 - `docs/options.md` is generated from `outskirts.schema.json`, and the README sections between `<!-- docs:begin page#anchor -->` and `<!-- docs:end -->` are extracts of `docs/`. After editing `docs/` or the schema, run `npm install` once, then `npm run sync` in `site/`, and commit the result.
 - `npm run check` in `site/` builds the site into `site/public/` (not committed), then checks that the generated Markdown is up to date, that every page is in the navigation of `docs/README.md`, and that every link and anchor resolves; the CI runs it.
+- The docs follow `master`, so mark what is not in a release yet: every new option gets its version in `SINCE` of `site/scripts/sync.mjs` (keys missing from both `SINCE` and `site/scripts/options-baseline.txt` fail `npm run check`), and every new doc section starts with a paragraph that is exactly `Since X.Y.Z.`, the next version. The site shows "not yet released" next to it while X.Y.Z is above the version in `Sources/Shared/Version.swift`.
 - The changelog page is generated from `CHANGELOG.md` at build time.
 - Images live under `assets/` and are referenced as `../assets/...`. Keep code lines within 64 characters so that they never wrap on a laptop.
 - A link to a page of the site is written `https://outskirts.dev/docs/<page>/#<anchor>`; `SarifFormatterTest` checks the links of the SARIF rules against the headings of `docs/`.
