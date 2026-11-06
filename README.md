@@ -72,6 +72,14 @@ swift build -c release --product outskirts
 
 The executable is written to `.build/release/outskirts`. Xcode or the Command Line Tools must be installed: outskirts links `libIndexStore.dylib` through an rpath to the toolchain that built it.
 
+### Shell completions
+
+The Homebrew formula installs the bash, zsh and fish completions. With another install, generate them, e.g. for zsh with `~/.zfunc` in `fpath`:
+
+```sh
+outskirts --generate-completion-script zsh > ~/.zfunc/_outskirts
+```
+
 <!-- docs:end -->
 
 ## Quick start

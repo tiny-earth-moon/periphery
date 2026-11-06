@@ -2,6 +2,8 @@ import ArgumentParser
 import Configuration
 import Foundation
 @testable import Frontend
+import Shared
+@testable import TestShared
 import XCTest
 
 final class CommandLinePrecedenceTest: XCTestCase {
@@ -267,7 +269,43 @@ final class CommandLinePrecedenceTest: XCTestCase {
         XCTAssertTrue(defaults.localizedStringCatalogExclude.allSatisfy { help.contains($0) })
     }
 
+    func testHelpGroupsTheScanOptionsAndShowsNoMachinePath() {
+        let help = ScanCommand.helpMessage(columns: 1000)
+
+        for title in ["PROJECT", "BUILD", "ANALYSIS", "RETENTION", "RESULTS", "BASELINE", "LOCALIZED STRINGS", "MISCELLANEOUS"] {
+            XCTAssertTrue(help.contains("\n\(title):\n"), "no '\(title)' group in the help")
+        }
+        XCTAssertFalse(help.contains(FileManager.default.currentDirectoryPath), "the help shows the current directory")
+        XCTAssertTrue(help.contains("(default: the current directory)"))
+    }
+
+    func testProjectRootDefaultsToNothingUntilTheScanRuns() throws {
+        XCTAssertNil(try ScanCommand.parse([]).projectOptions.projectRoot)
+        XCTAssertEqual(try ScanCommand.parse(["--project-root", "/tmp"]).projectOptions.projectRoot, "/tmp")
+    }
+
+    func testVersionOptionPrintsWhatTheVersionCommandPrints() throws {
+        let option = try runOutskirts(["--version"])
+        let command = try runOutskirts(["version"])
+
+        XCTAssertEqual(option.status, 0, option.output)
+        XCTAssertEqual(option.output, "\(PeripheryVersion)\n")
+        XCTAssertEqual(option.output, command.output)
+    }
+
     // MARK: - Private
+
+    private func runOutskirts(_ arguments: [String]) throws -> (status: Int32, output: String) {
+        let process = Process()
+        let pipe = Pipe()
+        process.executableURL = try locatePeripheryExecutable(near: Self.self)
+        process.arguments = arguments
+        process.standardOutput = pipe
+        try process.run()
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        return (process.terminationStatus, String(bytes: data, encoding: .utf8) ?? "")
+    }
 
     private func merge(_ arguments: [String], file: String?) throws -> Configuration {
         let command = try ScanCommand.parse(arguments)

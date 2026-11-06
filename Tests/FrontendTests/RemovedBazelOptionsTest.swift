@@ -38,8 +38,8 @@ final class RemovedBazelOptionsTest: XCTestCase {
 
     func testScanWithoutRemovedOptionsStillParses() throws {
         let command = try ScanCommand.parse(["--strict", "--quiet"])
-        XCTAssertEqual(command.strict, true)
-        XCTAssertEqual(command.quiet, true)
+        XCTAssertEqual(command.resultsOptions.strict, true)
+        XCTAssertEqual(command.miscellaneousOptions.quiet, true)
     }
 
     func testArgumentsAfterTheSeparatorBelongToTheBuildTool() throws {
