@@ -102,7 +102,7 @@ Fail the scan when a source file is newer than its index data, instead of warnin
 
 Key `strict_index` · flag, `--no-strict-index` to switch off · default `false`.
 
-See [Continuous integration: Reusing the build](ci.md#reusing-the-build), [Troubleshooting: Index data older than its source](troubleshooting.md#index-data-older-than-its-source).
+See [Continuous integration: Reusing the build](ci.md#reusing-the-build), [Troubleshooting: Index data older than its source](troubleshooting.md#index-data-older-than-its-source), [Roadmap: Published](roadmap.md#published).
 
 ### `--json-package-manifest-path`
 

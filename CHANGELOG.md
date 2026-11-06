@@ -12,6 +12,22 @@
 
 - None.
 
+## 3.21.0 (2026-11-06)
+
+##### Breaking
+
+- None.
+
+##### Enhancements
+
+- `retain_public` can be limited to some modules: `retain_public_modules: [Lib]` (or `retain_public: [Lib]`, `--retain-public-modules Lib`) keeps the public API of the listed modules and reports unused public code everywhere else, for packages that mix a library with an app, a tool or a demo. A warning names any listed module that is not part of the scan (#217).
+- A scan warns once when source files are newer than their index data, with the number of files and a few examples per index store; results are unchanged. `--strict-index` (`strict_index: true`) turns that warning into a failure for CI. The troubleshooting guide now explains how to scan several platforms or configurations together (#230).
+- `outskirts --version`; `outskirts help scan` groups its options into sections; `--project-root` no longer shows the machine's current directory as its default; path options complete files and directories, and the Homebrew formula installs bash, zsh and fish completions (#226).
+
+##### Bug Fixes
+
+- From Swift 6.4, where the compiler records the reference, every `appendInterpolation` overload is no longer retained by default: an unused overload is reported like any other function. Older toolchains keep the workaround (#222).
+
 ## 3.20.0 (2026-11-05)
 
 ##### Breaking
