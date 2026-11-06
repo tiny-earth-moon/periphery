@@ -5,7 +5,7 @@
 // outskirts.dev/docs points to an existing page and anchor.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { DOCS_DIR, ORIGIN, REPO_DIR, loadPages, markdownHeadings, navigation, pageURL, resolveLink } from "./lib/docs.mjs";
+import { DOCS_DIR, ORIGIN, REPO_DIR, SITE_DIR, loadPages, markdownHeadings, navigation, pageURL, resolveLink } from "./lib/docs.mjs";
 
 const check = process.argv.includes("--check");
 const problems = [];
@@ -27,6 +27,12 @@ const COMMAND_LINE_ONLY = [
   ["--project-root", "Root directory of the project, from which relative paths are resolved. Default: the current directory."],
   ["--config", "Configuration file. A relative path is resolved from `--project-root`. Default: `.outskirts.yml`, else `.periphery.yml`, in the project root."],
 ];
+
+/**
+ * The version that added each configuration key absent from options-baseline.txt (the keys of the 3.20.0 schema).
+ * Every new key needs an entry: the next version, after the one in `Sources/Shared/Version.swift`.
+ */
+const SINCE = { retain_public_modules: "3.21.0" };
 
 /** Keys whose command line form is not `--` followed by the key in kebab case; `null` for configuration file only. */
 const FLAGS = { build_arguments: "-- <args>", relative_results_base: "--relative-to", xcode_list_arguments: null };
@@ -60,6 +66,15 @@ function optionsReference() {
   }
   for (const key of categorized) {
     if (!keys.includes(key)) throw new Error(`CATEGORIES of site/scripts/sync.mjs names '${key}', which is not in outskirts.schema.json`);
+  }
+
+  const baseline = readFileSync(join(SITE_DIR, "scripts/options-baseline.txt"), "utf8").split("\n").filter(Boolean);
+  for (const key of keys) {
+    if (!baseline.includes(key) && !SINCE[key]) throw new Error(`'${key}' is new: give it a version in SINCE of site/scripts/sync.mjs`);
+  }
+  for (const [key, version] of Object.entries(SINCE)) {
+    if (!keys.includes(key)) throw new Error(`SINCE of site/scripts/sync.mjs names '${key}', which is not in outskirts.schema.json`);
+    if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error(`SINCE of site/scripts/sync.mjs: '${version}' is not a version`);
   }
 
   const references = crossReferences();
@@ -106,7 +121,8 @@ function option(key, property, references) {
   facts.push(`default ${describeDefault(property)}`);
   const description = property.description.replace(/\s*\(command line: --[a-z-]+\)/, "").trim();
   const extra = key === "color" ? " `--no-color` is a hidden alias of `--color never`." : "";
-  return [heading, "", `${description}${extra}`, "", `${facts.join(" · ")}.`, "", ...seeAlso(references, [flag, key].filter(Boolean))];
+  const since = SINCE[key] ? [`Since ${SINCE[key]}.`, ""] : [];
+  return [heading, "", ...since, `${description}${extra}`, "", `${facts.join(" · ")}.`, "", ...seeAlso(references, [flag, key].filter(Boolean))];
 }
 
 function describeType(property, flag) {

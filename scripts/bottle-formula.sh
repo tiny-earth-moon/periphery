@@ -56,6 +56,7 @@ class Outskirts < Formula
     system "swift", "build", *args
     bin.install ".build/release/outskirts"
     bin.install_symlink "outskirts" => "periphery"
+    generate_completions_from_executable(bin/"outskirts", "--generate-completion-script")
   end
 
   def caveats
