@@ -124,7 +124,16 @@ The repository ships an agent skill that teaches a coding agent to run a scan, t
 /plugin install outskirts@outskirts
 ```
 
-For other agents that read Agent Skills, copy the `skills/outskirts` folder of the repository into the agent's skills directory.
+Codex reads Agent Skills from `~/.agents/skills` (all your repositories) or from `.agents/skills` at the root of a repository:
+
+```
+git clone --depth 1 \
+  https://github.com/tiny-earth-moon/outskirts /tmp/outskirts
+mkdir -p ~/.agents/skills
+cp -R /tmp/outskirts/skills/outskirts ~/.agents/skills/
+```
+
+Restart Codex if the skill does not appear. For other agents that read Agent Skills, copy the same folder into the agent's skills directory.
 
 ## How a scan works
 
