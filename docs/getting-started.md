@@ -57,6 +57,14 @@ swift build -c release --product outskirts
 
 The executable is written to `.build/release/outskirts`. Xcode or the Command Line Tools must be installed: outskirts links `libIndexStore.dylib` through an rpath to the toolchain that built it.
 
+### Shell completions
+
+The Homebrew formula installs the bash, zsh and fish completions. With another install, generate them, e.g. for zsh with `~/.zfunc` in `fpath`:
+
+```sh
+outskirts --generate-completion-script zsh > ~/.zfunc/_outskirts
+```
+
 ## Quick start
 
 From the root of your project, the guided setup detects the project type, asks a few questions, prints the full scan command and runs it:
@@ -189,7 +197,7 @@ Linux is built and tested in CI on Ubuntu, in the official Swift container. Mini
 | `outskirts clear-cache` | Clear the build cache of outskirts. |
 | `outskirts config check` | Check the configuration file without scanning, exit status 1 on any problem. |
 | `outskirts config schema` | Print the JSON Schema of the configuration file. |
-| `outskirts version` | Print the version of outskirts. |
+| `outskirts version` | Print the version of outskirts, also printed by `outskirts --version`. |
 
 ## Exit status
 
