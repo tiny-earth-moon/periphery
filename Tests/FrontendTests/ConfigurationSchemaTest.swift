@@ -55,7 +55,19 @@ final class ConfigurationSchemaTest: XCTestCase {
 
     func testSettingsMatchTheScanOptions() throws {
         let command = try ScanCommand.parse([])
-        let optionKeys = Mirror(reflecting: command).children.compactMap(\.label).map { label in
+        let groups: [Any] = [
+            command,
+            command.projectOptions,
+            command.buildOptions,
+            command.analysisOptions,
+            command.retentionOptions,
+            command.resultsOptions,
+            command.baselineOptions,
+            command.localizedStringOptions,
+            command.miscellaneousOptions,
+        ]
+        let labels = groups.flatMap { Mirror(reflecting: $0).children.compactMap(\.label) }.filter { !$0.hasSuffix("Options") }
+        let optionKeys = labels.map { label in
             let key = Self.snakeCased(String(label.drop { $0 == "_" }))
             return Self.renamedOptions[key] ?? key
         }

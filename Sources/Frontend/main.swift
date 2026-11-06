@@ -1,6 +1,7 @@
 import ArgumentParser
 import CStdio
 import Foundation
+import Shared
 
 /// When stdout is a pipe, enable line buffering so output is flushed after each
 /// newline rather than block-buffered, ensuring timely output to the consumer.
@@ -15,6 +16,7 @@ if (info.st_mode & S_IFMT) == S_IFIFO {
 struct OutskirtsCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "outskirts",
+        version: PeripheryVersion,
         subcommands: [
             ScanCommand.self,
             CheckUpdateCommand.self,
