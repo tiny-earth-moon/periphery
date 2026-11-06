@@ -280,7 +280,7 @@ Do not retain declarations unavailable on a platform or referenced from platform
 
 Key `disable_platform_conditional_retention` · flag, `--no-disable-platform-conditional-retention` to switch off · default `false`.
 
-See [Framework conventions and retention: Platform conditionals](framework-conventions.md#platform-conditionals).
+See [Framework conventions and retention: Platform conditionals](framework-conventions.md#platform-conditionals), [Troubleshooting: Scanning several platforms or configurations](troubleshooting.md#scanning-several-platforms-or-configurations).
 
 ### `--detect-unused-asset-catalog-colors`
 

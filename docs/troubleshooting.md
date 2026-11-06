@@ -1,5 +1,5 @@
 ---
-description: Fix unexpected outskirts results: stale index stores, code behind #if DEBUG, platform-specific packages, missing index stores, and the Swift index store bugs we checked.
+description: Fix unexpected outskirts results: stale index stores, code behind #if DEBUG, scanning several platforms or configurations, platform-specific packages, missing index stores, and the Swift index store bugs we checked.
 ---
 
 # Troubleshooting
@@ -9,6 +9,12 @@ Most surprising results come from what the index store saw, or did not see. This
 ## Results in the wrong place or false positives in one file
 
 The index store can become corrupt or out of sync with the source files, for example when a scan is forcefully interrupted (Ctrl-C). Pass `--clean-build` to remove the existing build artifacts and build again.
+
+outskirts compares the modification time of each source file with the index data it reads for it. When a file was edited after its last build, for example when you scan with `--skip-build` or `--index-store-path` without building first, it prints a single warning for the scan:
+
+> warning: 2 source files are newer than their index data in .build/out: Sources/Kit/Beta.swift, Sources/Kit/SameName.swift. Results in them may be at the wrong lines or missing: rebuild the project before scanning, or pass '--clean-build' to start from an empty index store.
+
+The warning names each index store with the number of files concerned and the first three of them. The results are left unchanged: the index data is still the only description of these files, but it describes an older version of them, so a result may point to a line that has moved, and a declaration added since is not seen. Build the project again, or scan without `--skip-build` so that outskirts builds it. Index data older than its source file is ignored, without a warning, when another index store holds data for the same file and module written after the last edit.
 
 ## Code referenced only in an #if DEBUG branch
 
@@ -33,15 +39,46 @@ There are a few ways around this:
 
 - Use a [comment command](comment-commands.md) to keep `releaseName`.
 - Filter the results to remove known instances.
-- Run outskirts once for each build configuration and keep only the results common to all of them, see below. Pass arguments to the underlying build after `--`, e.g. `outskirts scan ... -- -configuration Release`.
+- Scan the index stores of every build configuration together, see [Scanning several platforms or configurations](#scanning-several-platforms-or-configurations).
 
 Platform conditions (`#if os(...)`, `canImport(...)` and the like) are handled differently, see [Platform conditionals](framework-conventions.md#platform-conditionals).
 
-### Merging the results of several build configurations
+## Scanning several platforms or configurations
 
-"Merge" means **intersection**, not union. A declaration used only under `#if DEBUG` is reported as unused in the Release run, yet it is not dead code: it is used in Debug. In the example above, Debug reports `releaseName` and Release reports `debugName`, and neither is unused. A declaration is only truly unused if **every** configuration reports it, so keep only the results present in all of them.
+outskirts reads every index store it is given and merges their data per source file. A declaration referenced in any of them is used, so scanning the stores of all your build configurations, or of all your platforms, together reports only the code that none of them uses. This union also covers code compiled in a single configuration (`releaseName` above is used in the Release store, `debugName` in the Debug one) and the imports needed by only one platform.
 
-Run one scan per configuration and save each report as JSON:
+When every platform is built, also pass [`--disable-platform-conditional-retention`](options.md#--disable-platform-conditional-retention): code under `#if os(...)` is then checked like any other code, instead of being kept because outskirts cannot see the other branches.
+
+- **Several index stores**: repeat `--index-store-path`, once per store. It implies `--skip-build`, so build each configuration or platform first.
+
+  ```sh
+  outskirts scan --disable-platform-conditional-retention \
+    --index-store-path .build-macos/out \
+    --index-store-path .build-ios/out
+  ```
+
+- **Xcode**: build each destination or configuration into the same `-derivedDataPath`. They all write to one index store, `Index.noindex/DataStore`, which is scanned once.
+
+  ```sh
+  xcodebuild build-for-testing -scheme MyScheme \
+    -destination 'generic/platform=iOS Simulator' \
+    -derivedDataPath ../dd
+  xcodebuild build-for-testing -scheme MyScheme \
+    -destination 'platform=macOS' -derivedDataPath ../dd
+  outskirts scan --skip-build \
+    --disable-platform-conditional-retention \
+    --index-store-path ../dd/Index.noindex/DataStore
+  ```
+
+  Add `-configuration Release COMPILER_INDEX_STORE_ENABLE=YES` to build another configuration into the same store: Xcode only indexes Debug builds by default.
+
+- **Swift packages**: give each platform its own `--scratch-path` and build it with `--triple` and `--sdk`, see [Swift package is platform-specific](#swift-package-is-platform-specific). With the `swiftbuild` build system (the default since Swift 6.4), the index store of a scratch path is `<scratch-path>/out`.
+
+Build all the stores from the same version of the sources. If one of them was built before an edit, outskirts prints the [warning above](#results-in-the-wrong-place-or-false-positives-in-one-file) for the files concerned.
+
+### Merging the results of separate scans
+
+When the scans cannot share their sources, for example because they run on different machines or checkouts, merge their results instead. Here "merge" means **intersection**, not union: a declaration is only truly unused if **every** scan reports it. Save each report as JSON:
 
 ```sh
 outskirts scan --format json ... \
@@ -50,7 +87,7 @@ outskirts scan --format json ... \
   -- -configuration Release > results-release.json
 ```
 
-Then compute the intersection with [jq](https://jqlang.github.io/jq/). A result is identified by its `location`, `kind`, `name` and `hints`; add more `results-*.json` files to intersect more configurations.
+Then compute the intersection with [jq](https://jqlang.github.io/jq/). A result is identified by its `location`, `kind`, `name` and `hints`; add more `results-*.json` files to intersect more scans.
 
 ```sh
 jq -s '
@@ -67,19 +104,24 @@ jq -s '
   | [.[]]' results-*.json
 ```
 
-The output is a JSON array of the results reported by every configuration. If a declaration's line or column differs between configurations (e.g. it sits inside a conditional block), use `(.location | sub(":[0-9]+:[0-9]+$"; ""))` in place of `.location` in `id` to compare on the file and name only.
+The output is a JSON array of the results reported by every scan. If a declaration's line or column differs between scans (e.g. it sits inside a conditional block), use `(.location | sub(":[0-9]+:[0-9]+$"; ""))` in place of `.location` in `id` to compare on the file and name only. Unlike the union of index stores, the intersection never reports code that only one scan compiles.
 
 ## Swift package is platform-specific
 
-outskirts uses `swift build` to compile a Swift package, which fails if the package is platform-specific (e.g. iOS only). Build the package with `xcodebuild` instead, then scan the index store it produced with `--skip-build` and `--index-store-path`:
+`swift build` builds for the host by default, which fails for a package that only supports another platform (e.g. iOS only). Pass the target triple and SDK to the build after `--`; outskirts finds the index store of that build on its own:
 
 ```sh
-# 1. Build with xcodebuild
-xcodebuild -scheme MyScheme \
-  -destination 'platform=iOS Simulator,name=iPhone 16' \
-  -derivedDataPath '../dd' clean build
+outskirts scan -- \
+  --triple arm64-apple-ios18.0-simulator \
+  --sdk "$(xcrun --sdk iphonesimulator --show-sdk-path)"
+```
 
-# 2. Scan the index store it produced
+Use the same arguments with `--skip-build` to scan that build again later. You can also build the package with `xcodebuild`, then scan the index store it produced:
+
+```sh
+xcodebuild build-for-testing -scheme MyScheme \
+  -destination 'generic/platform=iOS Simulator' \
+  -derivedDataPath '../dd'
 outskirts scan --skip-build \
   --index-store-path '../dd/Index.noindex/DataStore/'
 ```

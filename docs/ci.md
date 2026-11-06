@@ -10,6 +10,8 @@ In CI, outskirts can fail a job when new unused code appears, annotate pull requ
 
 If your pipeline has already built the project, e.g. to run tests, skip the build phase with `--skip-build` and give the location of the index store with `--index-store-path`. Replace `<path>` in the examples below with the index store directory of your build, found as described in [Finding the index store](getting-started.md#finding-the-index-store). For a Swift package built by Swift 6.4 or later, the index store is found without `--index-store-path`.
 
+Build in the same job, or restore the build together with the checkout it was made from: if a source file was changed after its index data was written, outskirts warns that the results for it may be out of date, see [Results in the wrong place](troubleshooting.md#results-in-the-wrong-place-or-false-positives-in-one-file).
+
 Useful options in CI:
 
 - `--strict` exits with status 1 when any result is reported; combine it with a [baseline](baselines.md) to fail only on new results.
