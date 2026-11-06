@@ -16,7 +16,7 @@ const CATEGORIES = [
   ["Files and scope", ["exclude_targets", "exclude_tests", "index_exclude", "report_exclude", "report_include", "retain_files", "changed_since", "changed_lines"]],
   ["Analyses", ["disable_redundant_public_analysis", "enable_redundant_public_members", "enable_open_final_analysis", "enable_empty_extension_analysis", "enable_redundant_access_level_analysis", "report_unused_type_parameters", "enable_unassigned_optional_analysis", "disable_unused_import_analysis", "enable_unused_system_imports", "superfluous_ignore_comments", "disable_platform_conditional_retention", "detect_unused_asset_catalog_colors", "detect_unused_asset_catalog_images", "detect_unused_metal_functions"]],
   ["Localized strings", ["disable_unused_localized_string_analysis", "localized_string_catalog_exclude", "localized_string_key_patterns", "localized_string_key_literal_match", "retain_runtime_localized_keys"]],
-  ["Retention", ["retain_public", "no_retain_spi", "retain_assign_only_properties", "retain_assign_only_property_types", "retain_objc_accessible", "retain_objc_annotated", "retain_js_accessible", "retain_unused_protocol_func_params", "retain_unused_parameters_without_default", "retain_swift_ui_previews", "retain_unused_imported_modules", "external_encodable_protocols", "external_codable_protocols", "external_test_case_classes", "retain_codable_properties", "retain_encodable_properties", "retain_equatable_properties", "retain_hashable_properties", "retain_synthesized_uses", "retain_attributes"]],
+  ["Retention", ["retain_public", "retain_public_modules", "no_retain_spi", "retain_assign_only_properties", "retain_assign_only_property_types", "retain_objc_accessible", "retain_objc_annotated", "retain_js_accessible", "retain_unused_protocol_func_params", "retain_unused_parameters_without_default", "retain_swift_ui_previews", "retain_unused_imported_modules", "external_encodable_protocols", "external_codable_protocols", "external_test_case_classes", "retain_codable_properties", "retain_encodable_properties", "retain_equatable_properties", "retain_hashable_properties", "retain_synthesized_uses", "retain_attributes"]],
   ["Output", ["format", "relative_results", "relative_results_base", "write_results", "skip_stdout_results", "quiet", "verbose", "color", "strict", "disable_update_check"]],
   ["Baselines", ["baseline", "write_baseline", "prune_baseline", "strict_baseline"]],
 ];
@@ -111,6 +111,9 @@ function option(key, property, references) {
 
 function describeType(property, flag) {
   if (property.enum) return `one of ${property.enum.map((v) => `\`${v}\``).join(", ")}`;
+  if (Array.isArray(property.type) && property.type.includes("boolean")) {
+    return `${describeType({ type: "boolean" }, flag)}, or in the file a list of strings`;
+  }
   const type = Array.isArray(property.type) ? "list" : property.type ?? "list";
   if (type === "boolean") return flag && !["--setup", "--skip-stdout-results"].includes(flag) ? `flag, \`--no-${flag.slice(2)}\` to switch off` : "flag";
   if (type === "list" || type === "array") return "list of strings";

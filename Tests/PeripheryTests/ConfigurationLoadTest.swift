@@ -75,6 +75,42 @@ final class ConfigurationLoadTest: XCTestCase {
         _ = try onlyWarning(warnings)
     }
 
+    // MARK: - Retain public
+
+    func testRetainPublicListsTheModulesWhosePublicDeclarationsAreRetained() throws {
+        let (configuration, warnings, _) = try load("retain_public: [Lib, OtherKit]\n")
+
+        XCTAssertEqual(warnings, [])
+        XCTAssertFalse(configuration.retainPublic)
+        XCTAssertEqual(configuration.retainPublicModules, ["Lib", "OtherKit"])
+        XCTAssertTrue(configuration.retainsPublicDeclarations(inModules: ["Lib"]))
+        XCTAssertFalse(configuration.retainsPublicDeclarations(inModules: ["Demo"]))
+    }
+
+    func testRetainPublicModulesKeyTakesASingleModule() throws {
+        let (configuration, warnings, _) = try load("retain_public_modules: Lib\n")
+
+        XCTAssertEqual(warnings, [])
+        XCTAssertFalse(configuration.retainPublic)
+        XCTAssertEqual(configuration.retainPublicModules, ["Lib"])
+    }
+
+    func testRetainPublicTrueRetainsEveryModule() throws {
+        let (configuration, warnings, _) = try load("retain_public: true\n")
+
+        XCTAssertEqual(warnings, [])
+        XCTAssertEqual(configuration.retainPublicModules, [])
+        XCTAssertTrue(configuration.retainsPublicDeclarations(inModules: ["Demo"]))
+    }
+
+    func testRetainPublicListOfNonStringsWarnsUnderItsOwnKey() throws {
+        let (configuration, warnings, file) = try load("retain_public: [Lib, 1]\n")
+
+        XCTAssertFalse(configuration.retainPublic)
+        XCTAssertEqual(configuration.retainPublicModules, [])
+        XCTAssertEqual(warnings, ["\(file): 'retain_public' expects a list of strings, got a list containing the integer 1"])
+    }
+
     // MARK: - Enums
 
     func testInvalidEnumValuesWarnOnceAndKeepTheDefault() throws {
