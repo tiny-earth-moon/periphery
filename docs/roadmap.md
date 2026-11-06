@@ -12,6 +12,7 @@ Issues carry a priority label, from `P1` (first) to `P3`.
 
 Recent releases, newest first:
 
+- **3.21.0** (2026-11-06): `retain_public` per module; warning (and `--strict-index`) when the index is older than the sources; `--version`, grouped help and shell completions; `appendInterpolation` workaround limited to Swift < 6.4.
 - **3.20.0** (2026-11-05): prebuilt archive and bottles for macOS 15, 26 and 27; assign-only analysis without type annotations; platform `#if` retention limited to uncompiled clauses.
 - **3.19.1** (2026-11-05): stale index units no longer cause random false positives when an index store is reused; the Swift package is named outskirts.
 - **3.19.0** (2026-11-05): bounded build cache, orphaned folders evicted and `cache_max_size_gb` ([#310](https://github.com/tiny-earth-moon/outskirts/issues/310)); types of `where Self ==` protocol extensions reported when unused ([#223](https://github.com/tiny-earth-moon/outskirts/issues/223)).
