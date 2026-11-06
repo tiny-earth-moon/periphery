@@ -1,4 +1,6 @@
 import Configuration
+import Foundation
+import Logger
 @testable import PeripheryKit
 import SourceGraph
 import SystemPackage
@@ -88,7 +90,48 @@ final class RetainPublicModulesTest: SPMSourceGraphTestCase {
         }
     }
 
+    func testWarnsAboutListedModulesThatAreNotScanned() throws {
+        let warnings = try mutatorWarnings(retainPublicModules: [Self.libraryModule, "NotAModule"], scannedModules: [Self.libraryModule])
+
+        XCTAssertEqual(warnings, "warning: retain_public_modules lists modules that are not scanned, whose public declarations are therefore not retained: NotAModule\n")
+    }
+
+    func testDoesNotWarnWhenEveryListedModuleIsScanned() throws {
+        let warnings = try mutatorWarnings(retainPublicModules: [Self.libraryModule], scannedModules: [Self.libraryModule, Self.executableModule])
+
+        XCTAssertEqual(warnings, "")
+    }
+
     // MARK: - Private
+
+    /// What running the mutators writes to stderr, with a logger that is not quiet.
+    private func mutatorWarnings(retainPublicModules: [String], scannedModules: Set<String>) throws -> String {
+        let configuration = Configuration()
+        configuration.retainPublicModules = retainPublicModules
+        let logger = Logger(quiet: false, verbose: false, colorMode: .never)
+        let graph = SourceGraph(configuration: configuration, logger: logger)
+        graph.addIndexedModules(scannedModules)
+        let runner = SourceGraphMutatorRunner(graph: graph, logger: logger, configuration: configuration, swiftVersion: Self.swiftVersion)
+
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("outskirts-retain-public-modules-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: file) }
+
+        fflush(nil)
+        let saved = dup(STDERR_FILENO)
+        let target = open(file.path, O_WRONLY | O_CREAT | O_TRUNC, 0o600)
+        dup2(target, STDERR_FILENO)
+        close(target)
+        defer {
+            fflush(nil)
+            dup2(saved, STDERR_FILENO)
+            close(saved)
+        }
+
+        try runner.perform()
+        fflush(nil)
+
+        return try String(contentsOf: file, encoding: .utf8)
+    }
 
     private func analyze(retainPublic: Bool = false, retainPublicModules: [String] = []) {
         let configuration = Configuration()
