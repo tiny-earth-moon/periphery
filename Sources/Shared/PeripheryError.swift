@@ -27,6 +27,7 @@ public enum PeripheryError: Error, LocalizedError, CustomStringConvertible {
     case spmIndexStoreNotFound(tried: [String])
     case changeCurrentDirectoryFailed(FilePath)
     case noIndexedSourceFiles(fileCount: Int, indexStorePaths: [String])
+    case outdatedIndexData(message: String)
 
     public var errorDescription: String? {
         switch self {
@@ -88,6 +89,8 @@ public enum PeripheryError: Error, LocalizedError, CustomStringConvertible {
         case let .noIndexedSourceFiles(fileCount, indexStorePaths):
             let paths = indexStorePaths.map { "\n  - \($0)" }.joined()
             return "None of the \(fileCount) source file(s) of the scanned targets have index data, so no results can be reported. Index store(s):\(paths)\nThe index store is probably stale or was produced by a different build; rebuild the project and make sure '--index-store-path' points to its index store."
+        case let .outdatedIndexData(message):
+            return message
         }
     }
 

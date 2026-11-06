@@ -1,5 +1,6 @@
 import Foundation
 @testable import Indexer
+import Shared
 import SystemPackage
 import XCTest
 
@@ -153,6 +154,33 @@ final class SourceFileCollectorTest: XCTestCase {
         XCTAssertEqual(
             warning,
             "7 source files are newer than their index data: 5 in /elsewhere/DataStore (Sources/F1.swift, Sources/F2.swift, Sources/F3.swift and 2 more), 2 in .build-mac/out (Sources/A.swift, Sources/B.swift). Results in them may be at the wrong lines or missing: rebuild the project before scanning, or pass '--clean-build' to start from an empty index store."
+        )
+    }
+
+    func testStrictIndex_failsTheScanOnOutdatedFiles() {
+        let outdated: [FilePath: Set<FilePath>] = ["/project/.build/out": ["/project/Sources/Beta.swift"]]
+
+        XCTAssertThrowsError(try SourceFileCollector.outdatedIndexWarning(outdated, relativeTo: "/project", strict: true)) { error in
+            guard case let .outdatedIndexData(message)? = error as? PeripheryError else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+
+            XCTAssertTrue(message.hasPrefix("1 source file is newer than its index data in .build/out: Sources/Beta.swift."))
+            XCTAssertTrue(message.hasSuffix("Failing as '--strict-index' is set."))
+        }
+    }
+
+    func testStrictIndex_passesWithAFreshIndex() throws {
+        XCTAssertNil(try SourceFileCollector.outdatedIndexWarning([:], relativeTo: "/project", strict: true))
+        XCTAssertNil(try SourceFileCollector.outdatedIndexWarning(["/project/.build/out": []], relativeTo: "/project", strict: true))
+    }
+
+    func testWithoutStrictIndex_outdatedFilesOnlyWarn() throws {
+        let outdated: [FilePath: Set<FilePath>] = ["/project/.build/out": ["/project/Sources/Beta.swift"]]
+
+        XCTAssertEqual(
+            try SourceFileCollector.outdatedIndexWarning(outdated, relativeTo: "/project", strict: false),
+            SourceFileCollector.outdatedIndexWarning(outdated, relativeTo: "/project")
         )
     }
 }

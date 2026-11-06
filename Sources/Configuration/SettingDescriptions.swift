@@ -56,6 +56,7 @@ extension Configuration {
         "skip_build": "Skip the project build step.",
         "skip_schemes_validation": "Do not check that the schemes exist.",
         "clean_build": "Remove existing build artifacts before building.",
+        "strict_index": "Fail the scan when a source file is newer than its index data, instead of warning.",
         "relative_results": "Report paths relative to the project root, or to relative_results_base.",
         "relative_results_base": "Directory the result paths are relative to when relative_results is in effect (command line: --relative-to).",
         "changed_since": "Report only the results in files that changed since this git ref: committed since its merge base with HEAD, uncommitted or untracked (command line: --changed-since). The whole project is still analysed.",

@@ -85,7 +85,7 @@ public struct SourceFileCollector {
             }
         }
 
-        if let warning = Self.outdatedIndexWarning(outdatedFiles, relativeTo: currentFilePath) {
+        if let warning = try Self.outdatedIndexWarning(outdatedFiles, relativeTo: currentFilePath, strict: configuration.strictIndex) {
             logger.warn(warning)
         }
 
@@ -164,6 +164,17 @@ public struct SourceFileCollector {
         let pronoun = count == 1 ? "it" : "them"
 
         return "\(subject)\(location). Results in \(pronoun) may be at the wrong lines or missing: rebuild the project before scanning, or pass '--clean-build' to start from an empty index store."
+    }
+
+    /// The warning to print for the outdated files, if any; with `strict_index`, the scan fails instead.
+    static func outdatedIndexWarning(_ outdatedFiles: [FilePath: Set<FilePath>], relativeTo base: FilePath, strict: Bool) throws -> String? {
+        guard let warning = outdatedIndexWarning(outdatedFiles, relativeTo: base) else { return nil }
+
+        if strict {
+            throw PeripheryError.outdatedIndexData(message: warning + " Failing as '--strict-index' is set.")
+        }
+
+        return warning
     }
 
     // MARK: - Private
