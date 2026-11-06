@@ -1,0 +1,11 @@
+{
+  "name": "outskirts",
+  "owner": { "name": "tiny-earth-moon" },
+  "plugins": [
+    {
+      "name": "outskirts",
+      "source": "./",
+      "description": "Find and safely remove unused Swift code with outskirts, a maintained fork of Periphery."
+    }
+  ]
+}

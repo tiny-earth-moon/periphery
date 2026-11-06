@@ -115,6 +115,17 @@ jobs:
 
 Leave `args` empty for a Swift package, or when a `.outskirts.yml` holds your options. The step fails when results are reported; set `fail-on-results: false` to only annotate, and `version` to pin a release. The action's README lists every input; other CI setups are covered in [Continuous integration](ci.md).
 
+## AI coding agents
+
+The repository ships an agent skill that teaches a coding agent to run a scan, triage the results and remove unused code safely. In Claude Code:
+
+```
+/plugin marketplace add tiny-earth-moon/outskirts
+/plugin install outskirts@outskirts
+```
+
+For other agents that read Agent Skills, copy the `skills/outskirts` folder of the repository into the agent's skills directory.
+
 ## How a scan works
 
 outskirts first builds your project to generate the index store. The index store contains detailed information about the declarations (class, struct, func, etc.) in your project and their references to other declarations. From this store, outskirts builds an in-memory graph of the relational structure of your project, supplemented with information obtained by parsing each source file. The graph is then adjusted to suit the detection of unused code, e.g. by marking your project's entry points. Finally, the graph is traversed from its roots, and the declarations it never reaches are reported.
