@@ -72,7 +72,9 @@ final class UnusedParameterRetainer: SourceGraphMutator {
             visitedDecls.formUnion(allFunctionDecls)
 
             if didResolveBase {
-                if baseFunctionDecl.accessibility.value == .open, configuration.retainPublic {
+                if baseFunctionDecl.accessibility.value == .open,
+                   configuration.retainsPublicDeclarations(inModules: baseFunctionDecl.location.file.modules)
+                {
                     retainAllUnusedParams(inMethods: allFunctionDecls)
                 } else if hasExternalRelatedReferences(from: baseFunctionDecl) {
                     retainAllUnusedParams(inMethods: allFunctionDecls)
