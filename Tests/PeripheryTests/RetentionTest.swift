@@ -1871,6 +1871,20 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    func testReportsUnusedStringInterpolationAppendInterpolation() {
+        analyze(retainPublic: true) {
+            assertReferenced(.extensionStruct("DefaultStringInterpolation")) {
+                self.assertReferenced(.functionMethodInstance("appendInterpolation(fixtureUsedHex:)"))
+                #if compiler(>=6.4)
+                    self.assertNotReferenced(.functionMethodInstance("appendInterpolation(fixtureDeadOctal:)"))
+                #else
+                    // swiftlang/swift#56189: the reference is missing, the retainer keeps every overload.
+                    self.assertReferenced(.functionMethodInstance("appendInterpolation(fixtureDeadOctal:)"))
+                #endif
+            }
+        }
+    }
+
     func testRetainsProtocolsViaCompositeTypealias() {
         analyze(retainPublic: true) {
             assertReferenced(.protocol("Fixture200"))
