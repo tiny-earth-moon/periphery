@@ -378,6 +378,11 @@
       "type": "boolean",
       "default": false
     },
+    "strict_index": {
+      "description": "Fail the scan when a source file is newer than its index data, instead of warning.",
+      "type": "boolean",
+      "default": false
+    },
     "cache_max_age_days": {
       "description": "Age in days after which unused Xcode build caches are evicted at the end of a scan; 0 disables the age rule. Caches of projects that no longer exist are always evicted.",
       "type": "integer",

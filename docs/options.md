@@ -94,6 +94,16 @@ Key `index_store_path` · list of strings · default empty.
 
 See [Getting started: Swift packages](getting-started.md#swift-packages), [Getting started: Xcode projects](getting-started.md#xcode-projects), [Configuration: Paths](configuration.md#paths), [Continuous integration: Reusing the build](ci.md#reusing-the-build).
 
+### `--strict-index`
+
+Since 3.21.0.
+
+Fail the scan when a source file is newer than its index data, instead of warning.
+
+Key `strict_index` · flag, `--no-strict-index` to switch off · default `false`.
+
+See [Continuous integration: Reusing the build](ci.md#reusing-the-build), [Troubleshooting: Index data older than its source](troubleshooting.md#index-data-older-than-its-source).
+
 ### `--json-package-manifest-path`
 
 Package manifest as JSON (from 'swift package describe --type json', or written by hand).
@@ -280,7 +290,7 @@ Do not retain declarations unavailable on a platform or referenced from platform
 
 Key `disable_platform_conditional_retention` · flag, `--no-disable-platform-conditional-retention` to switch off · default `false`.
 
-See [Framework conventions and retention: Platform conditionals](framework-conventions.md#platform-conditionals).
+See [Framework conventions and retention: Platform conditionals](framework-conventions.md#platform-conditionals), [Troubleshooting: Scanning several platforms or configurations](troubleshooting.md#scanning-several-platforms-or-configurations).
 
 ### `--detect-unused-asset-catalog-colors`
 

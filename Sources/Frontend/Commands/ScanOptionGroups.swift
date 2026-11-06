@@ -39,6 +39,9 @@ struct BuildOptions: ParsableArguments {
     @Flag(inversion: .prefixedNo, help: "Skip the project build step")
     var skipBuild: Bool?
 
+    @Flag(inversion: .prefixedNo, help: "Fail the scan when a source file is newer than its index data, instead of warning")
+    var strictIndex: Bool?
+
     @Flag(inversion: .prefixedNo, help: "Skip schemes validation")
     var skipSchemesValidation: Bool?
 

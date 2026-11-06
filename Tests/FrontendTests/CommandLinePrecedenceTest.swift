@@ -39,6 +39,7 @@ final class CommandLinePrecedenceTest: XCTestCase {
         ("retain_hashable_properties", \.retainHashableProperties),
         ("clean_build", \.cleanBuild),
         ("skip_build", \.skipBuild),
+        ("strict_index", \.strictIndex),
         ("skip_schemes_validation", \.skipSchemesValidation),
         ("relative_results", \.relativeResults),
         ("strict", \.strict),

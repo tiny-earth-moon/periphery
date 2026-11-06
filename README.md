@@ -74,6 +74,8 @@ The executable is written to `.build/release/outskirts`. Xcode or the Command Li
 
 ### Shell completions
 
+Since 3.21.0.
+
 The Homebrew formula installs the bash, zsh and fish completions. With another install, generate them, e.g. for zsh with `~/.zfunc` in `fpath`:
 
 ```sh
