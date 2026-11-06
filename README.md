@@ -126,7 +126,7 @@ An agent skill teaches coding agents to scan, triage and remove unused code safe
 /plugin install outskirts@outskirts
 ```
 
-Other agents: copy [`skills/outskirts`](skills/outskirts) into the agent's skills directory.
+Codex: copy [`skills/outskirts`](skills/outskirts) into `~/.agents/skills/` (or `.agents/skills/` at the root of a repository). Other agents: copy it into the agent's skills directory.
 
 ## Migrating from Periphery
 
