@@ -12,8 +12,15 @@ protocol AbstractSetting {
     var wrappedValue: Value { get }
 
     /// Assigns a value read from the configuration file. Returns a warning, completed with the path of the file by the
-    /// caller, when the value is not valid. An invalid value is replaced by the default.
-    func assign(_ value: Any) -> String?
+    /// caller, when the value is not valid. An invalid value is replaced by the default. The warning names `reportedKey`,
+    /// the key the value was written under, when it is not the key of the setting.
+    func assign(_ value: Any, reportedKey: String?) -> String?
+}
+
+extension AbstractSetting {
+    func assign(_ value: Any) -> String? {
+        assign(value, reportedKey: nil)
+    }
 }
 
 @propertyWrapper public final class Setting<Value: Equatable>: AbstractSetting {
@@ -59,7 +66,9 @@ protocol AbstractSetting {
         JSONValue(settingValue: defaultValue)
     }
 
-    func assign(_ newValue: Any) -> String? {
+    func assign(_ newValue: Any, reportedKey: String?) -> String? {
+        let key = reportedKey ?? key
+
         do {
             let conversion = try convert(newValue)
             value = normalize(conversion.value)
@@ -126,6 +135,8 @@ extension Setting where Value: RawRepresentable & CaseIterable & Sendable, Value
 /// The shape of the value a setting takes in the configuration file, from which the JSON Schema is generated.
 enum SettingValueKind: Equatable {
     case bool
+    /// A boolean, or a list of strings.
+    case boolOrStringList
     case int
     case stringList
     case string

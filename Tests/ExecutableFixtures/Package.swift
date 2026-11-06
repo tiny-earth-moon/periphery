@@ -13,6 +13,11 @@ let package = Package(
         ),
         .executableTarget(name: "TopLevelCodeScript"),
         .executableTarget(name: "EntryPointExtension"),
+        .target(name: "RetainPublicLib"),
+        .executableTarget(
+            name: "RetainPublicApp",
+            dependencies: ["RetainPublicLib"]
+        ),
     ],
     swiftLanguageVersions: [.v5]
 )

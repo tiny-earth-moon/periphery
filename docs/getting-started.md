@@ -78,6 +78,14 @@ The guided setup is meant as an introduction. Once you know which options your p
 
 If your project consists of one or more standalone frameworks that do not also contain some kind of application that consumes their interfaces, tell outskirts to assume that all public declarations are used with the `--retain-public` option. For projects that mix Objective-C and Swift, read about [the implications](framework-conventions.md#objective-c) this has on the results.
 
+If your project mixes such libraries with an app, a command line tool or a demo, retain only the public declarations of the libraries with `--retain-public-modules`, so that the unused public declarations of the other modules are still reported:
+
+```sh
+outskirts scan --retain-public-modules MyLibrary OtherKit
+```
+
+In the configuration file, write `retain_public_modules: [MyLibrary, OtherKit]`, or `retain_public: [MyLibrary, OtherKit]`. `--retain-public` keeps retaining the public declarations of every module, and `--no-retain-public` retains none, the modules of the configuration file included.
+
 ## How a scan works
 
 outskirts first builds your project to generate the index store. The index store contains detailed information about the declarations (class, struct, func, etc.) in your project and their references to other declarations. From this store, outskirts builds an in-memory graph of the relational structure of your project, supplemented with information obtained by parsing each source file. The graph is then adjusted to suit the detection of unused code, e.g. by marking your project's entry points. Finally, the graph is traversed from its roots, and the declarations it never reaches are reported.

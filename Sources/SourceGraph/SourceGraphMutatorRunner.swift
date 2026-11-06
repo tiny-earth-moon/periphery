@@ -88,6 +88,8 @@ public final class SourceGraphMutatorRunner {
     }
 
     public func perform() throws {
+        warnAboutUnscannedRetainedPublicModules()
+
         for mutator in mutators {
             let elapsed = try Benchmark.measure {
                 let interval = logger.beginInterval("mutator:run")
@@ -96,5 +98,15 @@ public final class SourceGraphMutatorRunner {
             }
             logger.debug("\(mutator) (\(elapsed)s)")
         }
+    }
+
+    // MARK: - Private
+
+    /// A module of `retain_public_modules` that is not scanned, misspelt or excluded, retains nothing.
+    private func warnAboutUnscannedRetainedPublicModules() {
+        let modules = configuration.retainPublicModules.filter { !graph.isModuleIndexed($0) }
+        guard !modules.isEmpty else { return }
+
+        logger.warn("retain_public_modules lists modules that are not scanned, whose public declarations are therefore not retained: \(modules.joined(separator: ", "))")
     }
 }

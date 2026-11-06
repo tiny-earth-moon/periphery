@@ -57,6 +57,8 @@ public extension Configuration {
         switch kind {
         case .bool:
             return [("type", .string("boolean"))]
+        case .boolOrStringList:
+            return [("type", .array([.string("boolean"), .string("array")])), ("items", stringType)]
         case .int:
             return [("type", .string("integer"))]
         case .string, .path:

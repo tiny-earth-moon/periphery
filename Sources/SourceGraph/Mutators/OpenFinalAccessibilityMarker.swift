@@ -6,7 +6,8 @@ import Shared
 ///
 /// Subclasses and overrides are read from the related references of the index. The index only describes the
 /// scanned modules, so an `open` declaration subclassed or overridden by an unscanned client module cannot be
-/// observed; the analysis is therefore opt-in and disabled for `open` declarations when `retain_public` is set.
+/// observed; the analysis is therefore opt-in and disabled for the `open` declarations of the modules whose public
+/// declarations are retained (`retain_public`, `retain_public_modules`).
 final class OpenFinalAccessibilityMarker: SourceGraphMutator {
     private static let overridableMemberKinds: Set<Declaration.Kind> = [
         .functionMethodInstance, .functionMethodClass, .functionSubscript, .varInstance, .varClass,
@@ -33,14 +34,15 @@ final class OpenFinalAccessibilityMarker: SourceGraphMutator {
 
     private func validateRedundantOpen(_ classDecl: Declaration) {
         let isOpenClass = classDecl.accessibility.isExplicitly(.open)
+        let retainsPublic = configuration.retainsPublicDeclarations(inModules: classDecl.location.file.modules)
 
-        if isOpenClass, !configuration.retainPublic, !isSubclassedCrossModule(classDecl) {
+        if isOpenClass, !retainsPublic, !isSubclassedCrossModule(classDecl) {
             graph.markRedundantOpenAccessibility(classDecl, modules: classDecl.location.file.modules)
         }
 
         for member in classDecl.declarations where isCandidateMember(member) && member.accessibility.isExplicitly(.open) {
             // An open member of a class that is not open cannot be overridden outside of its module.
-            if !isOpenClass || (!configuration.retainPublic && !isOverriddenCrossModule(member)) {
+            if !isOpenClass || (!retainsPublic && !isOverriddenCrossModule(member)) {
                 graph.markRedundantOpenAccessibility(member, modules: member.location.file.modules)
             }
         }

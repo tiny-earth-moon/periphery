@@ -251,7 +251,7 @@ Files inside Xcode 16+ synchronized folders (`PBXFileSystemSynchronizedRootGroup
 
 Swift's `@_spi` attribute (System Programming Interface) marks declarations as pseudo-private, accessible only to clients that explicitly import the SPI. While these declarations are technically `public`, they are intended for internal or restricted use.
 
-With [`--retain-public`](options.md), for framework projects, all public declarations are retained, including those marked with `@_spi`. To check for unused code within specific SPIs anyway, list them with [`--no-retain-spi`](options.md) (`no_retain_spi`).
+With [`--retain-public`](options.md), for framework projects, all public declarations are retained, including those marked with `@_spi`; with [`--retain-public-modules`](options.md), those of the listed modules. To check for unused code within specific SPIs anyway, list them with [`--no-retain-spi`](options.md) (`no_retain_spi`).
 
 For example, with `--retain-public --no-retain-spi Internal`, outskirts:
 
