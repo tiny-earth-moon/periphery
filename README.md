@@ -112,7 +112,8 @@ In the configuration file, write `retain_public_modules: [MyLibrary, OtherKit]`,
 An agent skill teaches coding agents to scan, triage and remove unused code safely. In Claude Code:
 
 ```
-/plugin install outskirts --marketplace tiny-earth-moon/outskirts
+/plugin marketplace add tiny-earth-moon/outskirts
+/plugin install outskirts@outskirts
 ```
 
 Other agents: copy [`skills/outskirts`](skills/outskirts) into the agent's skills directory.

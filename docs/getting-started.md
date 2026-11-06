@@ -112,8 +112,6 @@ The repository ships an agent skill that teaches a coding agent to run a scan, t
 /plugin install outskirts@outskirts
 ```
 
-Claude Code 2.1.275 or later also takes a single command: `/plugin install outskirts --marketplace tiny-earth-moon/outskirts`.
-
 For other agents that read Agent Skills, copy the `skills/outskirts` folder of the repository into the agent's skills directory.
 
 ## How a scan works
