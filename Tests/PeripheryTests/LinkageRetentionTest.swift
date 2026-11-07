@@ -11,6 +11,20 @@ import XCTest
             }
         }
 
+        func testRetainsParametersOfCdeclFunction() {
+            analyze(retainPublic: true) {
+                assertReferenced(.functionFree("exportedWithCdeclParameters(_:_:)")) {
+                    self.assertUsedParameter("first")
+                    // C callers pass every argument, so the signature cannot drop an unused parameter.
+                    self.assertReferenced(.varParameter("unusedSecond"))
+                }
+                // Control: a function without a linkage attribute still reports its unused parameters.
+                assertReferenced(.functionFree("plainWithUnusedParameter(_:)")) {
+                    self.assertNotReferenced(.varParameter("value"))
+                }
+            }
+        }
+
         func testRetainsCFunction() {
             analyze {
                 assertReferenced(.functionFree("exportedWithC()"))

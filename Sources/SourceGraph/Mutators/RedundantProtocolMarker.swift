@@ -15,8 +15,12 @@ final class RedundantProtocolMarker: SourceGraphMutator {
         let protocolDecls = graph.declarations(ofKind: .protocol)
 
         for protocolDecl in protocolDecls {
+            // A protocol retained by an ignore comment is still evaluated, so that a comment suppressing a redundant
+            // protocol result is not reported as superfluous.
+            let isCommandIgnored = graph.commandIgnoredDeclarations[protocolDecl] == .declaration
+
             // Ensure the protocol hasn't been been explicitly retained, e.g by a comment command.
-            guard !graph.isRetained(protocolDecl) else { continue }
+            guard isCommandIgnored || !graph.isRetained(protocolDecl) else { continue }
 
             // Ensure the protocol doesn't inherit an external protocol.
             // The foreign protocol may be used only by external code which is not visible to us.
@@ -43,8 +47,11 @@ final class RedundantProtocolMarker: SourceGraphMutator {
             // Ensure the protocol isn't just simply unused.
             guard !unusedDeclarations.contains(protocolDecl) else { continue }
 
-            // Ensure all members are unused.
-            guard protocolDecl.declarations.allSatisfy({ unusedDeclarations.contains($0) }) else { continue }
+            // Ensure all members are unused. The members of an ignored protocol are retained with it, so only their
+            // calls count.
+            guard protocolDecl.declarations.allSatisfy({
+                unusedDeclarations.contains($0) || (isCommandIgnored && !isCalled($0))
+            }) else { continue }
 
             // Ensure the protocol is only used in a conformance.
             let protocolReferences = graph.references(to: protocolDecl)
@@ -57,12 +64,22 @@ final class RedundantProtocolMarker: SourceGraphMutator {
                 return parent.kind.isConformableKind
             }
 
-            if areAllReferencesConformances {
+            if areAllReferencesConformances, isCommandIgnored {
+                if !protocolReferences.isEmpty {
+                    graph.markSuppressedRedundantProtocol(protocolDecl)
+                }
+            } else if areAllReferencesConformances {
                 // The protocol is redundant.
                 let inherited = graph.inheritedTypeReferences(of: protocolDecl).filter { $0.declarationKind == .protocol }
                 graph.markRedundantProtocol(protocolDecl, references: protocolReferences, inherited: inherited)
                 protocolDecl.declarations.forEach { graph.markIgnored($0) }
             }
         }
+    }
+
+    // MARK: - Private
+
+    private func isCalled(_ decl: Declaration) -> Bool {
+        graph.references(to: decl).contains { $0.kind == .normal }
     }
 }

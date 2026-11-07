@@ -8,6 +8,8 @@ public final class SourceGraph {
     public private(set) var allDeclarations: Set<Declaration> = []
     public private(set) var usedDeclarations: Set<Declaration> = []
     public private(set) var redundantProtocols: [Declaration: (references: Set<Reference>, inherited: Set<Reference>)] = [:]
+    /// Protocols that would be redundant were they not retained by an ignore comment.
+    public private(set) var suppressedRedundantProtocols: Set<Declaration> = []
     public private(set) var rootDeclarations: Set<Declaration> = []
     public private(set) var redundantPublicAccessibility: [Declaration: Set<String>] = [:]
     public private(set) var redundantOpenAccessibility: [Declaration: Set<String>] = [:]
@@ -132,6 +134,10 @@ public final class SourceGraph {
 
     func markRedundantProtocol(_ declaration: Declaration, references: Set<Reference>, inherited: Set<Reference>) {
         redundantProtocols[declaration] = (references, inherited)
+    }
+
+    func markSuppressedRedundantProtocol(_ declaration: Declaration) {
+        _ = suppressedRedundantProtocols.insert(declaration)
     }
 
     func markRedundantPublicAccessibility(_ declaration: Declaration, modules: Set<String>) {
