@@ -321,11 +321,6 @@ public final class SourceGraph {
         add(reference)
     }
 
-    public func add(_ references: Set<Reference>) {
-        allReferences.formUnion(references)
-        references.forEach { allReferencesByUsr[$0.usr, default: []].insert($0) }
-    }
-
     /// Adds references the caller has already grouped by USR.
     public func add(_ references: Set<Reference>, groupedByUsr referencesByUsr: [String: Set<Reference>]) {
         allReferences.formUnion(references)
