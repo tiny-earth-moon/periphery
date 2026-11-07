@@ -39,13 +39,13 @@ With the `xcode` format, a summary follows the results on stdout:
 
 ```text
 * Summary: 4 results (unused: 3, missingFinal: 1)
-* Removable lines (estimate): 16
+* Unused lines (estimate): 16
 * Files entirely unused: 1
   Sources/Legacy/OldParser.swift (22 lines)
 ```
 
 - The count of each result kind, named as in the `hints` of the `json` format, most frequent first.
-- The removable lines: an estimate of the lines that deleting the unused declarations and empty extensions would remove, their attributes and the doc comments right above them included. A line covered by several reported declarations, e.g. a nested one, counts once. Accessibility, `final`, assign-only and the other results are counted but add no lines, and neither does an unused parameter or one name of `case a, b`.
+- The unused lines: an estimate of the lines that deleting the unused declarations and empty extensions would remove, their attributes and the doc comments right above them included. A line covered by several reported declarations, e.g. a nested one, counts once. Accessibility, `final`, assign-only and the other results are counted but add no lines, and neither does an unused parameter or one name of `case a, b`.
 - The files entirely unused: the Swift files whose every top-level declaration, imports excepted, is reported as unused, with their line count, so that they can be deleted whole. A file with top-level statements, e.g. `main.swift`, is never listed.
 
 The summary covers the reported results, after the baseline, `--report-exclude` and `--changed-since`. It is a message like the progress lines, left out in quiet mode, it is not printed when nothing is found or when the results stay off stdout, and `--write-results` writes the results without it. `--no-summary` turns it off, and the output is then the same as without the summary.
@@ -57,7 +57,7 @@ With `--format json --summary`, the report becomes an object that holds the arra
   "results" : [],
   "summary" : {
     "counts" : { "missingFinal" : 1, "unused" : 3 },
-    "removableLines" : 16,
+    "unusedLines" : 16,
     "total" : 4,
     "unusedFiles" : [
       {

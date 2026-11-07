@@ -16,12 +16,12 @@ final class ScanSummaryTest: FixtureSourceGraphTestCase {
         XCTAssertEqual(summary.unusedFiles, [ScanSummary.UnusedFile(path: fixturePath("testScanSummaryUnusedFile"), lineCount: 22)])
     }
 
-    func testRemovableLinesOfAScanEqualTheHandCountedLines() throws {
+    func testUnusedLinesOfAScanEqualTheHandCountedLines() throws {
         let summary = try summarizeScan(of: ["testScanSummaryUnusedFile", "testScanSummaryPartlyUsedFile"])
 
         // SummaryUnusedClass, doc comment and attribute included: lines 3-12; SummaryUnusedStruct: 16-18; its
         // extension: 20-22; SummaryLeftoverClass: 5 of the other file.
-        XCTAssertEqual(summary.removableLineCount, 10 + 3 + 3 + 1)
+        XCTAssertEqual(summary.unusedLineCount, 10 + 3 + 3 + 1)
         XCTAssertEqual(summary.countsByAnnotation["unused"], 4)
     }
 
@@ -35,7 +35,7 @@ final class ScanSummaryTest: FixtureSourceGraphTestCase {
 
         let summary = summarize(results)
 
-        XCTAssertEqual(summary.removableLineCount, 10)
+        XCTAssertEqual(summary.unusedLineCount, 10)
         XCTAssertEqual(summary.resultCount, 4)
         XCTAssertEqual(summary.unusedFiles, [], "SummaryUnusedStruct is not reported")
     }
@@ -50,7 +50,7 @@ final class ScanSummaryTest: FixtureSourceGraphTestCase {
 
         let summary = summarize(results)
 
-        XCTAssertEqual(summary.removableLineCount, 3, "only the extension removes code")
+        XCTAssertEqual(summary.unusedLineCount, 3, "only the extension removes code")
         XCTAssertEqual(summary.countsByAnnotation, ["redundantPublicAccessibility": 1, "missingFinal": 1, "assignOnlyProperty": 1, "emptyExtension": 1])
         XCTAssertEqual(summary.unusedFiles, [])
     }
@@ -83,7 +83,7 @@ final class ScanSummaryTest: FixtureSourceGraphTestCase {
         XCTAssertEqual(object["summary"] as? NSDictionary, [
             "total": 4,
             "counts": ["unused": 3, "missingFinal": 1],
-            "removableLines": 16,
+            "unusedLines": 16,
             "unusedFiles": [["path": fixturePath("testScanSummaryUnusedFile").string, "lines": 22]],
         ] as NSDictionary)
     }
@@ -94,7 +94,7 @@ final class ScanSummaryTest: FixtureSourceGraphTestCase {
 
         XCTAssertEqual(formatter.describe(summarize(results), colored: false), """
         * Summary: 4 results (unused: 3, missingFinal: 1)
-        * Removable lines (estimate): 16
+        * Unused lines (estimate): 16
         * Files entirely unused: 1
           \(fixturePath("testScanSummaryUnusedFile").string) (22 lines)
         """)
