@@ -5,7 +5,7 @@
 </picture>
 </p>
 
-<p align="center">Find what lies at the outskirts of your Swift project: the code nothing reaches.<br>A community-maintained fork of Periphery 3.x.</p>
+<p align="center">Find what lies at the outskirts of your Swift project: the code nothing reaches.<br>Free and open source, started as a fork of Periphery 3.x.</p>
 
 <p align="center"><a href="https://outskirts.dev/docs/">Documentation</a> · <a href="https://outskirts.dev/docs/changelog/">Changelog</a> · <a href="https://outskirts.dev/docs/roadmap/">Roadmap</a> · <a href="https://github.com/tiny-earth-moon/outskirts/releases">Releases</a></p>
 
@@ -15,9 +15,9 @@ outskirts explores your Xcode project or Swift package, builds a map of what ref
 
 > [!NOTE]
 >
-> outskirts is the new name, since 3.16.0 (2026-11), of the community-maintained successor of [peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived in August 2026. Nothing breaks: the `periphery` command, `.periphery.yml` and `// periphery:ignore` keep working, see [Migrating from Periphery](#migrating-from-periphery).
+> outskirts is an independent, free and open-source project (MIT) that started in October 2026 as a fork of the last open-source release of [Periphery](https://github.com/peripheryapp/periphery), archived in August 2026. It first kept that release building on current toolchains, then took up, one by one, the questions and ideas left open on the original repository and its forks; Bazel support was dropped (see [agoodkind/periphery](https://github.com/agoodkind/periphery) for it). It is a side project with no commercial purpose. Nothing breaks when coming from Periphery: the `periphery` command, `.periphery.yml` and `// periphery:ignore` keep working, see [Migrating from Periphery](#migrating-from-periphery).
 >
-> Periphery was created by [Ian Leitch](https://github.com/ileitch), whom we thank for years of excellent work and for keeping the project open source. The original author now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. This fork takes nothing from it and is not affiliated with, nor endorsed by, the original author or Periphery Pro; the `periphery` name is kept for compatibility, not as a claim on the Periphery brand. Because outskirts installs a `periphery` alias, its Homebrew formula conflicts on purpose with the Periphery formulae: install one or the other.
+> Periphery was created by [Ian Leitch](https://github.com/ileitch), whom we thank for years of excellent work and for keeping the project open source. He now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. outskirts takes no code from it and does not follow its roadmap; it is not affiliated with, nor endorsed by, Ian Leitch or Periphery Pro; the `periphery` name is kept for compatibility, not as a claim on the Periphery brand. Because outskirts installs a `periphery` alias, its Homebrew formula conflicts on purpose with the Periphery formulae: install one or the other.
 
 ## Installation
 
