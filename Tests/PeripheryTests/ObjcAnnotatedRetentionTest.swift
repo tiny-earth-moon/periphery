@@ -36,5 +36,19 @@ import XCTest
                 }
             }
         }
+
+        func testRetainsObjcProtocolWitnessOfUnannotatedClass() {
+            for retainObjcAccessible in [false, true] {
+                analyze(retainPublic: true, retainObjcAccessible: retainObjcAccessible, retainObjcAnnotated: !retainObjcAccessible) {
+                    assertReferenced(.protocol("FixtureProtocol218")) {
+                        self.assertReferenced(.functionMethodInstance("requirementCalledByRuntime()"))
+                    }
+                    assertReferenced(.class("FixtureClass218")) {
+                        self.assertReferenced(.functionMethodInstance("requirementCalledByRuntime()"))
+                        self.assertNotReferenced(.functionMethodInstance("unrelatedMethod()"))
+                    }
+                }
+            }
+        }
     }
 #endif

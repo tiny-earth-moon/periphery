@@ -71,4 +71,21 @@ final class UnusedParameterRetentionTest: FixtureSourceGraphTestCase {
             }
         }
     }
+
+    func testBareWrapperInitializersCalledImplicitly() {
+        analyze(retainPublic: true) {
+            assertReferenced(.struct("FixtureTrimmed")) {
+                self.assertReferenced(.functionConstructor("init(wrappedValue:)"))
+                self.assertReferenced(.functionConstructor("init(projectedValue:)"))
+                self.assertNotReferenced(.functionConstructor("init(unused:)"))
+            }
+            assertReferenced(.class("FixtureTrimmedHost")) {
+                for name in ["viaProjection(name:)", "viaStorage(name:)", "forwardsProjection(name:)"] {
+                    self.assertReferenced(.functionMethodInstance(name)) {
+                        self.assertUsedParameter("name")
+                    }
+                }
+            }
+        }
+    }
 }
