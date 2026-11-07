@@ -225,9 +225,19 @@
       "default": false
     },
     "disable_platform_conditional_retention": {
-      "description": "Do not retain declarations unavailable on a platform or referenced from platform conditional compilation blocks.",
+      "description": "Do not retain declarations unavailable on a platform or referenced from platform conditional compilation blocks. Alias of 'platform_conditional_retention: off', which it overrides when true.",
       "type": "boolean",
       "default": false
+    },
+    "platform_conditional_retention": {
+      "description": "How declarations possibly used by a build missing from the index are retained: 'all-clauses' retains the names written in the platform #if clauses no indexed build compiled, and the declarations marked @available(X, unavailable); 'auto' also narrows #if blocks nested in another one, and stops retaining @available(X, unavailable) once builds for X and for a platform where the declaration is available are indexed, e.g. with '--index-store-path' repeated; 'off' retains neither.",
+      "type": "string",
+      "enum": [
+        "auto",
+        "all-clauses",
+        "off"
+      ],
+      "default": "all-clauses"
     },
     "disable_unused_import_analysis": {
       "description": "Turn off the analysis of unused imports.",

@@ -74,7 +74,7 @@ Since 3.21.0.
 
 outskirts reads every index store it is given and merges their data per source file. A declaration referenced in any of them is used, so scanning the stores of all your build configurations, or of all your platforms, together reports only the code that none of them uses. This union also covers code compiled in a single configuration (`releaseName` above is used in the Release store, `debugName` in the Debug one) and the imports needed by only one platform.
 
-When every platform is built, also pass [`--disable-platform-conditional-retention`](options.md#--disable-platform-conditional-retention): code under `#if os(...)` is then checked like any other code, instead of being kept because outskirts cannot see the other branches.
+When every platform is built, also pass [`--disable-platform-conditional-retention`](options.md#--disable-platform-conditional-retention): code under `#if os(...)` is then checked like any other code, instead of being kept because outskirts cannot see the other branches. When only some of them are built, pass [`--platform-conditional-retention auto`](#retaining-only-what-the-missing-builds-may-use) instead.
 
 - **Several index stores**: repeat `--index-store-path`, once per store. It implies `--skip-build`, so build each configuration or platform first.
 
@@ -102,6 +102,32 @@ When every platform is built, also pass [`--disable-platform-conditional-retenti
 - **Swift packages**: give each platform its own `--scratch-path` and build it with `--triple` and `--sdk`, see [Swift package is platform-specific](#swift-package-is-platform-specific). With the `swiftbuild` build system (the default since Swift 6.4), the index store of a scratch path is `<scratch-path>/out`.
 
 Build all the stores from the same version of the sources. If one of them was built before an edit, outskirts prints the [warning above](#index-data-older-than-its-source) for the files concerned.
+
+### Retaining only what the missing builds may use
+
+Since 3.22.0.
+
+With [`platform_conditional_retention: auto`](options.md#--platform-conditional-retention), outskirts uses the builds found in the index stores (their target triples, listed by `--verbose` and by `--explain` for a file indexed for several builds) to retain less:
+
+- The names written in an `#if` clause are retained only when no indexed build of the file compiled that clause, including in blocks nested in another `#if` block.
+- A declaration marked `@available(X, unavailable)` is no longer retained once its file was indexed for `X` and for a platform where the declaration is available.
+
+```sh
+outskirts scan --platform-conditional-retention auto \
+  --index-store-path .build-macos/out \
+  --index-store-path .build-ios/out
+```
+
+Or in `.outskirts.yml`:
+
+```yaml
+index_store_path:
+  - .build-macos/out
+  - .build-ios/out
+platform_conditional_retention: auto
+```
+
+Code for a platform that is not built, such as an `#if os(watchOS)` clause, stays retained. With a single index store, every clause the build did not compile and every `@available(X, unavailable)` declaration stay retained, as with the default `all-clauses`. Conditions that a target triple cannot answer, such as `#if DEBUG` or `canImport()`, are not narrowed: scanning a Debug and a Release store together covers `#if DEBUG` code.
 
 ### Merging the results of separate scans
 
