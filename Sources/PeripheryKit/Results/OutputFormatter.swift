@@ -25,11 +25,21 @@ public extension OutputFormatter {
 extension OutputFormatter {
     func redundantConformanceHint(with inherited: Set<String>) -> String {
         var msg = "redundantConformance"
-        if !inherited.isEmpty {
-            msg += "(replace with: '\(inherited.sorted().joined(separator: ", "))')"
+        if let replacement = conformanceReplacement(for: inherited) {
+            msg += "(replace with: '\(replacement)')"
         }
 
         return msg
+    }
+
+    /// The inherited protocols that replace a redundant conformance, nil when there are none.
+    func conformanceReplacement(for inherited: Set<String>) -> String? {
+        inherited.isEmpty ? nil : inherited.sorted().joined(separator: ", ")
+    }
+
+    /// The declaration USRs, sorted and dot-joined: a fingerprint stable across runs.
+    func usrFingerprint(of result: ScanResult) -> String {
+        result.declaration.usrs.sorted().joined(separator: ".")
     }
 
     /// References are held in a set, whose order changes from one process to the next. Output must not depend on it.
@@ -48,32 +58,7 @@ extension OutputFormatter {
     }
 
     func describe(_ annotation: ScanResult.Annotation) -> String {
-        switch annotation {
-        case .unused:
-            "unused"
-        case .assignOnlyProperty:
-            "assignOnlyProperty"
-        case .unassignedOptionalProperty:
-            "unassignedOptionalProperty"
-        case .redundantProtocol:
-            "redundantProtocol"
-        case .redundantPublicAccessibility:
-            "redundantPublicAccessibility"
-        case .redundantOpenAccessibility:
-            "redundantOpenAccessibility"
-        case .missingFinal:
-            "missingFinal"
-        case .redundantAccessLevel:
-            "redundantAccessLevel"
-        case .emptyExtension:
-            "emptyExtension"
-        case .superfluousIgnoreCommand:
-            "superfluousIgnoreCommand"
-        case let .unusedAssetCatalogSymbol(symbol):
-            symbol.kind.annotationName
-        case .missingMetalFunction:
-            "missingMetalFunction"
-        }
+        annotation.name
     }
 
     func describe(_ result: ScanResult, colored: Bool) -> [(Location, String)] {
@@ -95,8 +80,8 @@ extension OutputFormatter {
             secondaryResults = sortedReferences(references).map {
                 var msg = "Redundant protocol conformance '\(name)'"
 
-                if !inherited.isEmpty {
-                    msg += " (replace with '\(inherited.sorted().joined(separator: ", "))')"
+                if let replacement = conformanceReplacement(for: inherited) {
+                    msg += " (replace with '\(replacement)')"
                 }
 
                 return ($0.location, msg)

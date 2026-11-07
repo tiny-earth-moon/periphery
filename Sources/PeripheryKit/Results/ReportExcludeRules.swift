@@ -11,11 +11,7 @@ import SourceGraph
 /// `assignOnlyProperty.var.instance`. An identifier matches a result if it is equal to, or a dotted prefix of,
 /// the result identifier, so `unused.function` matches every unused function and method.
 enum ResultKind {
-    static let annotationNames: Set<String> = Set([
-        "unused", "assignOnlyProperty", "unassignedOptionalProperty", "redundantProtocol", "redundantPublicAccessibility",
-        "redundantOpenAccessibility", "missingFinal", "redundantAccessLevel", "emptyExtension", "superfluousIgnoreCommand",
-        "missingMetalFunction",
-    ]).union(AssetCatalogSymbolKind.allCases.map(\.annotationName))
+    static let annotationNames = ScanResult.Annotation.allNames
 
     static let identifiers: Set<String> = annotationNames.union(annotationNames.flatMap { annotation in
         Declaration.Kind.identifiers.map { "\(annotation).\($0)" }
@@ -26,29 +22,11 @@ enum ResultKind {
     }
 
     static func identifier(of result: ScanResult) -> String {
-        let annotation = describeAnnotation(result.annotation)
-        return "\(annotation).\(result.declaration.kind.rawValue)"
+        "\(result.annotation.name).\(result.declaration.kind.rawValue)"
     }
 
     static func matches(_ identifier: String, resultIdentifier: String) -> Bool {
         resultIdentifier == identifier || resultIdentifier.hasPrefix("\(identifier).")
-    }
-
-    private static func describeAnnotation(_ annotation: ScanResult.Annotation) -> String {
-        switch annotation {
-        case .unused: "unused"
-        case .assignOnlyProperty: "assignOnlyProperty"
-        case .unassignedOptionalProperty: "unassignedOptionalProperty"
-        case .redundantProtocol: "redundantProtocol"
-        case .redundantPublicAccessibility: "redundantPublicAccessibility"
-        case .redundantOpenAccessibility: "redundantOpenAccessibility"
-        case .missingFinal: "missingFinal"
-        case .redundantAccessLevel: "redundantAccessLevel"
-        case .emptyExtension: "emptyExtension"
-        case .superfluousIgnoreCommand: "superfluousIgnoreCommand"
-        case let .unusedAssetCatalogSymbol(symbol): symbol.kind.annotationName
-        case .missingMetalFunction: "missingMetalFunction"
-        }
     }
 }
 

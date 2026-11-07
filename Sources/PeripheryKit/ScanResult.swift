@@ -46,3 +46,31 @@ public struct ScanResult {
         }
     }
 }
+
+extension ScanResult.Annotation {
+    /// The annotation name emitted in the `hints` of a report and accepted by `report_exclude`.
+    var name: String {
+        switch self {
+        case .unused: "unused"
+        case .assignOnlyProperty: "assignOnlyProperty"
+        case .unassignedOptionalProperty: "unassignedOptionalProperty"
+        case .redundantProtocol: "redundantProtocol"
+        case .redundantPublicAccessibility: "redundantPublicAccessibility"
+        case .redundantOpenAccessibility: "redundantOpenAccessibility"
+        case .missingFinal: "missingFinal"
+        case .redundantAccessLevel: "redundantAccessLevel"
+        case .emptyExtension: "emptyExtension"
+        case .superfluousIgnoreCommand: "superfluousIgnoreCommand"
+        case let .unusedAssetCatalogSymbol(symbol): symbol.kind.annotationName
+        case .missingMetalFunction: "missingMetalFunction"
+        }
+    }
+
+    /// Every value `name` can take. Some payloads cannot be built in this module, so the names are listed; a test
+    /// checks this set against `name` for every case.
+    static let allNames: Set<String> = Set([
+        "unused", "assignOnlyProperty", "unassignedOptionalProperty", "redundantProtocol", "redundantPublicAccessibility",
+        "redundantOpenAccessibility", "missingFinal", "redundantAccessLevel", "emptyExtension", "superfluousIgnoreCommand",
+        "missingMetalFunction",
+    ]).union(AssetCatalogSymbolKind.allCases.map(\.annotationName))
+}
