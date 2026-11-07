@@ -4,7 +4,7 @@ description: Move from Periphery to outskirts without changing anything: the per
 
 # Migrating from Periphery
 
-outskirts is the community-maintained successor of [peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived in August 2026. It was renamed from Periphery in 3.16.0 (2026-11), and the rename breaks nothing.
+outskirts started as a fork of [peripheryapp/periphery](https://github.com/peripheryapp/periphery), archived in August 2026, and became an independent project. It was renamed from Periphery in 3.16.0 (2026-11), and the rename breaks nothing.
 
 ## In short
 
@@ -45,4 +45,4 @@ The [changelog](../CHANGELOG.md) lists every change, version by version.
 
 Periphery was created by [Ian Leitch](https://github.com/ileitch), whom we thank for years of excellent work and for keeping the project open source. See [Credits](credits.md) for the full attribution, including the sibling fork [agoodkind/periphery](https://github.com/agoodkind/periphery).
 
-The original author now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. This fork takes nothing from it. It is not affiliated with, nor endorsed by, the original author or Periphery Pro. The `periphery` name is kept as an alias and for the configuration file and comment commands for compatibility; it is not a claim on the Periphery brand.
+The original author now develops [Periphery Pro](https://periphery.pro), a separate closed-source product. outskirts takes no code from it and does not follow its roadmap. It is not affiliated with, nor endorsed by, the original author or Periphery Pro. The `periphery` name is kept as an alias and for the configuration file and comment commands for compatibility; it is not a claim on the Periphery brand.

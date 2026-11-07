@@ -6,11 +6,11 @@ description: Answers to common questions about outskirts: the relation to Periph
 
 ## Is outskirts the same tool as Periphery?
 
-outskirts is Periphery 3.x under a new name, maintained by the community since the original repository was archived in August 2026. It keeps the `periphery` command, the `.periphery.yml` file and the `// periphery:ignore` comments working, see [Migrating from Periphery](migrating-from-periphery.md). It is not affiliated with Periphery Pro.
+outskirts started as a fork of the last open-source release of Periphery (3.x), archived in August 2026, and became an independent project under its own name. It keeps the `periphery` command, the `.periphery.yml` file and the `// periphery:ignore` comments working, see [Migrating from Periphery](migrating-from-periphery.md). It is not affiliated with Periphery Pro and takes no code from it and does not follow its roadmap.
 
 ## Is it free?
 
-Yes. outskirts is open source under the MIT license, like Periphery. There is no paid edition.
+Yes. outskirts is open source under the MIT license, like Periphery. It is a side project with no commercial purpose: there is no paid edition and none is planned.
 
 ## Should I remove everything outskirts reports?
 
