@@ -27,7 +27,7 @@ final class ExternalOverrideRetainer: SourceGraphMutator {
 
             if hasExternalMatch {
                 // One or more matching related declarations are external.
-                graph.markRetained(decl)
+                graph.markRetained(decl, reason: RetentionReason(Self.self, "overrides or implements an external declaration"))
             }
         }
     }

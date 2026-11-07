@@ -19,7 +19,7 @@ final class ProtobufAPIVersionCheckRetainer: SourceGraphMutator {
             let conformances = graph.inheritedTypeReferences(of: declaration)
             guard conformances.contains(where: { $0.declarationKind == .protocol && $0.usr == protocolUsr }) else { continue }
 
-            graph.markRetained(declaration)
+            graph.markRetained(declaration, reason: RetentionReason(Self.self, "SwiftProtobuf API version check"))
         }
     }
 }

@@ -18,7 +18,7 @@ final class EquatableHashablePropertyRetainer: SourceGraphMutator {
             for decl in decl.declarations {
                 guard decl.kind == .varInstance else { continue }
 
-                graph.markRetained(decl)
+                graph.markRetained(decl, reason: RetentionReason(Self.self, "property of an Equatable or Hashable type"))
             }
         }
     }

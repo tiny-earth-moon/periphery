@@ -20,19 +20,19 @@ final class DynamicMemberRetainer: SourceGraphMutator {
         // cannot verify the attribute exists.
         for decl in graph.declarations(ofKind: .functionSubscript) {
             if decl.name == "subscript(dynamicMember:)" {
-                graph.markRetained(decl)
+                graph.markRetained(decl, reason: RetentionReason(Self.self, "dynamic member lookup or dynamic callable requirement"))
             }
         }
 
         // Retain the methods that a call to a @dynamicCallable value is lowered to, by name for the same reason.
         for decl in graph.declarations(ofKind: .functionMethodInstance) where Self.dynamicCallableMethodNames.contains(decl.name) {
-            graph.markRetained(decl)
-            decl.unusedParameters.forEach { graph.markRetained($0) }
+            graph.markRetained(decl, reason: RetentionReason(Self.self, "dynamic member lookup or dynamic callable requirement"))
+            decl.unusedParameters.forEach { graph.markRetained($0, reason: RetentionReason(Self.self, "dynamic member lookup or dynamic callable requirement")) }
         }
 
         for decl in graph.declarations(ofKinds: Declaration.Kind.functionKinds.union(Declaration.Kind.variableKinds)) {
             if decl.attributes.contains(where: { $0.name == "_dynamicReplacement" }) {
-                graph.markRetained(decl)
+                graph.markRetained(decl, reason: RetentionReason(Self.self, "dynamic member lookup or dynamic callable requirement"))
             }
         }
     }

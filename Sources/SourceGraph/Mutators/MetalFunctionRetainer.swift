@@ -23,7 +23,7 @@ final class MetalFunctionRetainer: SourceGraphMutator {
         let retainsEverything = references.contains { $0.name == nil }
 
         for declaration in graph.declarations(ofKind: .metalFunction) where retainsEverything || names.contains(declaration.name) {
-            graph.markRetained(declaration)
+            graph.markRetained(declaration, reason: RetentionReason(Self.self, "named by a Metal function"))
         }
 
         guard graph.declaredMetalFunctionNamesAreComplete else { return }

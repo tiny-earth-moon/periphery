@@ -15,6 +15,7 @@ open class SourceGraphTestCase: XCTestCase {
     static var results: [ScanResult] = []
 
     private static var graph: SourceGraph!
+    private static var indexedConfiguration = Configuration()
     private static var allIndexedDeclarations: Set<Declaration> = []
 
     private var scopeStack: [DeclarationScope] = []
@@ -62,6 +63,7 @@ open class SourceGraphTestCase: XCTestCase {
             )
         }
 
+        indexedConfiguration = configuration
         graph = SourceGraph(configuration: configuration, logger: logger)
         let pipeline = IndexPipeline(
             plan: newPlan,
@@ -80,6 +82,17 @@ open class SourceGraphTestCase: XCTestCase {
             swiftVersion: swiftVersion
         ).perform()
         results = ScanResultBuilder.build(for: graph, configuration: configuration)
+    }
+
+    /// What `scan --explain` prints for the query, from the last analysis.
+    func explanation(of query: String) -> String {
+        DeclarationExplainer(graph: Self.graph, configuration: Self.indexedConfiguration).explain([query])
+    }
+
+    /// The number of entries the last analysis recorded for `--explain`, which is zero without it.
+    var recordedExplanationEntryCount: Int {
+        Self.graph.retentionReasons.count + Self.graph.usePredecessors.count + Self.graph.discardedReferencesByUsr.count
+            + Self.graph.platformConditionalNameSites.count + Self.graph.unindexedSourceFilesByModule.count
     }
 
     /// The modules whose import is reported unused in the source file with the given name.

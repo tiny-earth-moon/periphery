@@ -34,7 +34,8 @@ final class PubliclyAccessibleRetainer: SourceGraphMutator {
             }
         }
 
-        declarationsToRetain.forEach { graph.markRetained($0) }
+        let reason = RetentionReason(Self.self, configuration.retainPublic ? "retain_public" : "retain_public_modules")
+        declarationsToRetain.forEach { graph.markRetained($0, reason: reason) }
 
         // Enum cases inherit the accessibility of the enum.
         declarationsToRetain
@@ -42,6 +43,6 @@ final class PubliclyAccessibleRetainer: SourceGraphMutator {
             .filter { $0.kind == .enum }
             .flatMap(\.declarations)
             .filter { $0.kind == .enumelement }
-            .forEach { graph.markRetained($0) }
+            .forEach { graph.markRetained($0, reason: RetentionReason(Self.self, "\(reason.detail ?? ""), case of a public enum")) }
     }
 }

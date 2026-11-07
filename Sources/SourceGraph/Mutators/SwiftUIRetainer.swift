@@ -44,7 +44,7 @@ final class SwiftUIRetainer: SourceGraphMutator {
                     self.graph.isExternal($0) && $0.declarationKind == .protocol && names.contains($0.name)
                 }
             }
-            .forEach { graph.markRetainedWithAncestors($0) }
+            .forEach { graph.markRetainedWithAncestors($0, reason: RetentionReason(Self.self, "conforms to a SwiftUI protocol discovered at runtime")) }
     }
 
     private func retainUnderscoredProtocolRequirements() {
@@ -59,7 +59,7 @@ final class SwiftUIRetainer: SourceGraphMutator {
                 decl.declarations
                     .lazy
                     .filter { $0.kind == .functionMethodInstance && $0.name == name }
-                    .forEach { graph.markRetained($0) }
+                    .forEach { graph.markRetained($0, reason: RetentionReason(Self.self, "SwiftUI requirement used at runtime")) }
             }
         }
     }
@@ -75,7 +75,7 @@ final class SwiftUIRetainer: SourceGraphMutator {
                     ($0.declarationKind == .struct || $0.declarationKind == .enum) && Self.applicationDelegateAdaptorStructNames.contains($0.name)
                 }
             }
-            .forEach { graph.markRetained($0) }
+            .forEach { graph.markRetained($0, reason: RetentionReason(Self.self, "SwiftUI requirement used at runtime")) }
     }
 
     private func unretainPreviewMacroExpansions() {

@@ -22,14 +22,14 @@ final class XCTestRetainer: SourceGraphMutator {
         let testCaseClasses = subclasses.union(immediateTestCaseClasses)
 
         for testCaseClass in testCaseClasses {
-            graph.markRetainedWithAncestors(testCaseClass)
+            graph.markRetainedWithAncestors(testCaseClass, reason: RetentionReason(Self.self, "XCTestCase subclass \(testCaseClass.name)"))
             let methods = testCaseClass.declarations.filter { $0.kind == .functionMethodInstance }
 
             for method in methods {
                 let name = method.name
 
                 if name.hasPrefix("test"), name.hasSuffix("()") {
-                    graph.markRetained(method)
+                    graph.markRetained(method, reason: RetentionReason(Self.self, "test method of XCTestCase subclass \(testCaseClass.name)"))
                 }
             }
         }

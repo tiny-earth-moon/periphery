@@ -24,7 +24,13 @@ public struct IndexPipeline {
     }
 
     public func perform() throws {
-        try IndexCoverage(plan: plan, logger: logger, configuration: configuration).verify()
+        let gaps = try IndexCoverage(plan: plan, logger: logger, configuration: configuration).verify()
+
+        if !configuration.explain.isEmpty {
+            graph.withLock { graph in
+                gaps.forEach { graph.addUnindexedSourceFiles($0.files, module: $0.target) }
+            }
+        }
 
         // Generated String Catalog symbols are mapped to their keys rather than indexed as source.
         let generatedStringSymbolFiles = plan.sourceFiles.filter { configuration.isAnalyzedGeneratedStringSymbolsFile($0.key.path) }
