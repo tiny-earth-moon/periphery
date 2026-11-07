@@ -106,7 +106,8 @@ struct EditResolution {
             var range = edits[index].range
             var next = index + 1
             while next < edits.count, edits[next].replacement.isEmpty, edits[next].range.lowerBound == range.upperBound,
-                  edits[index].replacement.isEmpty, !range.isEmpty, bytes[range.upperBound - 1] == newline {
+                  edits[index].replacement.isEmpty, !range.isEmpty, bytes[range.upperBound - 1] == newline
+            {
                 range = range.lowerBound ..< edits[next].range.upperBound
                 next += 1
             }
