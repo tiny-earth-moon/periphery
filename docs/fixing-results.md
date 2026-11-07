@@ -1,5 +1,5 @@
 ---
-description: Apply the mechanical results of outskirts with the fix command: redundant access levels, empty extensions, unused imports, superfluous ignore comments and unused parameter names.
+description: Apply the mechanical results of outskirts with the fix command: redundant access levels, empty extensions, unused imports, superfluous ignore comments, unused parameter names and, with --aggressive, missing final.
 ---
 
 # Fixing results
@@ -9,6 +9,7 @@ description: Apply the mechanical results of outskirts with the fix command: red
 ```sh
 outskirts fix                  # print the diff
 outskirts fix --apply          # write the files
+outskirts fix --apply --verify # rebuild, restore on failure
 outskirts fix --rule unused-import --include 'Sources/App/**'
 ```
 
@@ -28,9 +29,21 @@ The command takes every option of `scan` and reads the same configuration file, 
 
 A rule whose analysis is opt-in only applies when the analysis is enabled, on the command line or in the configuration file.
 
+### Tier 2: `--aggressive`
+
+Tier-2 rules change behavior, so they only apply with `--aggressive`, and `--rule` refuses them without it.
+
+| Rule | Result | Fix | Analysis |
+|------|--------|-----|----------|
+| `missing-final` | `missingFinal` (class) | Insert `final` after the attributes and the access modifier: `public class` becomes `public final class`, `@MainActor class` becomes `@MainActor final class`. `open` and already `final` classes are never changed. | `--enable-open-final-analysis` |
+
+A class made `final` can no longer be subclassed, including by a module the scan did not see, so use `--aggressive` with `--verify` and review the diff. Members reported as missing `final` in a class that is not reported are left to edit by hand.
+
 ## Options
 
 - **`--apply`**: write the fixes. Each file is written atomically, and only if it still holds the content the edits were made on.
+- **`--verify`**: with `--apply`, rebuild the project with the same build as the scan (the Xcode schemes or `swift build`, with `--build-arguments`) once the fixes are written. If the build fails, every fixed file gets back its original bytes, the restored files are listed, and the command exits with a non-zero status. A file edited again during the build is not restored and is listed as such. `--verify` is refused when the build is skipped (`--skip-build`, `--index-store-path`) and for `--generic-project-config` projects, since outskirts does not build them.
+- **`--aggressive`**: also apply the tier-2 rules.
 - **`--rule <rule>`**: only apply this rule; repeat the option to apply several.
 - **`--include <glob>`**: only fix the files that match the glob, relative to `--project-root`; repeat the option to give several.
 - **`--allow-dirty`**: also fix files with uncommitted changes, and projects outside a git repository.
@@ -45,4 +58,4 @@ A rule whose analysis is opt-in only applies when the analysis is enabled, on th
 - Only the files that version control can restore are edited. Files with uncommitted changes, untracked files included, are refused unless `--allow-dirty` is given, and so are symbolic links, files outside the repository of the project and files of a submodule or nested repository. git is run with an argument array, never through a shell.
 - The file is parsed as the bytes on disk, so a byte order mark does not shift the edits.
 
-The analyses have known false positives, for example a redundant `public` that a client module outside the scan needs, so build and review the changes before committing them. Removing unused declarations is not part of this command.
+The analyses have known false positives, for example a redundant `public` that a client module outside the scan needs, so build (or pass `--verify`) and review the changes before committing them. Removing unused declarations is not part of this command.
