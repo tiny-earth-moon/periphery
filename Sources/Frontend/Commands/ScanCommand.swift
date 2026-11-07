@@ -126,15 +126,12 @@ struct ScanCommand: ParsableCommand {
     }
 
     func run() throws {
-        let projectRoot = projectOptions.projectRoot ?? FilePath(FileManager.default.currentDirectoryPath)
-        if !FileManager.default.changeCurrentDirectoryPath(projectRoot.string) {
-            throw PeripheryError.changeCurrentDirectoryFailed(projectRoot)
-        }
+        let projectRoot = try projectOptions.locationOptions.changeToProjectRoot()
 
         let configuration = Configuration()
 
         if !projectOptions.setup {
-            try configuration.load(from: projectOptions.config)
+            try configuration.load(from: projectOptions.locationOptions.config)
         }
 
         configuration.guidedSetup = projectOptions.setup

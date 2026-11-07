@@ -281,8 +281,8 @@ final class CommandLinePrecedenceTest: XCTestCase {
     }
 
     func testProjectRootDefaultsToNothingUntilTheScanRuns() throws {
-        XCTAssertNil(try ScanCommand.parse([]).projectOptions.projectRoot)
-        XCTAssertEqual(try ScanCommand.parse(["--project-root", "/tmp"]).projectOptions.projectRoot, "/tmp")
+        XCTAssertNil(try ScanCommand.parse([]).projectOptions.locationOptions.projectRoot)
+        XCTAssertEqual(try ScanCommand.parse(["--project-root", "/tmp"]).projectOptions.locationOptions.projectRoot, "/tmp")
     }
 
     func testVersionOptionPrintsWhatTheVersionCommandPrints() throws {

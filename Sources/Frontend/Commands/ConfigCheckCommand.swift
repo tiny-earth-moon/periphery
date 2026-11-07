@@ -13,21 +13,15 @@ struct ConfigCheckCommand: ParsableCommand {
         abstract: "Check the configuration file without scanning: unknown keys, values of the wrong type, invalid 'report_exclude' and 'retain_attributes' entries, options missing the option they require, baseline and output paths. Exits with status 1 on any problem"
     )
 
-    @Option(help: "Path to the root directory of your project (default: the current directory)", completion: .directory)
-    var projectRoot: FilePath?
-
-    @Option(help: "Path to configuration file, relative paths being resolved from '--project-root'. By default outskirts looks for .outskirts.yml (or .periphery.yml) in the project root", completion: .file(extensions: ["yml", "yaml"]))
-    var config: FilePath?
+    @OptionGroup
+    var locationOptions: ProjectLocationOptions
 
     func run() throws {
-        let projectRoot = projectRoot ?? FilePath(FileManager.default.currentDirectoryPath)
-        if !FileManager.default.changeCurrentDirectoryPath(projectRoot.string) {
-            throw PeripheryError.changeCurrentDirectoryFailed(projectRoot)
-        }
+        let projectRoot = try locationOptions.changeToProjectRoot()
 
         let configuration = Configuration()
 
-        guard let path = try configuration.configurationPath(withUserProvided: config) else {
+        guard let path = try configuration.configurationPath(withUserProvided: locationOptions.config) else {
             let names = Configuration.configurationFileNames.joined(separator: ", ")
             throw PeripheryError.usageError("No configuration file in '\(projectRoot.string)' (looked for \(names)), pass one with '--config'.")
         }

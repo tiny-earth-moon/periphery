@@ -58,6 +58,7 @@ final class ConfigurationSchemaTest: XCTestCase {
         let groups: [Any] = [
             command,
             command.projectOptions,
+            command.projectOptions.locationOptions,
             command.buildOptions,
             command.analysisOptions,
             command.retentionOptions,
