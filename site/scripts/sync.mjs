@@ -21,11 +21,15 @@ const CATEGORIES = [
   ["Baselines", ["baseline", "write_baseline", "prune_baseline", "strict_baseline"]],
 ];
 
-/** `scan` options that have no key in the configuration file, with the help of `outskirts help scan`. */
+/**
+ * `scan` options that have no key in the configuration file, with the help of `outskirts help scan`, and the version
+ * that added those absent from 3.20.0 (the next version, after the one in `Sources/Shared/Version.swift`).
+ */
 const COMMAND_LINE_ONLY = [
   ["--setup", "Guided setup: detects the project type, asks a few questions, then prints and runs the full scan command. Run it at the project root."],
   ["--project-root", "Root directory of the project, from which relative paths are resolved. Default: the current directory."],
   ["--config", "Configuration file. A relative path is resolved from `--project-root`. Default: `.outskirts.yml`, else `.periphery.yml`, in the project root."],
+  ["--explain", "Explains why a declaration is reported, used or retained, before the results. Accepts a name (`draw()`, `draw` or `Beta.draw()`), a USR or a `file:line` location; repeat the option to explain several declarations, e.g. `--explain 'draw()' --explain Sources/Kit/Shape.swift:12`.", "3.22.0"],
 ];
 
 /**
@@ -96,8 +100,9 @@ function optionsReference() {
     "## Command line only",
     "",
   ];
-  for (const [flag, description] of COMMAND_LINE_ONLY) {
-    lines.push(`### \`${flag}\``, "", description, "", ...seeAlso(references, [flag]));
+  for (const [flag, description, version] of COMMAND_LINE_ONLY) {
+    const since = version ? [`Since ${version}.`, ""] : [];
+    lines.push(`### \`${flag}\``, "", ...since, description, "", ...seeAlso(references, [flag]));
   }
   for (const [title, list] of CATEGORIES) {
     lines.push(`## ${title}`, "");

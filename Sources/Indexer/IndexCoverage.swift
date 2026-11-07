@@ -15,16 +15,21 @@ struct IndexCoverage {
     let logger: ContextualLogger
     let configuration: Configuration
 
-    func verify() throws {
+    /// Warns about the targets with files missing from the index, and returns them.
+    @discardableResult
+    func verify() throws -> [Gap] {
         let storeList = plan.indexStorePaths.map(\.string).sorted().joined(separator: ", ")
+        let gaps = try gaps()
 
-        for gap in try gaps() {
+        for gap in gaps {
             logger.warn("\(gap.files.count) source file(s) in target \(gap.target) have no index data; results for them are not reliable (index store: \(storeList))")
 
             for file in gap.files {
                 logger.debug("No index data: \(file.string)")
             }
         }
+
+        return gaps
     }
 
     /// Targets with only some of their files indexed. Throws when none of the expected files is indexed.

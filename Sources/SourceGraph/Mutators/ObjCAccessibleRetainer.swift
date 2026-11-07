@@ -20,13 +20,13 @@ final class ObjCAccessibleRetainer: SourceGraphMutator {
                 decl.attributes.contains(where: { $0.name == "objcMembers" }) else { continue }
 
             decl.isObjcAccessible = true
-            graph.markRetained(decl)
+            graph.markRetained(decl, reason: RetentionReason(Self.self, "\(configuration.retainObjcAccessible ? "retain_objc_accessible" : "retain_objc_annotated"), @objc or @objcMembers"))
 
             if configuration.retainObjcAnnotated {
                 if decl.attributes.contains(where: { $0.name == "objcMembers" }) || decl.kind == .protocol || decl.kind == .extensionClass {
                     for declaration in decl.declarations {
                         declaration.isObjcAccessible = true
-                        graph.markRetained(declaration)
+                        graph.markRetained(declaration, reason: RetentionReason(Self.self, "retain_objc_annotated, member of an @objcMembers type, @objc protocol or extension"))
                     }
                 }
             }
@@ -39,7 +39,7 @@ final class ObjCAccessibleRetainer: SourceGraphMutator {
                 {
                     for declaration in extDecl.declarations {
                         declaration.isObjcAccessible = true
-                        graph.markRetained(declaration)
+                        graph.markRetained(declaration, reason: RetentionReason(Self.self, "retain_objc_annotated, member of an @objcMembers type, @objc protocol or extension"))
                     }
                 }
             }

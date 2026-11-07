@@ -21,14 +21,14 @@ final class JSExportRetainer: SourceGraphMutator {
         guard configuration.retainJsAccessible else { return }
 
         for proto in graph.declarations(ofKind: .protocol) where inheritsJSExport(proto) {
-            graph.markRetained(proto)
+            graph.markRetained(proto, reason: RetentionReason(Self.self, "retain_js_accessible"))
 
             for member in proto.declarations {
-                graph.markRetained(member)
+                graph.markRetained(member, reason: RetentionReason(Self.self, "retain_js_accessible"))
 
                 for reference in graph.references(to: member) where reference.kind == .related {
                     if let implementation = reference.parent {
-                        graph.markRetained(implementation)
+                        graph.markRetained(implementation, reason: RetentionReason(Self.self, "retain_js_accessible"))
                     }
                 }
             }

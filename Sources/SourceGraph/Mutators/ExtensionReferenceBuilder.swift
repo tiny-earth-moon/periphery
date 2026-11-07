@@ -22,7 +22,7 @@ final class ExtensionReferenceBuilder: SourceGraphMutator {
             guard let extendedTypeReference = try graph.extendedDeclarationReference(forExtension: extensionDeclaration) else { continue }
             guard let extendedDeclaration = graph.declaration(withUsr: extendedTypeReference.usr) else {
                 // This is an extension on an external type and cannot be folded.
-                graph.markRetained(extensionDeclaration)
+                graph.markRetained(extensionDeclaration, reason: RetentionReason(Self.self, "extension of an external type"))
                 continue
             }
 

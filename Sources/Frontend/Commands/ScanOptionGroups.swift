@@ -206,6 +206,9 @@ struct ResultsOptions: ParsableArguments {
 
     @Flag(help: "Do not print the results to stdout. Requires '--write-results'")
     var skipStdoutResults: Bool = defaultConfiguration.$skipStdoutResults.defaultValue
+
+    @Option(help: "Explain why a declaration is reported, used or retained. Accepts a name (e.g. 'draw()' or 'Beta.draw()'), a USR or a 'file:line' location; repeat the option to explain several")
+    var explain: [String] = []
 }
 
 struct BaselineOptions: ParsableArguments {

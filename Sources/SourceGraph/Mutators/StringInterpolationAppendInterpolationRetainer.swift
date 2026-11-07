@@ -24,7 +24,7 @@ final class StringInterpolationAppendInterpolationRetainer: SourceGraphMutator {
                 $0.kind == .functionMethodInstance &&
                     $0.name.hasPrefix("appendInterpolation(")
             }.forEach {
-                graph.markRetained($0)
+                graph.markRetained($0, reason: RetentionReason(Self.self, "appendInterpolation of a string interpolation type"))
             }
         }
     }

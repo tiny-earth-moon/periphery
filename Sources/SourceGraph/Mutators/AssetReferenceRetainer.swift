@@ -35,7 +35,7 @@ final class AssetReferenceRetainer: SourceGraphMutator {
                 return nil
             }
             .forEach { references, declaration in
-                graph.markRetained(declaration)
+                graph.markRetained(declaration, reason: RetentionReason(Self.self, "referenced by a resource file"))
 
                 let sources = Set(references.map(\.source))
 

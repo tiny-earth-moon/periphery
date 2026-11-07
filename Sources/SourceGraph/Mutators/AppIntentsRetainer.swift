@@ -35,11 +35,11 @@ final class AppIntentsRetainer: SourceGraphMutator {
             }
 
         for declaration in retainedDeclarations {
-            graph.markRetainedWithAncestors(declaration)
+            graph.markRetainedWithAncestors(declaration, reason: RetentionReason(Self.self, "conforms to an App Intents protocol"))
 
             declaration.declarations
                 .filter { $0.kind == .varStatic && Self.metadataPropertyNames.contains($0.name) }
-                .forEach { graph.markRetained($0) }
+                .forEach { graph.markRetained($0, reason: RetentionReason(Self.self, "member of an App Intents type")) }
         }
     }
 }

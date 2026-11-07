@@ -19,7 +19,7 @@ final class CodablePropertyRetainer: SourceGraphMutator {
                 for decl in decl.declarations {
                     guard decl.kind == .varInstance else { continue }
 
-                    graph.markRetained(decl)
+                    graph.markRetained(decl, reason: RetentionReason(Self.self, "retain_codable_properties"))
                 }
             }
         } else if configuration.retainEncodableProperties {
@@ -29,7 +29,7 @@ final class CodablePropertyRetainer: SourceGraphMutator {
                 for decl in decl.declarations {
                     guard decl.kind == .varInstance else { continue }
 
-                    graph.markRetained(decl)
+                    graph.markRetained(decl, reason: RetentionReason(Self.self, "retain_encodable_properties"))
                 }
             }
         }

@@ -45,6 +45,7 @@ final class Scan {
         try build(driver)
         try index(driver)
         try analyze()
+        explain()
         return Output(results: buildResults())
     }
 
@@ -94,6 +95,15 @@ final class Scan {
             swiftVersion: swiftVersion
         ).perform()
         logger.endInterval(analyzeInterval)
+    }
+
+    /// Prints the explanations asked with `--explain`, before the results.
+    private func explain() {
+        guard !configuration.explain.isEmpty else { return }
+
+        let explanation = DeclarationExplainer(graph: graph, configuration: configuration).explain(configuration.explain)
+        logger.info("", canQuiet: false)
+        logger.info(explanation, canQuiet: false)
     }
 
     private func buildResults() -> [ScanResult] {

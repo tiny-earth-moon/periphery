@@ -163,7 +163,7 @@ final class ProtocolConformanceReferenceBuilder: SourceGraphMutator {
             graph.add(reference, from: parent)
         }
         for declaration in declarationsToRetain {
-            graph.markRetained(declaration)
+            graph.markRetained(declaration, reason: RetentionReason(Self.self, "protocol witness of a requirement of an external protocol"))
         }
     }
 }

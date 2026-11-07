@@ -6,6 +6,25 @@ description: Fix unexpected outskirts results: stale index stores, code behind #
 
 Most surprising results come from what the index store saw, or did not see. This page lists the usual causes and the Swift index store bugs that were checked against current toolchains.
 
+## Why a declaration is reported or kept
+
+Since 3.22.0.
+
+`--explain` tells why a declaration is reported, used or retained. It takes a name (`draw()`, `draw` or `Beta.draw()`), a USR or a `file:line` location, can be repeated, and prints its explanation before the results:
+
+```
+outskirts scan --explain 'Beta.draw()'
+```
+
+Each matching declaration gets one of these explanations:
+
+- **unused**: no reference to it was found. When files of its module have no index data, they are listed, as a reference may live in one of them.
+- **reported as unused**: references were found but none is reached from a root, and each is listed with the reason, e.g. a self-reference written inside the declaration, or a reference from a declaration that is itself unused.
+- **used**: the shortest reference chain from a root (a retained declaration or top-level code), with the location of each reference.
+- **retained**: the retainer and its reason, e.g. `PubliclyAccessibleRetainer, retain_public`, a comment command, or `PlatformConditionalRetainer, name 'draw' written in #if os(iOS) at Sources/Kit/Shapes.swift:7`. A retained member that is used shows the chain that reaches it as well.
+
+The scan records these reasons only when `--explain` is passed, so other scans are as fast as before.
+
 ## Results in the wrong place or false positives in one file
 
 The index store can become corrupt or out of sync with the source files, for example when a scan is forcefully interrupted (Ctrl-C). Pass `--clean-build` to remove the existing build artifacts and build again.

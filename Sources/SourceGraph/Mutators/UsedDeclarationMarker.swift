@@ -18,9 +18,14 @@ final class UsedDeclarationMarker: SourceGraphMutator {
 
     func mutate() {
         removeErroneousProtocolReferences()
-        markUsed(graph.retainedDeclarations)
 
-        markUsed(graph.rootReferences.compactMapSet { graph.declaration(withUsr: $0.usr) })
+        if graph.recordsExplanations {
+            markUsedRecordingPredecessors(from: rootsWithPredecessors())
+        } else {
+            markUsed(graph.retainedDeclarations)
+            markUsed(graph.rootReferences.compactMapSet { graph.declaration(withUsr: $0.usr) })
+        }
+
         markLivePreviewExpansionsUsed()
 
         ignoreUnusedDescendents(in: graph.rootDeclarations,
@@ -57,7 +62,7 @@ final class UsedDeclarationMarker: SourceGraphMutator {
         }
 
         for reference in referencesToRemove {
-            graph.remove(reference)
+            graph.remove(reference, discardedBy: Self.self, detail: "protocol requirement to a conforming declaration whose enclosing declaration is unreferenced")
         }
     }
 
@@ -74,7 +79,48 @@ final class UsedDeclarationMarker: SourceGraphMutator {
 
             for reference in [declaration.references, declaration.related].joined() {
                 if let referenced = graph.declaration(withUsr: reference.usr), !graph.isUsed(referenced) {
+                    graph.recordUsePredecessor(.reference(reference, from: declaration), for: referenced)
                     pending.append(referenced)
+                }
+            }
+        }
+    }
+
+    /// The retained declarations and the declarations referenced from top-level code, sorted so that the recorded
+    /// chains do not depend on set order.
+    private func rootsWithPredecessors() -> [(Declaration, UsePredecessor)] {
+        let retained = graph.retainedDeclarations.sorted().map { ($0, UsePredecessor.retained) }
+        let referenced = graph.rootReferences
+            .sorted { $0.location < $1.location }
+            .compactMap { reference in
+                graph.declaration(withUsr: reference.usr).map { ($0, UsePredecessor.rootReference(reference)) }
+            }
+        return retained + referenced
+    }
+
+    /// The same walk as `markUsed(_:)`, breadth-first, recording the predecessor of each declaration so that
+    /// `--explain` can print a shortest reference chain from a root. Only used when explanations are recorded.
+    private func markUsedRecordingPredecessors(from roots: [(Declaration, UsePredecessor)]) {
+        var queue: [Declaration] = []
+        var head = 0
+
+        for (declaration, predecessor) in roots {
+            graph.recordUsePredecessor(predecessor, for: declaration)
+            queue.append(declaration)
+        }
+
+        while head < queue.count {
+            let declaration = queue[head]
+            head += 1
+            guard !graph.isUsed(declaration) else { continue }
+
+            graph.markUsed(declaration)
+
+            let references = [declaration.references, declaration.related].joined().sorted { $0.location < $1.location }
+            for reference in references {
+                if let referenced = graph.declaration(withUsr: reference.usr), !graph.isUsed(referenced) {
+                    graph.recordUsePredecessor(.reference(reference, from: declaration), for: referenced)
+                    queue.append(referenced)
                 }
             }
         }
@@ -96,7 +142,9 @@ final class UsedDeclarationMarker: SourceGraphMutator {
             guard !livePreviews.isEmpty else { break }
 
             pendingPreviews.subtract(livePreviews)
-            markUsed(livePreviews.flatMapSet { $0.descendentDeclarations.union([$0]) })
+            let previewDeclarations = livePreviews.flatMapSet { $0.descendentDeclarations.union([$0]) }
+            previewDeclarations.forEach { graph.recordUsePredecessor(.livePreview, for: $0) }
+            markUsed(previewDeclarations)
         }
     }
 
