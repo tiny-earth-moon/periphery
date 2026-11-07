@@ -25,11 +25,16 @@ public extension OutputFormatter {
 extension OutputFormatter {
     func redundantConformanceHint(with inherited: Set<String>) -> String {
         var msg = "redundantConformance"
-        if !inherited.isEmpty {
-            msg += "(replace with: '\(inherited.sorted().joined(separator: ", "))')"
+        if let replacement = conformanceReplacement(for: inherited) {
+            msg += "(replace with: '\(replacement)')"
         }
 
         return msg
+    }
+
+    /// The inherited protocols that replace a redundant conformance, nil when there are none.
+    func conformanceReplacement(for inherited: Set<String>) -> String? {
+        inherited.isEmpty ? nil : inherited.sorted().joined(separator: ", ")
     }
 
     /// References are held in a set, whose order changes from one process to the next. Output must not depend on it.
@@ -70,8 +75,8 @@ extension OutputFormatter {
             secondaryResults = sortedReferences(references).map {
                 var msg = "Redundant protocol conformance '\(name)'"
 
-                if !inherited.isEmpty {
-                    msg += " (replace with '\(inherited.sorted().joined(separator: ", "))')"
+                if let replacement = conformanceReplacement(for: inherited) {
+                    msg += " (replace with '\(replacement)')"
                 }
 
                 return ($0.location, msg)
