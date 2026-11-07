@@ -36,6 +36,14 @@ public protocol PeripherySyntaxNodeVisitor: AnyObject {
     func visit(_ node: KeyPathExprSyntax)
     func visit(_ node: ExpressionSegmentSyntax)
     func visit(_ node: IfConfigDeclSyntax)
+    func visit(_ node: IdentifierTypeSyntax)
+    func visit(_ node: SequenceExprSyntax)
+    func visit(_ node: InfixOperatorExprSyntax)
+    func visit(_ node: SwitchCaseItemSyntax)
+    func visit(_ node: MatchingPatternConditionSyntax)
+    func visit(_ node: ForStmtSyntax)
+    func visit(_ node: CatchItemSyntax)
+    func visit(_ node: IfConfigClauseSyntax)
 
     func visitPost(_ node: ActorDeclSyntax)
     func visitPost(_ node: ClassDeclSyntax)
@@ -66,6 +74,14 @@ public protocol PeripherySyntaxVisitor: PeripherySyntaxNodeVisitor {
 }
 
 public extension PeripherySyntaxNodeVisitor {
+    func visit(_: IdentifierTypeSyntax) {}
+    func visit(_: SequenceExprSyntax) {}
+    func visit(_: InfixOperatorExprSyntax) {}
+    func visit(_: SwitchCaseItemSyntax) {}
+    func visit(_: MatchingPatternConditionSyntax) {}
+    func visit(_: ForStmtSyntax) {}
+    func visit(_: CatchItemSyntax) {}
+    func visit(_: IfConfigClauseSyntax) {}
     func visit(_: ActorDeclSyntax) {}
     func visit(_: ClassDeclSyntax) {}
     func visit(_: ProtocolDeclSyntax) {}
@@ -133,6 +149,46 @@ public class ForwardingSyntaxVisitor: SyntaxVisitor {
     public func add<T: PeripherySyntaxNodeVisitor>(_ visitor: T) -> T {
         visitors.append(visitor)
         return visitor
+    }
+
+    override public func visit(_ node: IdentifierTypeSyntax) -> SyntaxVisitorContinueKind {
+        visitors.forEach { $0.visit(node) }
+        return .visitChildren
+    }
+
+    override public func visit(_ node: SequenceExprSyntax) -> SyntaxVisitorContinueKind {
+        visitors.forEach { $0.visit(node) }
+        return .visitChildren
+    }
+
+    override public func visit(_ node: InfixOperatorExprSyntax) -> SyntaxVisitorContinueKind {
+        visitors.forEach { $0.visit(node) }
+        return .visitChildren
+    }
+
+    override public func visit(_ node: SwitchCaseItemSyntax) -> SyntaxVisitorContinueKind {
+        visitors.forEach { $0.visit(node) }
+        return .visitChildren
+    }
+
+    override public func visit(_ node: MatchingPatternConditionSyntax) -> SyntaxVisitorContinueKind {
+        visitors.forEach { $0.visit(node) }
+        return .visitChildren
+    }
+
+    override public func visit(_ node: ForStmtSyntax) -> SyntaxVisitorContinueKind {
+        visitors.forEach { $0.visit(node) }
+        return .visitChildren
+    }
+
+    override public func visit(_ node: CatchItemSyntax) -> SyntaxVisitorContinueKind {
+        visitors.forEach { $0.visit(node) }
+        return .visitChildren
+    }
+
+    override public func visit(_ node: IfConfigClauseSyntax) -> SyntaxVisitorContinueKind {
+        visitors.forEach { $0.visit(node) }
+        return .visitChildren
     }
 
     override public func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {

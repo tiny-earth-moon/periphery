@@ -1,4 +1,5 @@
 import Foundation
+import Shared
 import SourceGraph
 import SwiftSyntax
 
@@ -11,7 +12,7 @@ import SwiftSyntax
 /// It also collects the calls that create a Metal library from something other than the `.metal` files of the
 /// project: `makeLibrary(source:)`, `makeLibrary(URL:)`, `makeLibrary(filepath:)`, `makeLibrary(data:)`,
 /// `makeLibrary(stitchedDescriptor:)`, and anything involving an `MTLBinaryArchive`.
-public final class MetalFunctionNameCollector: SyntaxVisitor {
+public final class MetalFunctionNameCollector: PeripherySyntaxVisitor {
     public struct Candidate: Hashable {
         public let reference: MetalFunctionNameReference
         /// The position of the `name` token of an assignment, `nil` for a call, which needs no confirmation.
@@ -34,9 +35,12 @@ public final class MetalFunctionNameCollector: SyntaxVisitor {
 
     private let sourceLocationBuilder: SourceLocationBuilder
 
+    public init(sourceLocationBuilder: SourceLocationBuilder, swiftVersion _: SwiftVersion) {
+        self.sourceLocationBuilder = sourceLocationBuilder
+    }
+
     init(sourceLocationBuilder: SourceLocationBuilder) {
         self.sourceLocationBuilder = sourceLocationBuilder
-        super.init(viewMode: .sourceAccurate)
     }
 
     public static func collect(
@@ -47,10 +51,14 @@ public final class MetalFunctionNameCollector: SyntaxVisitor {
         let builder = SourceLocationBuilder(file: file, locationConverter: locationConverter)
         let collector = MetalFunctionNameCollector(sourceLocationBuilder: builder)
         collector.walk(syntax)
-        return Result(candidates: collector.candidates, runtimeLibrarySites: collector.runtimeLibrarySites)
+        return collector.result
     }
 
-    override public func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+    public var result: Result {
+        Result(candidates: candidates, runtimeLibrarySites: runtimeLibrarySites)
+    }
+
+    public func visit(_ node: FunctionCallExprSyntax) {
         let calleeName: String? = if let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self) {
             memberAccess.declName.baseName.text
         } else if let reference = node.calledExpression.as(DeclReferenceExprSyntax.self) {
@@ -68,19 +76,15 @@ public final class MetalFunctionNameCollector: SyntaxVisitor {
         if let calleeName {
             collectRuntimeLibrary(calleeName: calleeName, call: node)
         }
-
-        return .visitChildren
     }
 
-    override public func visit(_ node: IdentifierTypeSyntax) -> SyntaxVisitorContinueKind {
+    public func visit(_ node: IdentifierTypeSyntax) {
         if node.name.text == "MTLBinaryArchive" {
             addRuntimeLibrarySite(call: "MTLBinaryArchive", at: node.positionAfterSkippingLeadingTrivia)
         }
-
-        return .visitChildren
     }
 
-    override public func visit(_ node: SequenceExprSyntax) -> SyntaxVisitorContinueKind {
+    public func visit(_ node: SequenceExprSyntax) {
         let elements = Array(node.elements)
 
         for (index, element) in elements.enumerated() where element.is(AssignmentExprSyntax.self) {
@@ -88,16 +92,12 @@ public final class MetalFunctionNameCollector: SyntaxVisitor {
 
             collectAssignment(to: elements[index - 1], value: elements[index + 1])
         }
-
-        return .visitChildren
     }
 
-    override public func visit(_ node: InfixOperatorExprSyntax) -> SyntaxVisitorContinueKind {
+    public func visit(_ node: InfixOperatorExprSyntax) {
         if node.operator.is(AssignmentExprSyntax.self) {
             collectAssignment(to: node.leftOperand, value: node.rightOperand)
         }
-
-        return .visitChildren
     }
 
     // MARK: - Private

@@ -311,6 +311,16 @@ final class SwiftIndexer: Indexer {
                 ? multiplexingSyntaxVisitor.add(KeyPathComponentCollector.self)
                 : nil
 
+            let metalFunctionNameCollector: MetalFunctionNameCollector? = configuration.detectUnusedMetalFunctions
+                ? multiplexingSyntaxVisitor.add(MetalFunctionNameCollector.self)
+                : nil
+            let enumCasePatternCollector: EnumCasePatternCollector? = configuration.enableUnconstructedEnumCaseAnalysis
+                ? multiplexingSyntaxVisitor.add(EnumCasePatternCollector(
+                    file: sourceFile,
+                    locationConverter: multiplexingSyntaxVisitor.locationConverter
+                ))
+                : nil
+
             multiplexingSyntaxVisitor.visit()
 
             sourceFile.importStatements = importSyntaxVisitor.importStatements
@@ -351,8 +361,19 @@ final class SwiftIndexer: Indexer {
                 }
             }
 
-            if configuration.detectUnusedMetalFunctions {
-                collectMetalFunctionNameReferences(using: multiplexingSyntaxVisitor)
+            if let metalFunctionNameCollector {
+                collectMetalFunctionNameReferences(metalFunctionNameCollector.result)
+            }
+
+            if let enumCasePatternCollector,
+               !enumCasePatternCollector.sites.isEmpty || !enumCasePatternCollector.conditionalNames.isEmpty
+            {
+                graph.withLock {
+                    $0.addEnumCasePatternSites(
+                        enumCasePatternCollector.sites,
+                        conditionalNames: enumCasePatternCollector.conditionalNames
+                    )
+                }
             }
 
             if let synthesizedUseCollector {
@@ -421,12 +442,7 @@ final class SwiftIndexer: Indexer {
 
         /// Calls are recognized from syntax, an assignment to a `name` property only when the index store records
         /// a reference to `MTLFunctionDescriptor.name` at its `name` token.
-        private func collectMetalFunctionNameReferences(using multiplexingSyntaxVisitor: MultiplexingSyntaxVisitor) {
-            let collected = MetalFunctionNameCollector.collect(
-                from: multiplexingSyntaxVisitor.syntax,
-                file: sourceFile,
-                locationConverter: multiplexingSyntaxVisitor.locationConverter
-            )
+        private func collectMetalFunctionNameReferences(_ collected: MetalFunctionNameCollector.Result) {
             let references = collected.candidates.compactMapSet { candidate -> MetalFunctionNameReference? in
                 guard let propertyLocation = candidate.propertyLocation else { return candidate.reference }
 

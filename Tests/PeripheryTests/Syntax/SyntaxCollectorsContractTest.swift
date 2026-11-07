@@ -47,6 +47,17 @@ final class SyntaxCollectorsContractTest: XCTestCase {
         var archive: MTLBinaryArchive?
         _ = archive
     }
+
+    func patterns(value: Shape?, values: [Shape]) throws {
+        switch value {
+        case .circle(let radius)?: _ = radius
+        case let Shape.square(.some(side)): _ = side
+        default: break
+        }
+        if case .line = value {}
+        for case .dot in values {}
+        do {} catch Failure.broken {}
+    }
     """#
 
     private let file = SourceFile(path: FilePath("/fixture.swift"), modules: ["Fixture"])
@@ -106,7 +117,47 @@ final class SyntaxCollectorsContractTest: XCTestCase {
         )
     }
 
+    func testEnumCasePatterns() {
+        let collector = EnumCasePatternCollector(file: file, locationConverter: converter)
+        collector.walk(syntax)
+
+        XCTAssertEqual(
+            render(collector.sites),
+            ["43:11 call", "44:20 call", "44:28 call in 44:20", "47:14 name", "48:15 name", "49:25 name"]
+        )
+        XCTAssertEqual(
+            collector.conditionalNames.sorted(),
+            ["iOS", "macOnly", "nested", "nestedOnly", "os", "otherOnly", "platformName"]
+        )
+    }
+
+    /// The Metal and enum case pattern collectors share the indexer's single walk: they find the same as alone.
+    func testSharedWalkMatchesStandaloneWalks() {
+        let builder = SourceLocationBuilder(file: file, locationConverter: converter)
+        let metal = MetalFunctionNameCollector(sourceLocationBuilder: builder)
+        let patterns = EnumCasePatternCollector(file: file, locationConverter: converter)
+        let strings = StringLiteralCollector()
+        ForwardingSyntaxVisitor(visitors: [strings, metal, patterns]).walk(syntax)
+
+        let standaloneMetal = MetalFunctionNameCollector.collect(from: syntax, file: file, locationConverter: converter)
+        let standalonePatterns = EnumCasePatternCollector(file: file, locationConverter: converter)
+        standalonePatterns.walk(syntax)
+
+        XCTAssertEqual(metal.result.candidates, standaloneMetal.candidates)
+        XCTAssertEqual(metal.result.runtimeLibrarySites, standaloneMetal.runtimeLibrarySites)
+        XCTAssertEqual(patterns.sites, standalonePatterns.sites)
+        XCTAssertEqual(patterns.conditionalNames, standalonePatterns.conditionalNames)
+        XCTAssertEqual(strings.values, StringLiteralCollector.collect(from: syntax))
+    }
+
     // MARK: - Private
+
+    private func render(_ sites: [Location: EnumCasePatternSite]) -> [String] {
+        sites.map { location, site in
+            let call = site.enclosingCall.map { " in \($0.line):\($0.column)" } ?? ""
+            return "\(location.line):\(location.column) \(site.shape)\(call)"
+        }.sorted()
+    }
 
     private func render(_ locations: Set<Location>) -> [String] {
         locations.map { "\($0.line):\($0.column)" }.sorted()
