@@ -37,6 +37,11 @@ extension OutputFormatter {
         inherited.isEmpty ? nil : inherited.sorted().joined(separator: ", ")
     }
 
+    /// The declaration USRs, sorted and dot-joined: a fingerprint stable across runs.
+    func usrFingerprint(of result: ScanResult) -> String {
+        result.declaration.usrs.sorted().joined(separator: ".")
+    }
+
     /// References are held in a set, whose order changes from one process to the next. Output must not depend on it.
     func sortedReferences(_ references: Set<Reference>) -> [Reference] {
         references.sorted {

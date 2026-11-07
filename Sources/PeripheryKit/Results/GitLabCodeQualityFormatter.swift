@@ -27,11 +27,7 @@ final class GitLabCodeQualityFormatter: OutputFormatter {
 
             let checkName = describe(result.annotation)
 
-            let fingerprint = result
-                .declaration
-                .usrs
-                .sorted()
-                .joined(separator: ".")
+            let fingerprint = usrFingerprint(of: result)
 
             let begin = violationFileLocation.line
             let lines: [AnyHashable: Any] = [

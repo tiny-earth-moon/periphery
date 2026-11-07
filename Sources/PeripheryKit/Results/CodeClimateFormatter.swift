@@ -33,7 +33,7 @@ final class CodeClimateFormatter: OutputFormatter {
             let description = describe(result, colored: colored)
                 .map(\.1)
                 .joined(separator: ", ")
-            let fingerprint = result.declaration.usrs.sorted().joined(separator: ".")
+            let fingerprint = usrFingerprint(of: result)
 
             let object: [AnyHashable: Any] = [
                 "type": "issue",
