@@ -24,7 +24,7 @@ public struct EvictedCacheEntry: Equatable {
 }
 
 public enum CacheManager {
-    public static let derivedDataPrefix = "DerivedData-"
+    static let derivedDataPrefix = "DerivedData-"
     static let projectSidecarName = ".outskirts-project"
 
     /// Clears the outskirts cache directory and the one left by releases that predate the rename.
@@ -35,7 +35,7 @@ public enum CacheManager {
 
     /// Removes every entry of the cache directory, then the directory itself. Entries that have already
     /// vanished are ignored. Symbolic links are removed, never followed.
-    public static func clear(cacheDirectory: URL, fileManager: FileManager = .default) throws {
+    static func clear(cacheDirectory: URL, fileManager: FileManager = .default) throws {
         let entries: [URL]
         do {
             entries = try fileManager.contentsOfDirectory(
@@ -76,14 +76,37 @@ public enum CacheManager {
         }
     }
 
+    /// Records the project in the DerivedData folder of the current scan and marks it as used, then evicts
+    /// the stale folders from the cache, keeping the current one. Returns the evicted entries.
+    public static func refresh(
+        derivedData: URL,
+        projectPath: String,
+        maxAgeDays: Int,
+        maxSizeGB: Int,
+        cacheDirectory: URL? = nil,
+        fileManager: FileManager = .default
+    ) throws -> [EvictedCacheEntry] {
+        if fileManager.fileExists(atPath: derivedData.path) {
+            try recordProject(projectPath, in: derivedData, fileManager: fileManager)
+            try touch(derivedData, fileManager: fileManager)
+        }
+        return try evictStale(
+            cacheDirectory: cacheDirectory ?? URL(fileURLWithPath: Constants.cachePath().string),
+            maxAgeDays: maxAgeDays,
+            maxSizeBytes: Int64(maxSizeGB) << 30,
+            keeping: derivedData,
+            fileManager: fileManager
+        )
+    }
+
     /// Marks a DerivedData folder as used now.
-    public static func touch(_ directory: URL, now: Date = Date(), fileManager: FileManager = .default) throws {
+    static func touch(_ directory: URL, now: Date = Date(), fileManager: FileManager = .default) throws {
         try fileManager.setAttributes([.modificationDate: now], ofItemAtPath: directory.path)
     }
 
     /// Records the project a DerivedData folder was built for, so that the folder can be evicted once the project is gone.
     /// Call it before `touch`: creating the file changes the folder's modification date.
-    public static func recordProject(_ projectPath: String, in directory: URL, fileManager: FileManager = .default) throws {
+    static func recordProject(_ projectPath: String, in directory: URL, fileManager: FileManager = .default) throws {
         let sidecar = directory.appendingPathComponent(projectSidecarName)
         guard let data = projectPath.data(using: .utf8) else { return }
 
@@ -94,33 +117,13 @@ public enum CacheManager {
 
     /// Removes the `DerivedData-*` folders of the cache, except `keeping`, that are stale. A folder is stale when
     /// the project recorded in its sidecar no longer exists, or when its modification date is older than
-    /// `maxAgeDays` (0 disables this age rule). Then, when `maxSizeGB` is above 0, the least recently
-    /// used folders are removed until the folders left fit in `maxSizeGB` gigabytes (the size of `keeping` counts).
-    @discardableResult
-    public static func evictStale(
-        cacheDirectory: URL,
-        maxAgeDays: Int,
-        maxSizeGB: Int = 0,
-        keeping: URL?,
-        now: Date = Date(),
-        fileManager: FileManager = .default
-    ) throws -> [EvictedCacheEntry] {
-        try evictStale(
-            cacheDirectory: cacheDirectory,
-            maxAgeDays: maxAgeDays,
-            maxSizeBytes: Int64(maxSizeGB) << 30,
-            keeping: keeping,
-            now: now,
-            fileManager: fileManager
-        )
-    }
-
-    /// Same as the gigabyte variant, with the size limit in bytes. 0 disables the limit.
+    /// `maxAgeDays` (0 disables this age rule). Then, when `maxSizeBytes` is above 0, the least recently
+    /// used folders are removed until the folders left fit in `maxSizeBytes` bytes (the size of `keeping` counts).
     @discardableResult
     static func evictStale(
         cacheDirectory: URL,
         maxAgeDays: Int,
-        maxSizeBytes: Int64,
+        maxSizeBytes: Int64 = 0,
         keeping: URL?,
         now: Date = Date(),
         fileManager: FileManager = .default
