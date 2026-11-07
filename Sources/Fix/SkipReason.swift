@@ -20,6 +20,8 @@ public enum SkipReason: Error, Hashable, Sendable, CustomStringConvertible {
     case extensionNotEmpty
     case ignoreCommentNotFound
     case partialParameterIgnore
+    case alreadyFinal
+    case openClass
 
     public var description: String {
         switch self {
@@ -43,6 +45,8 @@ public enum SkipReason: Error, Hashable, Sendable, CustomStringConvertible {
         case .extensionNotEmpty: "extension not empty"
         case .ignoreCommentNotFound: "ignore comment not found"
         case .partialParameterIgnore: "some ignored parameters are still unused"
+        case .alreadyFinal: "already final"
+        case .openClass: "open class"
         }
     }
 }

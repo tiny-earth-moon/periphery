@@ -263,6 +263,120 @@ final class FixCommandTest: XCTestCase {
         """)
     }
 
+    // MARK: - Missing final (tier 2)
+
+    func testMissingFinalGoesAfterTheAttributesAndTheAccessModifier() throws {
+        let source = """
+        class Plain {}
+        public class Public {}
+        @MainActor
+        internal class Annotated {}
+        @objc(Bridged) private class Bridged: NSObject {}
+        /// Doc.
+        @available(macOS 15, *) fileprivate /* kept */ class Commented {}
+        struct Outer {
+            package class Nested {
+                class Inner {}
+            }
+        }
+
+        """
+        let fixed = try fix(source, [
+            target(.missingFinal, "Plain", .class, at: "Plain", in: source),
+            target(.missingFinal, "Public", .class, at: "Public", in: source),
+            target(.missingFinal, "Annotated", .class, at: "Annotated", in: source),
+            target(.missingFinal, "Bridged", .class, at: "Bridged:", in: source),
+            target(.missingFinal, "Commented", .class, at: "Commented", in: source),
+            target(.missingFinal, "Nested", .class, at: "Nested", in: source),
+            target(.missingFinal, "Inner", .class, at: "Inner", in: source),
+        ])
+
+        XCTAssertEqual(fixed, """
+        final class Plain {}
+        public final class Public {}
+        @MainActor
+        internal final class Annotated {}
+        @objc(Bridged) private final class Bridged: NSObject {}
+        /// Doc.
+        @available(macOS 15, *) fileprivate /* kept */ final class Commented {}
+        struct Outer {
+            package final class Nested {
+                final class Inner {}
+            }
+        }
+
+        """)
+    }
+
+    func testMissingFinalWithARedundantAccessModifierOnTheSameClass() throws {
+        let source = "public class A {}\ninternal class B {}\n"
+        let fixed = try fix(source, [
+            target(.missingFinal, "A", .class, at: "A {}", in: source),
+            target(.redundantPublic, "A", .class, at: "A {}", in: source),
+            target(.missingFinal, "B", .class, at: "B {}", in: source),
+            target(.redundantAccessLevel, "B", .class, at: "B {}", in: source, accessibility: .internal),
+        ])
+
+        XCTAssertEqual(fixed, "final class A {}\nfinal class B {}\n")
+    }
+
+    func testFinalAndOpenClassesAreLeftUntouched() throws {
+        let source = "public final class Done {}\nfinal public class Reversed {}\nopen class Base {}\nactor Worker {}\n"
+        let plan = try planned(source, [
+            target(.missingFinal, "Done", .class, at: "Done", in: source),
+            target(.missingFinal, "Reversed", .class, at: "Reversed", in: source),
+            target(.missingFinal, "Base", .class, at: "Base", in: source),
+            target(.missingFinal, "Worker", .class, at: "Worker", in: source),
+        ])
+
+        XCTAssertEqual(plan.skipped.map(\.reason), [.alreadyFinal, .alreadyFinal, .openClass, .locationMismatch])
+        XCTAssertTrue(plan.changes.isEmpty)
+    }
+
+    func testMissingFinalSecondRunProducesNoChange() throws {
+        let source = "@MainActor public class A {\n    class B {}\n}\n"
+        let targets = [
+            target(.missingFinal, "A", .class, at: "A {", in: source),
+            target(.missingFinal, "B", .class, at: "B {}", in: source),
+        ]
+        let fixed = try fix(source, targets)
+        XCTAssertEqual(fixed, "@MainActor public final class A {\n    final class B {}\n}\n")
+
+        let secondPlan = makePlanner().plan([
+            target(.missingFinal, "A", .class, at: "A {", in: fixed),
+            target(.missingFinal, "B", .class, at: "B {}", in: fixed),
+        ])
+        XCTAssertTrue(secondPlan.changes.isEmpty)
+        XCTAssertEqual(secondPlan.skipped.map(\.reason), [.alreadyFinal, .alreadyFinal])
+    }
+
+    func testMissingFinalIsATierTwoRuleOfTheOpenFinalAnalysis() {
+        XCTAssertEqual(FixRule.allCases.filter(\.isAggressive), [.missingFinal])
+    }
+
+    // MARK: - Restoring the original buffers
+
+    func testRestoreWritesBackTheOriginalBytesOfTheFilesThatStillHoldTheFixes() throws {
+        let source = "\u{FEFF}import A\nimport B\n\n"
+        let plan = try planned(source, [target(.unusedImport, "B", .module, at: "import B", in: source)])
+        XCTAssertEqual(plan.changes.count, 1)
+        let other = directory.appending("Other.swift")
+        try Data("import C\n".utf8).write(to: URL(fileURLWithPath: other.string))
+        let otherPlan = makePlanner().plan([FixTarget(rule: .unusedImport, name: "C", kind: .module, file: other, line: 1, column: 1)])
+        try FixWriter.apply(plan)
+        try FixWriter.apply(otherPlan)
+        try Data("// edited after the fixes\n".utf8).write(to: URL(fileURLWithPath: other.string))
+
+        let restoration = FixWriter.restore(plan)
+        let otherRestoration = FixWriter.restore(otherPlan)
+
+        XCTAssertEqual(restoration.restored, [file])
+        XCTAssertEqual(try [UInt8](Data(contentsOf: URL(fileURLWithPath: file.string))), Array(source.utf8))
+        XCTAssertEqual(otherRestoration.notRestored, [other])
+        XCTAssertEqual(try String(contentsOfFile: other.string, encoding: .utf8), "// edited after the fixes\n")
+        XCTAssertEqual(restoration.summary(relativeTo: directory, changeCount: 1), "The fixes break the build, restored 1 of 1 file:\n  restored File.swift")
+    }
+
     // MARK: - Diff, idempotence and trivia
 
     func testDryRunPrintsAUnifiedDiffAndLeavesTheFileUntouched() throws {

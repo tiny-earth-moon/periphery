@@ -35,7 +35,7 @@ public struct FixTarget: Hashable, Sendable {
         self.hasLocationOverride = hasLocationOverride
     }
 
-    /// The target of a scan result, or nil when no tier-1 rule applies to it.
+    /// The target of a scan result, or nil when no rule applies to it.
     public init?(result: ScanResult) {
         guard let fixableKind = result.fixableKind else { return nil }
 
@@ -53,6 +53,7 @@ public struct FixTarget: Hashable, Sendable {
         case .unusedImport: rule = .unusedImport
         case .superfluousIgnore: rule = .superfluousIgnore
         case .unusedParameter: rule = .unusedParameter
+        case .missingFinal: rule = .missingFinal
         }
 
         let location = declaration.location

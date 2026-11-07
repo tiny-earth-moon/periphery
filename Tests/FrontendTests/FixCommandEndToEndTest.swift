@@ -3,7 +3,7 @@ import Foundation
 import XCTest
 
 /// Runs `outskirts fix` on a small package in a git repository: the dry run, the dirty-file refusal, `--apply`,
-/// and the rescan of the fixed package, which must build and report nothing more to fix.
+/// the rescan of the fixed package, which must build and report nothing more to fix, `--verify` and `--aggressive`.
 final class FixCommandEndToEndTest: XCTestCase {
     private static let options = [
         "--disable-update-check", "--enable-empty-extension-analysis", "--superfluous-ignore-comments",
@@ -127,6 +127,73 @@ final class FixCommandEndToEndTest: XCTestCase {
         XCTAssertTrue(output.stdout.contains("+    public func render(width _: Int, _: Int) -> Int {"), output.stdout)
         XCTAssertFalse(output.stdout.contains("-import Helpers"), output.stdout)
         XCTAssertTrue(output.stderr.contains("Would apply 2 fixes in 1 file"), output.stderr)
+    }
+
+    // MARK: - Verify
+
+    func testVerifyKeepsTheFixesWhenTheProjectBuilds() throws {
+        let output = try run(["fix", "--apply", "--verify"])
+
+        XCTAssertEqual(output.status, 0, output.stderr)
+        XCTAssertTrue(output.stderr.contains("The project builds with the fixes."), output.stderr)
+        XCTAssertEqual(try read("Sources/Lib/Lib.swift"), Self.fixedLibrary)
+    }
+
+    func testVerifyRestoresEveryFileWhenTheFixesBreakTheBuild() throws {
+        // The client of `libraryOnly()` is excluded from the index, so its `public` is reported as redundant.
+        try write("import Lib\n\nfunc excludedClient() -> Int { libraryOnly() }\n", to: "Sources/App/Excluded.swift")
+        try commitAll()
+        let originalBytes = try Data(contentsOf: package.appendingPathComponent("Sources/Lib/Lib.swift"))
+
+        let output = try run(["fix", "--apply", "--verify", "--index-exclude", "Sources/App/Excluded.swift"])
+
+        XCTAssertNotEqual(output.status, 0, output.stderr)
+        XCTAssertTrue(output.stderr.contains("The build failed after the fixes were applied"), output.stderr)
+        XCTAssertTrue(output.stderr.contains("The fixes break the build, restored 1 of 1 file:\n  restored Sources/Lib/Lib.swift"), output.stderr)
+        XCTAssertEqual(try Data(contentsOf: package.appendingPathComponent("Sources/Lib/Lib.swift")), originalBytes)
+    }
+
+    func testVerifyRefusesASkippedBuild() throws {
+        let built = try run(["fix"])
+        XCTAssertEqual(built.status, 0, built.stderr)
+
+        for arguments in [["--skip-build"], ["--index-store-path", ".build/debug/index/store"]] {
+            let output = try run(["fix", "--apply", "--verify"] + arguments)
+
+            XCTAssertNotEqual(output.status, 0, output.stderr)
+            XCTAssertTrue(output.stderr.contains("'--verify' rebuilds the project after writing the fixes, but the build is skipped"), output.stderr)
+            XCTAssertEqual(try read("Sources/Lib/Lib.swift"), Self.library)
+        }
+
+        let withoutApply = try run(["fix", "--verify"])
+        XCTAssertNotEqual(withoutApply.status, 0)
+        XCTAssertTrue(withoutApply.stderr.contains("it requires '--apply'"), withoutApply.stderr)
+    }
+
+    // MARK: - Aggressive
+
+    func testAggressiveAddsFinalOnlyWithTheFlagAndTheOpenFinalAnalysis() throws {
+        try write("final class Done {}\n\nclass Box {\n    let value = 1\n}\n", to: "Sources/App/Box.swift")
+        try write("import Lib\n\nprint(Widget().render(width: 1, 2) + Box().value, Done())\n", to: "Sources/App/main.swift")
+        try commitAll()
+
+        let aggressive = try run(["fix", "--aggressive", "--rule", "missing-final", "--enable-open-final-analysis"])
+        XCTAssertEqual(aggressive.status, 0, aggressive.stderr)
+        XCTAssertTrue(aggressive.stdout.contains("-class Box {\n+final class Box {"), aggressive.stdout)
+        XCTAssertFalse(aggressive.stdout.contains("+final final class Done"), aggressive.stdout)
+        XCTAssertTrue(aggressive.stderr.contains("Would apply 1 fix in 1 file, skipped 0."), aggressive.stderr)
+
+        let tierOne = try run(["fix", "--enable-open-final-analysis"])
+        XCTAssertEqual(tierOne.status, 0, tierOne.stderr)
+        XCTAssertFalse(tierOne.stdout.contains("final class Box"), tierOne.stdout)
+
+        let analysisDisabled = try run(["fix", "--aggressive"])
+        XCTAssertEqual(analysisDisabled.status, 0, analysisDisabled.stderr)
+        XCTAssertFalse(analysisDisabled.stdout.contains("final class Box"), analysisDisabled.stdout)
+
+        let ruleWithoutFlag = try run(["fix", "--rule", "missing-final"])
+        XCTAssertNotEqual(ruleWithoutFlag.status, 0)
+        XCTAssertTrue(ruleWithoutFlag.stderr.contains("'missing-final' is a tier-2 rule, it requires '--aggressive'"), ruleWithoutFlag.stderr)
     }
 
     // MARK: - Private

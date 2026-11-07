@@ -30,6 +30,8 @@ struct EditBuilder {
             return superfluousIgnoreEdits(token: token, target: target, ignoredParameterNames: ignoredParameterNames)
         case .unusedParameter:
             return parameterEdits(token: token, target: target)
+        case .missingFinal:
+            return finalEdits(token: token, target: target)
         }
     }
 
@@ -61,6 +63,32 @@ struct EditBuilder {
         }
         return .success([SourceEdit(range: start ..< upperBound)])
     }
+
+    /// Inserts `final` after the attributes and the access modifier: `@MainActor public class` becomes
+    /// `@MainActor public final class`, and `class` becomes `final class`.
+    private func finalEdits(token: TokenSyntax, target: FixTarget) -> Result<[SourceEdit], SkipReason> {
+        guard let decl = DeclarationLocator.declaration(named: token, name: target.name, kind: target.kind),
+              let classDecl = decl.as(ClassDeclSyntax.self)
+        else { return .failure(.locationMismatch) }
+
+        let modifiers = Array(classDecl.modifiers)
+        if modifiers.contains(where: { $0.name.tokenKind == .keyword(.final) }) {
+            return .failure(.alreadyFinal)
+        }
+        if modifiers.contains(where: { $0.name.tokenKind == .keyword(.open) }) {
+            return .failure(.openClass)
+        }
+
+        let accessIndex = modifiers.lastIndex { Self.accessKeywords.contains($0.name.tokenKind) }
+        let followingIndex = accessIndex.map { $0 + 1 } ?? 0
+        let insertionToken = followingIndex < modifiers.count ? modifiers[followingIndex].name : classDecl.classKeyword
+        let offset = insertionToken.positionAfterSkippingLeadingTrivia.utf8Offset
+        return .success([SourceEdit(range: offset ..< offset, replacement: "final ")])
+    }
+
+    private static let accessKeywords: Set<TokenKind> = [
+        .keyword(.public), .keyword(.package), .keyword(.internal), .keyword(.fileprivate), .keyword(.private),
+    ]
 
     private func emptyExtensionEdits(token: TokenSyntax, target: FixTarget) -> Result<[SourceEdit], SkipReason> {
         guard let decl = DeclarationLocator.declaration(named: token, name: target.name, kind: target.kind),
