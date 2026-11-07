@@ -81,6 +81,7 @@ public enum ScanResultBuilder {
                 .filter { decl in
                     hasReferencesFromNonIgnoredCode(decl, graph: graph)
                         && !graph.suppressedAssignOnlyProperties.contains(decl)
+                        && !graph.suppressedRedundantProtocols.contains(decl)
                 }
 
             // 2. Parameters with ignore comments that are actually used (not in unusedParameters)

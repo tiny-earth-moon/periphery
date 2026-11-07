@@ -2546,6 +2546,19 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    func testIgnoreCommentSuppressingRedundantProtocolIsNotSuperfluous() {
+        analyze(retainPublic: true) {
+            assertNotSuperfluousIgnoreCommand(.protocol("FixtureIgnoredRedundantProtocol"))
+            assertNotSuperfluousIgnoreCommand(.protocol("FixtureIgnoredRedundantProtocolWithMember"))
+            assertNotRedundantProtocol("FixtureIgnoredRedundantProtocol")
+            assertNotRedundantProtocol("FixtureIgnoredRedundantProtocolWithMember")
+            // Control: the same protocol without an ignore comment is reported as redundant.
+            assertRedundantProtocol("FixtureNotIgnoredRedundantProtocol", implementedBy: .class("FixtureIgnoredRedundantProtocolConformer"))
+            // Control: an ignored protocol used as an existential type suppresses nothing.
+            assertSuperfluousIgnoreCommand(.protocol("FixtureIgnoredExistentialProtocol"))
+        }
+    }
+
     // MARK: - Swift Testing
 
     #if canImport(Testing)
