@@ -102,23 +102,16 @@ final class OpenFinalAccessibilityMarker: SourceGraphMutator {
         }
     }
 
+    /// Whether a subclass is declared in a file of another module that does not `@testable import` the class's module:
+    /// a testable import can subclass or override a `public` declaration, which therefore needs no `open`.
     private func isSubclassedCrossModule(_ classDecl: Declaration) -> Bool {
-        subclassDeclarations(of: classDecl).contains { isDeclaredInNonTestableForeignModule($0, relativeTo: classDecl) }
+        let modules = classDecl.location.file.modules
+        return subclassDeclarations(of: classDecl).contains { $0.location.file.isNonTestableClient(ofModules: modules) }
     }
 
     private func isOverriddenCrossModule(_ member: Declaration) -> Bool {
-        overrideDeclarations(of: member).contains { isDeclaredInNonTestableForeignModule($0, relativeTo: member) }
-    }
-
-    /// Whether `decl` is declared outside the module of `base`, in a file that does not `@testable import` it: a
-    /// testable import can subclass or override a `public` declaration, which therefore needs no `open`.
-    private func isDeclaredInNonTestableForeignModule(_ decl: Declaration, relativeTo base: Declaration) -> Bool {
-        let baseModules = base.location.file.modules
-        let file = decl.location.file
-
-        guard !file.modules.subtracting(baseModules).isEmpty else { return false }
-
-        return !file.importStatements.contains { $0.isTestable && baseModules.contains($0.module) }
+        let modules = member.location.file.modules
+        return overrideDeclarations(of: member).contains { $0.location.file.isNonTestableClient(ofModules: modules) }
     }
 
     // MARK: - Predicates
