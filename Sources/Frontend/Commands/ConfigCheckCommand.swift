@@ -10,7 +10,7 @@ import SystemPackage
 struct ConfigCheckCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "check",
-        abstract: "Check the configuration file without scanning: unknown keys, values of the wrong type, invalid 'report_exclude' and 'retain_attributes' entries, baseline and output paths. Exits with status 1 on any problem"
+        abstract: "Check the configuration file without scanning: unknown keys, values of the wrong type, invalid 'report_exclude' and 'retain_attributes' entries, options missing the option they require, baseline and output paths. Exits with status 1 on any problem"
     )
 
     @Option(help: "Path to the root directory of your project (default: the current directory)", completion: .directory)
@@ -35,7 +35,7 @@ struct ConfigCheckCommand: ParsableCommand {
         let logger = Logger(quiet: false, verbose: false, colorMode: .auto, messagesToStderr: true)
         var warnings: [String] = []
         try configuration.load(from: path) { warnings.append($0) }
-        let errors = Self.errors(in: configuration)
+        let errors = ScanPreflight.problems(in: configuration)
 
         warnings.forEach { logger.warn($0) }
         errors.forEach { logger.error($0) }
@@ -49,25 +49,5 @@ struct ConfigCheckCommand: ParsableCommand {
 
         logger.error("\(path.string): \(count) \(count > 1 ? "problems" : "problem") found")
         throw ExitCode.failure
-    }
-
-    // MARK: - Private
-
-    /// The checks a scan makes on the loaded configuration before building, each stopping the scan with its error.
-    private static func errors(in configuration: Configuration) -> [String] {
-        let checks: [() throws -> Void] = [
-            { _ = try ReportExcludeRule.resolve(configuration) },
-            { _ = try AttributeRetentionRule.resolve(configuration) },
-            { _ = try ScanPreflight.validatePaths(of: configuration) },
-        ]
-
-        return checks.compactMap { check in
-            do {
-                try check()
-                return nil
-            } catch {
-                return "\(error)"
-            }
-        }
     }
 }

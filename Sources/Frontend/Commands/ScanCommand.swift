@@ -143,18 +143,8 @@ struct ScanCommand: ParsableCommand {
         configuration.projectRoot = projectRoot
         apply(to: configuration)
 
-        if configuration.skipStdoutResults, configuration.writeResults == nil {
-            throw PeripheryError.usageError("The '--skip-stdout-results' option requires '--write-results', otherwise the results would not be output anywhere.")
-        }
-
-        if configuration.changedLines, configuration.changedSince == nil {
-            throw PeripheryError.usageError("The '--changed-lines' option requires '--changed-since', otherwise there is nothing to compare the lines with.")
-        }
-
         configuration.buildFilenameMatchers()
-        _ = try ReportExcludeRule.resolve(configuration)
-        _ = try AttributeRetentionRule.resolve(configuration)
-        let baseline = try ScanPreflight.validatePaths(of: configuration)
+        let baseline = try ScanPreflight.validate(configuration)
 
         let logger = Logger(configuration: configuration)
         ScanPreflight.applyOutputFormatRequirements(to: configuration, logger: logger)
