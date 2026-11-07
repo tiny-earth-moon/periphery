@@ -53,7 +53,11 @@ public final class Reference {
         self.declarationKind = declarationKind
         self.usr = usr
         self.location = location
-        hashValueCache = [usr.hashValue, location.hashValue, kind.hashValue].hashValue
+        var hasher = Hasher()
+        hasher.combine(usr)
+        hasher.combine(location)
+        hasher.combine(kind)
+        hashValueCache = hasher.finalize()
     }
 
     var descendentReferences: Set<Reference> {
@@ -69,7 +73,7 @@ extension Reference: Hashable {
 
 extension Reference: Equatable {
     public static func == (lhs: Reference, rhs: Reference) -> Bool {
-        lhs.usr == rhs.usr && lhs.location == rhs.location && lhs.kind == rhs.kind
+        lhs === rhs || (lhs.usr == rhs.usr && lhs.location == rhs.location && lhs.kind == rhs.kind)
     }
 }
 

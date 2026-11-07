@@ -12,7 +12,11 @@ public final class Location {
         self.file = file
         self.line = line
         self.column = column
-        hashValueCache = [file.hashValue, line, column].hashValue
+        var hasher = Hasher()
+        hasher.combine(file)
+        hasher.combine(line)
+        hasher.combine(column)
+        hashValueCache = hasher.finalize()
     }
 
     // MARK: - Private
@@ -28,7 +32,7 @@ public final class Location {
 
 extension Location: Equatable {
     public static func == (lhs: Location, rhs: Location) -> Bool {
-        lhs.file == rhs.file && lhs.line == rhs.line && lhs.column == rhs.column
+        lhs.line == rhs.line && lhs.column == rhs.column && lhs.file == rhs.file
     }
 }
 

@@ -25,75 +25,79 @@ final class UnusedImportMarker: SourceGraphMutator {
         var referencedModulesByFile = graph.indexedSourceFiles.reduce(into: [SourceFile: Set<String>]()) { result, file in
             result[file] = []
         }
-        var moduleCache: [String: Set<String>] = [:]
-        // References whose declaring module is unknown, with system import analysis enabled.
-        var unresolvedUsrs: Set<String> = []
+        // The sets of modules referenced by USRs, interned so that each file collects indices into `moduleSets`
+        // rather than module names.
+        var moduleSets: [Set<String>] = []
+        var moduleSetIndices: [Set<String>: Int] = [:]
+        var moduleSetIndicesByFile: [SourceFile: Set<Int>] = [:]
+        // The end of the last import statement of each file: no reference past it lies within an import statement.
+        var importStatementsEndByFile: [ObjectIdentifier: (line: Int, column: Int)] = [:]
         // Files referencing a declaration of unknown module, whose system imports are not analysed.
         var filesWithUnresolvedReferences: Set<SourceFile> = []
 
-        // Build a mapping of source files and the modules they reference.
-        for ref in graph.allReferences {
-            // The index store records a reference to the declaration named by a scoped import, e.g.
-            // `import struct Module.Type`, at the import statement itself. It is not a use.
-            if ref.location.file.importStatements.contains(where: { $0.contains(ref.location) }) {
-                continue
+        func liesWithinImportStatement(_ location: Location) -> Bool {
+            let file = location.file
+            let fileID = ObjectIdentifier(file)
+            let importStatementsEnd: (line: Int, column: Int)
+
+            if let end = importStatementsEndByFile[fileID] {
+                importStatementsEnd = end
+            } else {
+                importStatementsEnd = file.importStatements
+                    .map { (line: $0.endLocation.line, column: $0.endLocation.column) }
+                    .max { $0 < $1 } ?? (line: 0, column: 0)
+                importStatementsEndByFile[fileID] = importStatementsEnd
             }
 
-            if let modules = moduleCache[ref.usr] {
-                referencedModulesByFile[ref.location.file, default: []].formUnion(modules)
-                if unresolvedUsrs.contains(ref.usr) {
+            guard (location.line, location.column) < importStatementsEnd else { return false }
+
+            return file.importStatements.contains { $0.contains(location) }
+        }
+
+        func moduleSetIndex(of modules: Set<String>) -> Int {
+            if let index = moduleSetIndices[modules] {
+                return index
+            }
+
+            moduleSets.append(modules)
+            moduleSetIndices[modules] = moduleSets.count - 1
+            return moduleSets.count - 1
+        }
+
+        // Build a mapping of source files and the modules they reference. The references are visited grouped by
+        // USR, so that each USR is resolved once and never hashed per reference: every reference of
+        // `allReferences` is also indexed by its USR.
+        for usrReferences in graph.allReferencesByUsr.values {
+            var resolved: (moduleSetIndex: Int, isUnresolved: Bool)?
+
+            for ref in usrReferences where graph.allReferences.contains(ref) {
+                // The index store records a reference to the declaration named by a scoped import, e.g.
+                // `import struct Module.Type`, at the import statement itself. It is not a use.
+                if liesWithinImportStatement(ref.location) {
+                    continue
+                }
+
+                let entry: (moduleSetIndex: Int, isUnresolved: Bool)
+
+                if let resolved {
+                    entry = resolved
+                } else {
+                    let (modules, isUnresolved) = referencedModules(of: ref)
+                    entry = (moduleSetIndex(of: modules), isUnresolved)
+                    resolved = entry
+                }
+
+                moduleSetIndicesByFile[ref.location.file, default: []].insert(entry.moduleSetIndex)
+                if entry.isUnresolved {
                     filesWithUnresolvedReferences.insert(ref.location.file)
                 }
-                continue
             }
+        }
 
-            var directModules: Set<String> = []
-            var indirectModules: Set<String> = []
-            var isUnresolved = false
-
-            if let decl = graph.declaration(withUsr: ref.usr) {
-                directModules = decl.location.file.modules
-                let indirectRefs = referencedTypes(from: decl)
-
-                indirectModules = indirectRefs
-                    .flatMapSet { indirectRef -> Set<String> in
-                        if let indirectDecl = graph.declaration(withUsr: indirectRef.usr) {
-                            return indirectDecl.location.file.modules
-                        }
-
-                        guard analysesSystemImports else { return [] }
-                        guard let systemModules = graph.systemModules(forUsr: indirectRef.usr) else {
-                            isUnresolved = true
-                            return []
-                        }
-
-                        return systemModules
-                    }
-                    .union(indirectRefs.flatMapSet { modulesExtending($0) })
-
-                if decl.isOverride {
-                    let overrideModules = graph.allSuperDeclarationsInOverrideChain(from: decl)
-                        .flatMapSet(\.location.file.modules)
-                    indirectModules.formUnion(overrideModules)
-                }
-            } else if analysesSystemImports, ref.declarationKind != .module {
-                if let systemModules = graph.systemModules(forUsr: ref.usr) {
-                    directModules = systemModules
-                } else {
-                    isUnresolved = true
-                }
+        for (file, indices) in moduleSetIndicesByFile {
+            for index in indices {
+                referencedModulesByFile[file, default: []].formUnion(moduleSets[index])
             }
-
-            if isUnresolved {
-                unresolvedUsrs.insert(ref.usr)
-                filesWithUnresolvedReferences.insert(ref.location.file)
-            }
-
-            let referencedModules = directModules
-                .union(indirectModules)
-                .union(modulesExtending(ref))
-            moduleCache[ref.usr] = referencedModules
-            referencedModulesByFile[ref.location.file, default: []].formUnion(referencedModules)
         }
 
         // The index store lacks the references made from the platform conditional branches that were not
@@ -171,6 +175,52 @@ final class UnusedImportMarker: SourceGraphMutator {
     }
 
     // MARK: - Private
+
+    /// The modules a reference requires, and whether its declaring module is unknown with system import analysis
+    /// enabled.
+    private func referencedModules(of ref: Reference) -> (modules: Set<String>, isUnresolved: Bool) {
+        var directModules: Set<String> = []
+        var indirectModules: Set<String> = []
+        var isUnresolved = false
+
+        if let decl = graph.declaration(withUsr: ref.usr) {
+            directModules = decl.location.file.modules
+            let indirectRefs = referencedTypes(from: decl)
+
+            indirectModules = indirectRefs
+                .flatMapSet { indirectRef -> Set<String> in
+                    if let indirectDecl = graph.declaration(withUsr: indirectRef.usr) {
+                        return indirectDecl.location.file.modules
+                    }
+
+                    guard analysesSystemImports else { return [] }
+                    guard let systemModules = graph.systemModules(forUsr: indirectRef.usr) else {
+                        isUnresolved = true
+                        return []
+                    }
+
+                    return systemModules
+                }
+                .union(indirectRefs.flatMapSet { modulesExtending($0) })
+
+            if decl.isOverride {
+                let overrideModules = graph.allSuperDeclarationsInOverrideChain(from: decl)
+                    .flatMapSet(\.location.file.modules)
+                indirectModules.formUnion(overrideModules)
+            }
+        } else if analysesSystemImports, ref.declarationKind != .module {
+            if let systemModules = graph.systemModules(forUsr: ref.usr) {
+                directModules = systemModules
+            } else {
+                isUnresolved = true
+            }
+        }
+
+        let modules = directModules
+            .union(indirectModules)
+            .union(modulesExtending(ref))
+        return (modules, isUnresolved)
+    }
 
     /// The modules declaring a referenceable declaration, by the base name of the declaration.
     private func modulesByDeclarationBaseName() -> [String: Set<String>] {
