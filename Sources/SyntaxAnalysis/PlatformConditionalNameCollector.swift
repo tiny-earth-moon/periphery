@@ -13,7 +13,7 @@ import SwiftSyntax
 /// their references are already in the index store. A block is only narrowed this way when every condition is made
 /// of `os()`, `arch()` and `targetEnvironment()` checks joined by `!`, `&&` and `||`, when it is not nested in another
 /// `#if` block, and when every configuration evaluates it without a diagnostic. Otherwise the whole block is collected.
-public final class PlatformConditionalNameCollector: SyntaxVisitor {
+public final class PlatformConditionalNameCollector: PeripherySyntaxNodeVisitor {
     private static let platformConditions: Set<String> = ["os", "targetEnvironment", "arch", "canImport"]
 
     private static let evaluableConditions: Set<String> = ["os", "arch", "targetEnvironment"]
@@ -30,6 +30,8 @@ public final class PlatformConditionalNameCollector: SyntaxVisitor {
 
     private let configurations: [PlatformBuildConfiguration]
     private let locationConverter: SourceLocationConverter?
+    /// The block whose clauses were all collected: the blocks it contains are not visited.
+    private var collectedBlock: SyntaxIdentifier?
 
     /// - Parameter configurations: the configurations the file was compiled for. When empty, every clause of every
     ///   platform conditional block is collected.
@@ -37,7 +39,6 @@ public final class PlatformConditionalNameCollector: SyntaxVisitor {
     public init(configurations: [PlatformBuildConfiguration] = [], locationConverter: SourceLocationConverter? = nil) {
         self.configurations = configurations
         self.locationConverter = locationConverter
-        super.init(viewMode: .sourceAccurate)
     }
 
     public static func collect(
@@ -49,31 +50,24 @@ public final class PlatformConditionalNameCollector: SyntaxVisitor {
         return collector.names
     }
 
-    /// The names with the line and condition of each place they are written, for `--explain`.
-    public static func collectSites(
-        from syntax: SourceFileSyntax,
-        configurations: [PlatformBuildConfiguration] = [],
-        locationConverter: SourceLocationConverter
-    ) -> [String: [Site]] {
-        let collector = PlatformConditionalNameCollector(configurations: configurations, locationConverter: locationConverter)
-        collector.walk(syntax)
-        return collector.sites
-    }
-
-    override public func visit(_ node: IfConfigDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard node.clauses.contains(where: { isPlatformCondition($0.condition) }) else {
-            return .visitChildren
-        }
+    public func visit(_ node: IfConfigDeclSyntax) {
+        guard collectedBlock == nil, node.clauses.contains(where: { isPlatformCondition($0.condition) }) else { return }
 
         if let uncompiledClauses = uncompiledClauses(of: node) {
             uncompiledClauses.forEach(collectNames(in:))
             // Blocks nested in a compiled clause are visited, and collected whole as they are nested.
-            return .visitChildren
+            return
         }
 
         // The `#else` clause has no condition of its own, so the whole block is collected.
         node.clauses.forEach(collectNames(in:))
-        return .skipChildren
+        collectedBlock = node.id
+    }
+
+    public func visitPost(_ node: IfConfigDeclSyntax) {
+        if node.id == collectedBlock {
+            collectedBlock = nil
+        }
     }
 
     // MARK: - Private

@@ -1,4 +1,5 @@
 import Foundation
+import Shared
 import SourceGraph
 import SwiftSyntax
 
@@ -8,14 +9,17 @@ import SwiftSyntax
 /// whatever the key path is later used for. A key path that is stored or passed on may be written through, so the
 /// access kind of its components cannot be determined from the index. The exception are key paths used directly as
 /// the argument of a `keyPath:` subscript, where the index records the access that is actually made.
-public final class KeyPathComponentCollector: SyntaxVisitor {
+public final class KeyPathComponentCollector: PeripherySyntaxVisitor {
     public private(set) var locations: Set<Location> = []
 
     private let sourceLocationBuilder: SourceLocationBuilder
 
     init(sourceLocationBuilder: SourceLocationBuilder) {
         self.sourceLocationBuilder = sourceLocationBuilder
-        super.init(viewMode: .sourceAccurate)
+    }
+
+    public convenience init(sourceLocationBuilder: SourceLocationBuilder, swiftVersion _: SwiftVersion) {
+        self.init(sourceLocationBuilder: sourceLocationBuilder)
     }
 
     public static func collect(
@@ -29,16 +33,14 @@ public final class KeyPathComponentCollector: SyntaxVisitor {
         return collector.locations
     }
 
-    override public func visit(_ node: KeyPathExprSyntax) -> SyntaxVisitorContinueKind {
-        guard !isDirectSubscriptArgument(node) else { return .visitChildren }
+    public func visit(_ node: KeyPathExprSyntax) {
+        guard !isDirectSubscriptArgument(node) else { return }
 
         for component in node.components {
             guard case let .property(property) = component.component else { continue }
 
             locations.insert(sourceLocationBuilder.location(at: property.declName.baseName.positionAfterSkippingLeadingTrivia))
         }
-
-        return .visitChildren
     }
 
     // MARK: - Private
