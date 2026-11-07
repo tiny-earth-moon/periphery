@@ -355,24 +355,8 @@ final class RedundantExplicitPublicAccessibilityMarker: SourceGraphMutator {
     }
 
     private func isReferencedCrossModule(_ decl: Declaration) -> Bool {
-        let referenceModules = nonTestableModulesReferencing(decl)
-        return !referenceModules.subtracting(decl.location.file.modules).isEmpty
-    }
-
-    private func nonTestableModulesReferencing(_ decl: Declaration) -> Set<String> {
-        let referenceFiles = graph.references(to: decl).map(\.location.file)
-
-        return referenceFiles.flatMapSet { file -> Set<String> in
-            let importsDeclModuleTestable = file.importStatements.contains(where: {
-                $0.isTestable && decl.location.file.modules.contains($0.module)
-            })
-
-            if !importsDeclModuleTestable {
-                return file.modules
-            }
-
-            return []
-        }
+        let modules = decl.location.file.modules
+        return graph.references(to: decl).contains { $0.location.file.isNonTestableClient(ofModules: modules) }
     }
 
     private func descendentPublicDeclarations(from decl: Declaration) -> Set<Declaration> {
