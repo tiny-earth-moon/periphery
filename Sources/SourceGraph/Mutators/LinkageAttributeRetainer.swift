@@ -11,7 +11,9 @@ final class LinkageAttributeRetainer: SourceGraphMutator {
     private static let linkerVisibleAttributes: Set<String> = ["used", "_used", "section", "_section"]
     /// Attributes of a declaration implemented on behalf of an imported C or Objective-C declaration.
     private static let implementationAttributes: Set<String> = ["implementation", "_objcImplementation"]
-    private static var reason: RetentionReason { RetentionReason(LinkageAttributeRetainer.self, "linkage attribute (@_cdecl, @_silgen_name, @_used or @_section)") }
+    private static var reason: RetentionReason {
+        RetentionReason(LinkageAttributeRetainer.self, "linkage attribute (@_cdecl, @_silgen_name, @_used or @_section)")
+    }
 
     private let graph: SourceGraph
 

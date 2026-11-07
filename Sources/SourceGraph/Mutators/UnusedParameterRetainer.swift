@@ -3,7 +3,9 @@ import Foundation
 import Shared
 
 final class UnusedParameterRetainer: SourceGraphMutator {
-    private static var reason: RetentionReason { RetentionReason(UnusedParameterRetainer.self, "parameter that must be kept for the function signature") }
+    private static var reason: RetentionReason {
+        RetentionReason(UnusedParameterRetainer.self, "parameter that must be kept for the function signature")
+    }
 
     private let graph: SourceGraph
     private let configuration: Configuration

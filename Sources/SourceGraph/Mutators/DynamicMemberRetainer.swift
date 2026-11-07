@@ -7,7 +7,9 @@ final class DynamicMemberRetainer: SourceGraphMutator {
     static let dynamicCallableMethodNames: Set<String> = [
         "dynamicallyCall(withArguments:)", "dynamicallyCall(withKeywordArguments:)",
     ]
-    private static var reason: RetentionReason { RetentionReason(DynamicMemberRetainer.self, "dynamic member lookup or dynamic callable requirement") }
+    private static var reason: RetentionReason {
+        RetentionReason(DynamicMemberRetainer.self, "dynamic member lookup or dynamic callable requirement")
+    }
 
     private let graph: SourceGraph
 
