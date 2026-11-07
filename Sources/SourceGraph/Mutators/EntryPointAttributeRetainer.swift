@@ -3,6 +3,8 @@ import Foundation
 import Shared
 
 final class EntryPointAttributeRetainer: SourceGraphMutator {
+    private static let entryPointAttributes: Set<String> = ["main", "UIApplicationMain", "NSApplicationMain"]
+
     private let graph: SourceGraph
 
     required init(graph: SourceGraph, configuration _: Configuration, swiftVersion _: SwiftVersion) {
@@ -20,15 +22,11 @@ final class EntryPointAttributeRetainer: SourceGraphMutator {
         graph
             .declarations(ofKinds: [.class, .struct, .enum])
             .lazy
-            .filter {
-                $0.attributes.contains(where: { $0.name == "NSApplicationMain" }) ||
-                    $0.attributes.contains(where: { $0.name == "UIApplicationMain" }) ||
-                    $0.attributes.contains(where: { $0.name == "main" })
-            }
+            .filter { $0.hasAttribute(in: Self.entryPointAttributes) }
             .forEach {
                 retainEntryPoint($0)
 
-                if $0.attributes.contains(where: { $0.name == "main" }) {
+                if $0.hasAttribute(named: "main") {
                     retainMainFunction(in: $0)
                 }
             }
@@ -39,32 +37,30 @@ final class EntryPointAttributeRetainer: SourceGraphMutator {
     private func retainTypesWithAttributedExtensions() {
         for (extendedDeclaration, extensions) in graph.extensions {
             for extensionDeclaration in extensions
-                where extensionDeclaration.attributes.contains(where: { $0.name == "main" })
+                where extensionDeclaration.hasAttribute(named: "main")
             {
                 retainEntryPoint(extendedDeclaration)
-                graph.markRetained(extensionDeclaration, reason: RetentionReason(Self.self, "@main entry point"))
+                graph.markRetainedWithAncestors(
+                    extensionDeclaration,
+                    reason: RetentionReason(Self.self, "@main entry point"),
+                    ancestorReason: RetentionReason(Self.self, "encloses a @main entry point")
+                )
                 retainMainFunction(in: extensionDeclaration)
-
-                for ancestralDeclaration in extensionDeclaration.ancestralDeclarations {
-                    graph.markRetained(ancestralDeclaration, reason: RetentionReason(Self.self, "encloses a @main entry point"))
-                }
             }
         }
     }
 
     private func retainEntryPoint(_ declaration: Declaration) {
-        graph.markRetained(declaration, reason: RetentionReason(Self.self, Self.entryPointDetail(of: declaration)))
+        graph.markRetainedWithAncestors(
+            declaration,
+            reason: RetentionReason(Self.self, Self.entryPointDetail(of: declaration)),
+            ancestorReason: RetentionReason(Self.self, "encloses an entry point")
+        )
         graph.markMainAttributed(declaration)
-
-        for ancestralDeclaration in declaration.ancestralDeclarations {
-            graph.markRetained(ancestralDeclaration, reason: RetentionReason(Self.self, "encloses an entry point"))
-        }
     }
 
     private static func entryPointDetail(of declaration: Declaration) -> String {
-        let attribute = ["main", "UIApplicationMain", "NSApplicationMain"].first { name in
-            declaration.attributes.contains { $0.name == name }
-        }
+        let attribute = ["main", "UIApplicationMain", "NSApplicationMain"].first { declaration.hasAttribute(named: $0) }
         return "@\(attribute ?? "main") entry point"
     }
 

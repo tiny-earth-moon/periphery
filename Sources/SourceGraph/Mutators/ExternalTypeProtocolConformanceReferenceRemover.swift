@@ -33,9 +33,7 @@ final class ExternalTypeProtocolConformanceReferenceRemover: SourceGraphMutator 
 
                 // Retain all parameters from the protocol declaration as altering the function signature would break
                 // conformance.
-                relatedDecl.unusedParameters.forEach { graph.markRetained($0, reason: RetentionReason(Self.self, "parameter of a witness of an external type protocol")) }
-
-                // Remove the related reference.
+                graph.markRetained(relatedDecl.unusedParameters, reason: RetentionReason(Self.self, "parameter of a witness of an external type protocol"))
                 graph.remove(relatedRef)
             }
         }

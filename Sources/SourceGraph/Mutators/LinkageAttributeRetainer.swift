@@ -11,6 +11,9 @@ final class LinkageAttributeRetainer: SourceGraphMutator {
     private static let linkerVisibleAttributes: Set<String> = ["used", "_used", "section", "_section"]
     /// Attributes of a declaration implemented on behalf of an imported C or Objective-C declaration.
     private static let implementationAttributes: Set<String> = ["implementation", "_objcImplementation"]
+    private static var reason: RetentionReason {
+        RetentionReason(LinkageAttributeRetainer.self, "linkage attribute (@_cdecl, @_silgen_name, @_used or @_section)")
+    }
 
     private let graph: SourceGraph
 
@@ -21,11 +24,11 @@ final class LinkageAttributeRetainer: SourceGraphMutator {
     func mutate() {
         for decl in graph.allDeclarations where !decl.attributes.isEmpty {
             if isImplementation(decl) {
-                graph.markRetained(decl, reason: RetentionReason(Self.self, "linkage attribute (@_cdecl, @_silgen_name, @_used or @_section)"))
-                decl.descendentDeclarations.forEach { graph.markRetained($0, reason: RetentionReason(Self.self, "linkage attribute (@_cdecl, @_silgen_name, @_used or @_section)")) }
+                graph.markRetained(decl, reason: Self.reason)
+                graph.markRetained(decl.descendentDeclarations, reason: Self.reason)
             } else if isLinkageVisible(decl) {
-                graph.markRetained(decl, reason: RetentionReason(Self.self, "linkage attribute (@_cdecl, @_silgen_name, @_used or @_section)"))
-                decl.unusedParameters.forEach { graph.markRetained($0, reason: RetentionReason(Self.self, "linkage attribute (@_cdecl, @_silgen_name, @_used or @_section)")) }
+                graph.markRetained(decl, reason: Self.reason)
+                graph.markRetained(decl.unusedParameters, reason: Self.reason)
             }
         }
     }
@@ -35,29 +38,17 @@ final class LinkageAttributeRetainer: SourceGraphMutator {
     private func isImplementation(_ decl: Declaration) -> Bool {
         guard decl.kind.isExtensionKind || [.class, .struct, .enum].contains(decl.kind) else { return false }
 
-        return hasAttribute(in: Self.implementationAttributes, decl)
+        return decl.hasAttribute(in: Self.implementationAttributes)
     }
 
     private func isLinkageVisible(_ decl: Declaration) -> Bool {
-        let isFunction = decl.kind.isFunctionKind
-
-        if isFunction {
-            if hasAttribute(in: Self.exportingFunctionAttributes, decl) {
-                return true
-            }
-
-            // Only a definition provides the symbol. A bodyless declaration imports it.
-            if decl.hasBody, hasAttribute(in: ["_silgen_name"], decl) {
-                return true
-            }
+        if decl.kind.isFunctionKind {
+            // Only a definition provides a `_silgen_name` symbol. A bodyless declaration imports it.
+            return decl.hasAttribute(in: Self.exportingFunctionAttributes)
+                || (decl.hasBody && decl.hasAttribute(named: "_silgen_name"))
+                || decl.hasAttribute(in: Self.linkerVisibleAttributes)
         }
 
-        guard isFunction || decl.kind.isVariableKind else { return false }
-
-        return hasAttribute(in: Self.linkerVisibleAttributes, decl)
-    }
-
-    private func hasAttribute(in names: Set<String>, _ decl: Declaration) -> Bool {
-        decl.attributes.contains { names.contains($0.name) }
+        return decl.kind.isVariableKind && decl.hasAttribute(in: Self.linkerVisibleAttributes)
     }
 }
