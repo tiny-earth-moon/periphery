@@ -1,6 +1,7 @@
 import Configuration
 import Foundation
 import Logger
+import SourceGraph
 import SystemPackage
 
 final class JsonFormatter: SummaryFormatter {
@@ -42,6 +43,10 @@ final class JsonFormatter: SummaryFormatter {
                 "location": locationDescription(location),
             ]
 
+            if let range = result.declaration.range, result.declaration.commentCommands.locationOverride == nil {
+                object["range"] = rangeObject(range)
+            }
+
             if case let .unusedAssetCatalogSymbol(symbol) = result.annotation {
                 object["asset"] = [
                     "name": symbol.assetName.map { $0 as Any } ?? NSNull(),
@@ -73,5 +78,23 @@ final class JsonFormatter: SummaryFormatter {
         }
 
         return jsonObject
+    }
+
+    private func rangeObject(_ range: DeclarationRange) -> [String: Any] {
+        var object: [String: Any] = [
+            "start": positionObject(range.start),
+            "end": positionObject(range.end),
+        ]
+        if let attributesStart = range.attributesStart {
+            object["attributesStart"] = positionObject(attributesStart)
+        }
+        if let docCommentStart = range.docCommentStart {
+            object["docCommentStart"] = positionObject(docCommentStart)
+        }
+        return object
+    }
+
+    private func positionObject(_ position: SourcePosition) -> [String: Int] {
+        ["line": position.line, "column": position.column]
     }
 }

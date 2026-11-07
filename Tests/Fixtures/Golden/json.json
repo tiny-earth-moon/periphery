@@ -21,7 +21,25 @@
     "modules" : [
       "Lib"
     ],
-    "name" : "Widget"
+    "name" : "Widget",
+    "range" : {
+      "attributesStart" : {
+        "column" : 1,
+        "line" : 2
+      },
+      "docCommentStart" : {
+        "column" : 1,
+        "line" : 1
+      },
+      "end" : {
+        "column" : 2,
+        "line" : 9
+      },
+      "start" : {
+        "column" : 1,
+        "line" : 3
+      }
+    }
   },
   {
     "accessibility" : "internal",
@@ -233,7 +251,17 @@
     "modules" : [
       "Lib"
     ],
-    "name" : "helper()"
+    "name" : "helper()",
+    "range" : {
+      "end" : {
+        "column" : 2,
+        "line" : 7
+      },
+      "start" : {
+        "column" : 1,
+        "line" : 5
+      }
+    }
   },
   {
     "accessibility" : "internal",

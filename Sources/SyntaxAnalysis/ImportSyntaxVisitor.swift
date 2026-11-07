@@ -36,7 +36,8 @@ public final class ImportSyntaxVisitor: PeripherySyntaxVisitor {
             isConditional: isConditional,
             location: location,
             endLocation: endLocation,
-            commentCommands: CommentCommand.parseCommands(in: node.leadingTrivia.merging(node.trailingTrivia))
+            commentCommands: CommentCommand.parseCommands(in: node.leadingTrivia.merging(node.trailingTrivia)),
+            range: sourceLocationBuilder.declarationRange(of: node, attributes: node.attributes)
         )
         importStatements.append(statement)
     }

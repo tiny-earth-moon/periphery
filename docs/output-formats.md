@@ -84,7 +84,7 @@ Each result is printed on one line; it is wrapped above for reading. Use this fo
 
 ## json
 
-An array of results, each with its `kind` (declaration kind), `name`, `modifiers`, `attributes`, `accessibility`, `ids`, `location`, `hints` (the result annotations) and `modules`:
+An array of results, each with its `kind` (declaration kind), `name`, `modifiers`, `attributes`, `accessibility`, `ids`, `location`, `hints` (the result annotations), `modules` and `range`:
 
 ```json
 [
@@ -97,10 +97,25 @@ An array of results, each with its `kind` (declaration kind), `name`, `modifiers
     "location" : "/Project/Sources/Lib/Widget.swift:3:14",
     "modifiers" : ["final", "public"],
     "modules" : ["Lib"],
-    "name" : "Widget"
+    "name" : "Widget",
+    "range" : {
+      "attributesStart" : { "column" : 1, "line" : 2 },
+      "docCommentStart" : { "column" : 1, "line" : 1 },
+      "end" : { "column" : 2, "line" : 8 },
+      "start" : { "column" : 1, "line" : 3 }
+    }
   }
 ]
 ```
+
+`location` points at the name of the declaration. `range` gives its extent in the same file, each position a 1-based `line` and `column`, the column counted in UTF-8 bytes like `location`:
+
+- `start`: the first modifier or keyword, after the attributes;
+- `end`: the position just after the last character of the declaration, trailing comments excluded;
+- `attributesStart`: the first attribute, present only when the declaration has attributes;
+- `docCommentStart`: the first doc comment (`///` or `/** */`) right above the declaration, present only when it has one. A blank line or a plain comment ends the doc comments that belong to it.
+
+The positions nest, `docCommentStart` < `attributesStart` < `start` < `end`: the declaration itself spans from `attributesStart`, or `start` without attributes, up to `end`, and with its doc comment from `docCommentStart`. The names of a declaration that holds several, e.g. `case a, b` or `let a = 1, b = 2`, share the range of the whole declaration; the range of a parameter stops before its comma. `range` is absent when outskirts has no syntax for the declaration (an implicit or non-Swift declaration, e.g. an asset or a localized string), when an `outskirts:override` comment sets its `location`, and from the entries that list the conformances of a redundant protocol.
 
 `--summary` wraps the array in an object with a `summary`, see [Summary](#summary).
 
