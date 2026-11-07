@@ -37,6 +37,7 @@ final class SystemModuleIndexer {
         }
 
         var modules: Set<String> = []
+        var targets: Set<String> = []
         var exports: [String: Set<String>] = [:]
         var records: [RecordKey: SystemRecord] = [:]
 
@@ -48,6 +49,7 @@ final class SystemModuleIndexer {
                 guard !module.isEmpty else { continue }
 
                 modules.insert(module)
+                targets.insert(unit.target)
                 unit.forEach(dependency: { dependency in
                     let dependencyModule = Self.topLevelModule(dependency.moduleName)
 
@@ -67,7 +69,7 @@ final class SystemModuleIndexer {
             }
         }
 
-        logger.debug("\(modules.count) system modules, \(records.count) system records")
+        logger.debug("\(modules.count) system modules, \(records.count) system records, targets: \(targets.sorted())")
 
         let declaringRoles: SymbolRoles = [.definition, .declaration]
         let modulesByUsr = try JobPool(jobs: Array(records.values)).flatMap { record -> [(String, String)] in
@@ -87,7 +89,7 @@ final class SystemModuleIndexer {
         }
 
         graph.withLock { graph in
-            graph.addSystemModules(modules, exports: exports, modulesByUsr: modulesByUsr)
+            graph.addSystemModules(modules, exports: exports, modulesByUsr: modulesByUsr, targets: targets)
         }
     }
 
