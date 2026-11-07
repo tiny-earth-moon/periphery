@@ -173,7 +173,7 @@ The complete documentation lives at [outskirts.dev/docs](https://outskirts.dev/d
 <!-- docs:begin nav -->
 
 - **Start**: [Getting started](https://outskirts.dev/docs/getting-started/), [Migrating from Periphery](https://outskirts.dev/docs/migrating-from-periphery/), [Configuration](https://outskirts.dev/docs/configuration/)
-- **Explore**: [Analysis](https://outskirts.dev/docs/analysis/), [Framework conventions and retention](https://outskirts.dev/docs/framework-conventions/), [Comment commands](https://outskirts.dev/docs/comment-commands/), [Excluding files](https://outskirts.dev/docs/excluding-files/), [Baselines](https://outskirts.dev/docs/baselines/)
+- **Explore**: [Analysis](https://outskirts.dev/docs/analysis/), [Framework conventions and retention](https://outskirts.dev/docs/framework-conventions/), [Comment commands](https://outskirts.dev/docs/comment-commands/), [Excluding files](https://outskirts.dev/docs/excluding-files/), [Baselines](https://outskirts.dev/docs/baselines/), [Fixing results](https://outskirts.dev/docs/fixing-results/)
 - **Integrate**: [Output formats](https://outskirts.dev/docs/output-formats/), [Continuous integration](https://outskirts.dev/docs/ci/), [Xcode integration](https://outskirts.dev/docs/xcode-integration/)
 - **Reference**: [Options](https://outskirts.dev/docs/options/), [Troubleshooting](https://outskirts.dev/docs/troubleshooting/), [FAQ](https://outskirts.dev/docs/faq/)
 - **Project**: [Changelog](https://outskirts.dev/docs/changelog/), [Roadmap](https://outskirts.dev/docs/roadmap/), [Credits](https://outskirts.dev/docs/credits/)

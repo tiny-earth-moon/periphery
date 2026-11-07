@@ -68,8 +68,4 @@ public struct FixTarget: Hashable, Sendable {
                 || declaration.parent?.commentCommands.locationOverride != nil
         )
     }
-
-    public var locationDescription: String {
-        "\(file.string):\(line):\(column)"
-    }
 }
