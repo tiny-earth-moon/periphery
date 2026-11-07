@@ -8,7 +8,7 @@ protocol SummaryFormatter: OutputFormatter {
 
 public extension OutputFormatter {
     func summarize(_ results: [ScanResult]) -> ScanSummary {
-        ScanSummaryBuilder(logger: logger).build(results) { describe($0) }
+        ScanSummaryBuilder(logger: logger).build(results)
     }
 
     /// The report with the summary, for the formats that hold one (`json`); the other formats ignore it.

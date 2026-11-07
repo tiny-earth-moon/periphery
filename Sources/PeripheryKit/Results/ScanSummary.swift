@@ -24,12 +24,12 @@ public struct ScanSummary: Equatable {
 struct ScanSummaryBuilder {
     let logger: Logger
 
-    func build(_ results: [ScanResult], annotationName: (ScanResult.Annotation) -> String) -> ScanSummary {
+    func build(_ results: [ScanResult]) -> ScanSummary {
         var countsByAnnotation: [String: Int] = [:]
         var removedByFile: [FilePath: [ScanResult]] = [:]
 
         for result in results {
-            countsByAnnotation[annotationName(result.annotation), default: 0] += 1
+            countsByAnnotation[result.annotation.name, default: 0] += 1
 
             let file = result.declaration.location.file.path
             if result.annotation.removesCode, file.extension == "swift" {
