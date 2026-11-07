@@ -76,6 +76,29 @@ public enum CacheManager {
         }
     }
 
+    /// Records the project in the DerivedData folder of the current scan and marks it as used, then evicts
+    /// the stale folders from the cache, keeping the current one. Returns the evicted entries.
+    public static func refresh(
+        derivedData: URL,
+        projectPath: String,
+        maxAgeDays: Int,
+        maxSizeGB: Int,
+        cacheDirectory: URL? = nil,
+        fileManager: FileManager = .default
+    ) throws -> [EvictedCacheEntry] {
+        if fileManager.fileExists(atPath: derivedData.path) {
+            try recordProject(projectPath, in: derivedData, fileManager: fileManager)
+            try touch(derivedData, fileManager: fileManager)
+        }
+        return try evictStale(
+            cacheDirectory: cacheDirectory ?? URL(fileURLWithPath: Constants.cachePath().string),
+            maxAgeDays: maxAgeDays,
+            maxSizeBytes: Int64(maxSizeGB) << 30,
+            keeping: derivedData,
+            fileManager: fileManager
+        )
+    }
+
     /// Marks a DerivedData folder as used now.
     public static func touch(_ directory: URL, now: Date = Date(), fileManager: FileManager = .default) throws {
         try fileManager.setAttributes([.modificationDate: now], ofItemAtPath: directory.path)

@@ -2,20 +2,14 @@ import Foundation
 import Shared
 
 public extension Xcodebuild {
-    /// Records the project in the DerivedData folder of the current scan and marks it as used, then evicts the stale ones from the cache.
-    /// Returns the evicted entries.
+    /// Refreshes the build cache around the DerivedData folder of the current scan. Returns the evicted entries.
     func refreshCache(project: XcodeProjectlike, schemes: [String], buildArguments: [String] = [], maxAgeDays: Int, maxSizeGB: Int = 0) throws -> [EvictedCacheEntry] {
         let current = try derivedDataPath(for: project, schemes: schemes, buildArguments: buildArguments)
-        let currentURL = URL(fileURLWithPath: current.string)
-        if FileManager.default.fileExists(atPath: currentURL.path) {
-            try CacheManager.recordProject(project.path.lexicallyNormalized().string, in: currentURL)
-            try CacheManager.touch(currentURL)
-        }
-        return try CacheManager.evictStale(
-            cacheDirectory: URL(fileURLWithPath: Constants.cachePath().string),
+        return try CacheManager.refresh(
+            derivedData: URL(fileURLWithPath: current.string),
+            projectPath: project.path.lexicallyNormalized().string,
             maxAgeDays: maxAgeDays,
-            maxSizeBytes: Int64(maxSizeGB) << 30,
-            keeping: currentURL
+            maxSizeGB: maxSizeGB
         )
     }
 }
