@@ -53,7 +53,11 @@ public final class Reference {
         self.declarationKind = declarationKind
         self.usr = usr
         self.location = location
-        hashValueCache = [usr.hashValue, location.hashValue, kind.hashValue].hashValue
+        var hasher = Hasher()
+        hasher.combine(usr)
+        hasher.combine(location)
+        hasher.combine(kind)
+        hashValueCache = hasher.finalize()
     }
 
     var descendentReferences: Set<Reference> {

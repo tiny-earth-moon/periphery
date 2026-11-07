@@ -8,21 +8,24 @@ public final class SourceFile {
     public var importsSwiftTesting = false
     public var usesDistributedModifier = false
 
+    private let hashValueCache: Int
+
     public init(path: FilePath, modules: Set<String>) {
         self.path = path
         self.modules = modules
+        hashValueCache = path.hashValue
     }
 }
 
 extension SourceFile: Hashable {
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(path)
+        hasher.combine(hashValueCache)
     }
 }
 
 extension SourceFile: Equatable {
     public static func == (lhs: SourceFile, rhs: SourceFile) -> Bool {
-        lhs.path == rhs.path
+        lhs === rhs || lhs.path == rhs.path
     }
 }
 
