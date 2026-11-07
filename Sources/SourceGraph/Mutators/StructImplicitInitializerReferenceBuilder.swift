@@ -53,13 +53,18 @@ final class StructImplicitInitializerReferenceBuilder: SourceGraphMutator {
                 // the implicit initializer, we can remove the additional property references at the
                 // call site. This enables assign-only property detection for structs using implicit
                 // initializers.
+                let initPropertyUsrs = initPropertyDecls.flatMapSet(\.usrs)
+
                 for initRef in graph.references(to: implicitInitDecl) {
                     guard let caller = initRef.parent, caller != structDecl else { continue }
 
-                    let sortedReferences = caller.references.sorted()
+                    // Only the references to the assigned properties following the call can be removed, sort those.
+                    let sortedReferences = caller.references
+                        .filter { initPropertyUsrs.contains($0.usr) && $0.location > initRef.location }
+                        .sorted()
 
                     for initPropertyDecl in initPropertyDecls {
-                        let firstRef = sortedReferences.first { initPropertyDecl.usrs.contains($0.usr) && $0.location > initRef.location }
+                        let firstRef = sortedReferences.first { initPropertyDecl.usrs.contains($0.usr) }
 
                         if let firstRef {
                             graph.remove(firstRef)
