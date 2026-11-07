@@ -148,7 +148,7 @@
                 logger: logger,
                 configuration: configuration
             )
-            let sourceFiles = try collector.collect()
+            let (sourceFiles, indexExcludedSourceFiles) = try collector.collectWithIndexExcludedFiles()
             let excluded = excludedTestTargets.union(configuration.excludeTargets)
             let expectedSourceFiles = targets
                 .filter { !excluded.contains($0.name) && !$0.swiftSourceFiles.isEmpty }
@@ -161,6 +161,7 @@
 
             return IndexPlan(
                 sourceFiles: sourceFiles,
+                indexExcludedSourceFiles: indexExcludedSourceFiles,
                 plistPaths: infoPlistPaths,
                 xibPaths: xibPaths,
                 xcDataModelPaths: xcDataModelPaths,

@@ -65,6 +65,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$retainAssignOnlyProperties, retentionOptions.retainAssignOnlyProperties)
         configuration.apply(\.$retainAssignOnlyPropertyTypes, given(retentionOptions.retainAssignOnlyPropertyTypes))
         configuration.apply(\.$enableUnassignedOptionalAnalysis, analysisOptions.enableUnassignedOptionalAnalysis)
+        configuration.apply(\.$enableUnconstructedEnumCaseAnalysis, analysisOptions.enableUnconstructedEnumCaseAnalysis)
         configuration.apply(\.$retainObjcAccessible, retentionOptions.retainObjcAccessible)
         configuration.apply(\.$retainJsAccessible, retentionOptions.retainJsAccessible)
         configuration.apply(\.$retainObjcAnnotated, retentionOptions.retainObjcAnnotated)

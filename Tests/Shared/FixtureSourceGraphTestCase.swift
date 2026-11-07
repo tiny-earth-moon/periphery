@@ -13,6 +13,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
     @discardableResult
     func analyze(
         retainPublic: Bool = false,
+        retainPublicModules: [String] = [],
         noRetainSPI: [String] = [],
         retainObjcAccessible: Bool = false,
         retainJsAccessible: Bool = false,
@@ -28,8 +29,10 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         retainAssignOnlyProperties: Bool = false,
         retainAssignOnlyPropertyTypes: [String] = [],
         enableUnassignedOptionalAnalysis: Bool = false,
+        enableUnconstructedEnumCaseAnalysis: Bool = false,
         externalCodableProtocols: [String] = [],
         additionalFilesToIndex: [FilePath] = [],
+        indexExcludedFiles: Set<FilePath> = [],
         xibPaths: Set<FilePath> = [],
         plistPaths: Set<FilePath> = [],
         externalTestCaseClasses: [String] = [],
@@ -45,6 +48,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
     ) rethrows -> [ScanResult] {
         let configuration = Configuration()
         configuration.retainPublic = retainPublic
+        configuration.retainPublicModules = retainPublicModules
         configuration.noRetainSPI = noRetainSPI
         configuration.retainObjcAccessible = retainObjcAccessible
         configuration.retainJsAccessible = retainJsAccessible
@@ -61,6 +65,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         configuration.retainUnusedParametersWithoutDefault = retainUnusedParametersWithoutDefault
         configuration.retainAssignOnlyPropertyTypes = retainAssignOnlyPropertyTypes
         configuration.enableUnassignedOptionalAnalysis = enableUnassignedOptionalAnalysis
+        configuration.enableUnconstructedEnumCaseAnalysis = enableUnconstructedEnumCaseAnalysis
         configuration.externalTestCaseClasses = externalTestCaseClasses
         configuration.retainFiles = retainFiles
         configuration.disablePlatformConditionalRetention = disablePlatformConditionalRetention
@@ -80,7 +85,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
             fatalError("\(testFixturePath.string) does not exist")
         }
 
-        Self.index(sourceFiles: [testFixturePath] + additionalFilesToIndex, xibPaths: xibPaths, plistPaths: plistPaths, configuration: configuration)
+        Self.index(sourceFiles: [testFixturePath] + additionalFilesToIndex, indexExcludedSourceFiles: indexExcludedFiles, xibPaths: xibPaths, plistPaths: plistPaths, configuration: configuration)
         try testBlock()
         return Self.results
     }

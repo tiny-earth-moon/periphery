@@ -28,6 +28,9 @@ public final class SourceGraph {
     public private(set) var assignOnlyProperties: Set<Declaration> = []
     public private(set) var suppressedAssignOnlyProperties: Set<Declaration> = []
     public private(set) var unassignedOptionalProperties: Set<Declaration> = []
+    public private(set) var unconstructedEnumCases: Set<Declaration> = []
+    /// The source files left out by `index_exclude`, only recorded for the unconstructed enum case analysis.
+    public private(set) var indexExcludedSourceFiles: Set<FilePath> = []
     public private(set) var extensions: [Declaration: Set<Declaration>] = [:]
     public private(set) var commandIgnoredDeclarations: [Declaration: CommandIgnoreKind] = [:]
     public private(set) var functionsWithIgnoredParameters: Set<Declaration> = []
@@ -245,6 +248,10 @@ public final class SourceGraph {
         _ = unassignedOptionalProperties.insert(declaration)
     }
 
+    func markUnconstructedEnumCase(_ declaration: Declaration) {
+        _ = unconstructedEnumCases.insert(declaration)
+    }
+
     func markMainAttributed(_ declaration: Declaration) {
         _ = mainAttributedDeclarations.insert(declaration)
     }
@@ -289,6 +296,7 @@ public final class SourceGraph {
         assignOnlyProperties.remove(declaration)
         suppressedAssignOnlyProperties.remove(declaration)
         unassignedOptionalProperties.remove(declaration)
+        unconstructedEnumCases.remove(declaration)
         declaration.usrs.forEach { allDeclarationsByUsr.removeValue(forKey: $0) }
     }
 
@@ -412,6 +420,10 @@ public final class SourceGraph {
         guard recordsExplanations else { return }
 
         platformConditionalNameSites.merge(sites) { $0 + $1 }
+    }
+
+    public func addIndexExcludedSourceFiles(_ files: Set<FilePath>) {
+        indexExcludedSourceFiles.formUnion(files)
     }
 
     public func addUnindexedSourceFiles(_ files: [FilePath], module: String) {

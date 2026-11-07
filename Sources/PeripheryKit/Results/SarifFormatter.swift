@@ -29,6 +29,7 @@ final class SarifFormatter: OutputFormatter {
         Rule(id: "unused", description: "The declaration is never referenced", help: "analysis/#unused-declarations"),
         Rule(id: "assignOnlyProperty", description: "The property is assigned, but never read", help: "analysis/#assign-only-properties"),
         Rule(id: "unassignedOptionalProperty", description: "The optional property is never assigned and is always nil", help: "analysis/#unassigned-optional-properties"),
+        Rule(id: "enumCaseNeverConstructed", description: "The enum case is only matched in patterns and never constructed", help: "analysis/#unconstructed-enum-cases"),
         Rule(id: "redundantProtocol", description: "The protocol is never used as an existential type", help: "analysis/#redundant-protocols"),
         Rule(id: "redundantPublicAccessibility", description: "The declaration is public but not used outside of its module", help: "analysis/#redundant-public-accessibility"),
         Rule(id: "redundantOpenAccessibility", description: "The declaration is open but never subclassed or overridden outside of its module", help: "analysis/#open-and-final"),

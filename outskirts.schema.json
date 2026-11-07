@@ -159,6 +159,11 @@
       "type": "boolean",
       "default": false
     },
+    "enable_unconstructed_enum_case_analysis": {
+      "description": "Find enum cases that are only matched in patterns and never constructed.",
+      "type": "boolean",
+      "default": false
+    },
     "retain_objc_accessible": {
       "description": "Retain declarations exposed to Objective-C, implicitly (NSObject subclasses) or with @objc / @objcMembers.",
       "type": "boolean",

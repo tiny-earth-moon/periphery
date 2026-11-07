@@ -27,6 +27,7 @@ final class CommandLinePrecedenceTest: XCTestCase {
         ("retain_runtime_localized_keys", \.retainRuntimeLocalizedKeys),
         ("retain_assign_only_properties", \.retainAssignOnlyProperties),
         ("enable_unassigned_optional_analysis", \.enableUnassignedOptionalAnalysis),
+        ("enable_unconstructed_enum_case_analysis", \.enableUnconstructedEnumCaseAnalysis),
         ("retain_objc_accessible", \.retainObjcAccessible),
         ("retain_js_accessible", \.retainJsAccessible),
         ("retain_objc_annotated", \.retainObjcAnnotated),

@@ -47,6 +47,9 @@ public final class Configuration {
     @Setting(key: "enable_unassigned_optional_analysis", description: "Find optional properties that are read but never assigned (always nil).", defaultValue: false)
     public var enableUnassignedOptionalAnalysis: Bool
 
+    @Setting(key: "enable_unconstructed_enum_case_analysis", description: "Find enum cases that are only matched in patterns and never constructed.", defaultValue: false)
+    public var enableUnconstructedEnumCaseAnalysis: Bool
+
     @Setting(key: "external_encodable_protocols", description: "External protocols that inherit Encodable; the properties and CodingKey enums of conforming types are retained.", defaultValue: [])
     public var externalEncodableProtocols: [String]
 
@@ -327,7 +330,7 @@ public final class Configuration {
 
     lazy var settings: [any AbstractSetting] = [
         $project, $schemes, $excludeTargets, $excludeTests, $indexExclude, $reportExclude, $reportInclude, $outputFormat,
-        $retainPublic, $retainPublicModules, $noRetainSPI, $retainFiles, $retainAssignOnlyProperties, $retainAssignOnlyPropertyTypes, $enableUnassignedOptionalAnalysis, $retainObjcAccessible,
+        $retainPublic, $retainPublicModules, $noRetainSPI, $retainFiles, $retainAssignOnlyProperties, $retainAssignOnlyPropertyTypes, $enableUnassignedOptionalAnalysis, $enableUnconstructedEnumCaseAnalysis, $retainObjcAccessible,
         $retainJsAccessible, $retainObjcAnnotated, $retainUnusedProtocolFuncParams, $retainUnusedParametersWithoutDefault, $retainSwiftUIPreviews, $disableRedundantPublicAnalysis, $enableRedundantPublicMembers, $enableOpenFinalAnalysis, $enableEmptyExtensionAnalysis, $enableRedundantAccessLevelAnalysis, $reportUnusedTypeParameters,
         $disablePlatformConditionalRetention, $disableUnusedImportAnalysis, $enableUnusedSystemImports, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $retainRuntimeLocalizedKeys, $superfluousIgnoreComments, $retainUnusedImportedModules,
         $externalEncodableProtocols, $externalCodableProtocols, $externalTestCaseClasses, $verbose, $quiet, $color,

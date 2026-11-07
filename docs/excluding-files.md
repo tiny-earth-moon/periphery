@@ -29,6 +29,7 @@ The result annotations are:
 | `unused` | [Unused declarations](analysis.md#unused-declarations) |
 | `assignOnlyProperty` | [Assign-only properties](analysis.md#assign-only-properties) |
 | `unassignedOptionalProperty` | [Unassigned optional properties](analysis.md#unassigned-optional-properties) |
+| `enumCaseNeverConstructed` | [Unconstructed enum cases](analysis.md#unconstructed-enum-cases) |
 | `redundantProtocol` | [Redundant protocols](analysis.md#redundant-protocols) |
 | `redundantPublicAccessibility` | [Redundant public accessibility](analysis.md#redundant-public-accessibility) |
 | `redundantOpenAccessibility` | [Open and final](analysis.md#open-and-final) |

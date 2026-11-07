@@ -68,6 +68,7 @@ public final class SourceGraphMutatorRunner {
         AncestralReferenceEliminator.self,
         AssignOnlyPropertyReferenceEliminator.self,
         UnassignedOptionalPropertyMarker.self,
+        UnconstructedEnumCaseMarker.self,
 
         UsedDeclarationMarker.self,
         // Must come after UsedDeclarationMarker as it groups the used and unused symbols of each asset.

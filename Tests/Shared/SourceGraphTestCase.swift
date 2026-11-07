@@ -48,12 +48,19 @@ open class SourceGraphTestCase: XCTestCase {
         Self.index(sourceFiles: sourceFiles, configuration: configuration)
     }
 
-    static func index(sourceFiles: [FilePath]? = nil, xibPaths: Set<FilePath> = [], plistPaths: Set<FilePath> = [], configuration: Configuration) {
+    static func index(
+        sourceFiles: [FilePath]? = nil,
+        indexExcludedSourceFiles: Set<FilePath> = [],
+        xibPaths: Set<FilePath> = [],
+        plistPaths: Set<FilePath> = [],
+        configuration: Configuration
+    ) {
         var newPlan = plan!
 
         if let sourceFiles {
             newPlan = IndexPlan(
                 sourceFiles: plan.sourceFiles.filter { sourceFiles.contains($0.key.path) },
+                indexExcludedSourceFiles: indexExcludedSourceFiles,
                 plistPaths: plan.plistPaths.union(plistPaths),
                 xibPaths: plan.xibPaths.union(xibPaths),
                 xcDataModelPaths: plan.xcDataModelPaths,
@@ -301,6 +308,22 @@ open class SourceGraphTestCase: XCTestCase {
         }
     }
 
+    func assertEnumCaseNeverConstructed(_ description: DeclarationDescription, file: StaticString = #file, line: UInt = #line) {
+        guard let declaration = materialize(description, file: file, line: line) else { return }
+
+        if !Self.results.enumCaseNeverConstructedDeclarations.contains(declaration) {
+            XCTFail("Expected enum case to be never constructed: \(declaration)", file: file, line: line)
+        }
+    }
+
+    func assertNotEnumCaseNeverConstructed(_ description: DeclarationDescription, file: StaticString = #file, line: UInt = #line) {
+        guard let declaration = materialize(description, file: file, line: line) else { return }
+
+        if Self.results.enumCaseNeverConstructedDeclarations.contains(declaration) {
+            XCTFail("Expected enum case to not be reported as never constructed: \(declaration)", file: file, line: line)
+        }
+    }
+
     func assertNotUnassignedOptionalProperty(_ description: DeclarationDescription, file: StaticString = #file, line: UInt = #line) {
         guard let declaration = materialize(description, file: file, line: line) else { return }
 
@@ -438,6 +461,16 @@ private extension [ScanResult] {
     var assignOnlyPropertyDeclarations: Set<Declaration> {
         compactMapSet {
             if case .assignOnlyProperty = $0.annotation {
+                return $0.declaration
+            }
+
+            return nil
+        }
+    }
+
+    var enumCaseNeverConstructedDeclarations: Set<Declaration> {
+        compactMapSet {
+            if case .enumCaseNeverConstructed = $0.annotation {
                 return $0.declaration
             }
 

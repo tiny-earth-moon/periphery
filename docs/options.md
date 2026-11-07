@@ -184,7 +184,7 @@ Source file globs to leave out of indexing, added to the default ones.
 
 Key `index_exclude` · list of strings · default `**/*?.build/**/*`, `**/SourcePackages/checkouts/**`.
 
-See [Analysis: Asset catalog colors](analysis.md#asset-catalog-colors), [Analysis: Metal functions](analysis.md#metal-functions), [Framework conventions and retention: Protobuf](framework-conventions.md#protobuf), [Excluding files: Excluding indexed files](excluding-files.md#excluding-indexed-files).
+See [Analysis: Unconstructed enum cases](analysis.md#unconstructed-enum-cases), [Analysis: Asset catalog colors](analysis.md#asset-catalog-colors), [Analysis: Metal functions](analysis.md#metal-functions), [Framework conventions and retention: Protobuf](framework-conventions.md#protobuf).
 
 ### `--report-exclude`
 
@@ -283,6 +283,16 @@ Find optional properties that are read but never assigned (always nil).
 Key `enable_unassigned_optional_analysis` · flag, `--no-enable-unassigned-optional-analysis` to switch off · default `false`.
 
 See [Analysis: Result kinds](analysis.md#result-kinds), [Analysis: Unassigned optional properties](analysis.md#unassigned-optional-properties).
+
+### `--enable-unconstructed-enum-case-analysis`
+
+Since 3.22.0.
+
+Find enum cases that are only matched in patterns and never constructed.
+
+Key `enable_unconstructed_enum_case_analysis` · flag, `--no-enable-unconstructed-enum-case-analysis` to switch off · default `false`.
+
+See [Analysis: Result kinds](analysis.md#result-kinds), [Analysis: Unconstructed enum cases](analysis.md#unconstructed-enum-cases).
 
 ### `--disable-unused-import-analysis`
 
@@ -390,7 +400,7 @@ Retain all public declarations, recommended for framework and library projects. 
 
 Key `retain_public` · flag, `--no-retain-public` to switch off, or in the file a list of strings · default `false`.
 
-See [Getting started: Quick start](getting-started.md#quick-start), [Configuration: The configuration file](configuration.md#the-configuration-file), [Analysis: Open and final](analysis.md#open-and-final), [Framework conventions and retention: SPI](framework-conventions.md#spi).
+See [Getting started: Quick start](getting-started.md#quick-start), [Configuration: The configuration file](configuration.md#the-configuration-file), [Analysis: Unconstructed enum cases](analysis.md#unconstructed-enum-cases), [Analysis: Open and final](analysis.md#open-and-final).
 
 ### `--retain-public-modules`
 
@@ -400,7 +410,7 @@ Modules whose public declarations are retained, for packages that mix libraries 
 
 Key `retain_public_modules` · list of strings · default empty.
 
-See [Getting started: Quick start](getting-started.md#quick-start), [Framework conventions and retention: SPI](framework-conventions.md#spi).
+See [Getting started: Quick start](getting-started.md#quick-start), [Analysis: Unconstructed enum cases](analysis.md#unconstructed-enum-cases), [Framework conventions and retention: SPI](framework-conventions.md#spi).
 
 ### `--no-retain-spi`
 

@@ -17,6 +17,7 @@ Each result carries an annotation, which is also the kind you give to `report_ex
 | `unused` | default | [Unused declarations](#unused-declarations) |
 | `assignOnlyProperty` | default | [Assign-only properties](#assign-only-properties) |
 | `unassignedOptionalProperty` | `--enable-unassigned-optional-analysis` | [Unassigned optional properties](#unassigned-optional-properties) |
+| `enumCaseNeverConstructed` | `--enable-unconstructed-enum-case-analysis` | [Unconstructed enum cases](#unconstructed-enum-cases) |
 | `redundantProtocol` | default | [Redundant protocols](#redundant-protocols) |
 | `redundantPublicAccessibility` | default | [Redundant public accessibility](#redundant-public-accessibility) |
 | `redundantOpenAccessibility` | `--enable-open-final-analysis` | [Open and final](#open-and-final) |
@@ -386,6 +387,59 @@ Properties that may be assigned in ways the index does not record are never repo
 - protocol requirements, and retained properties (including [comment commands](comment-commands.md)).
 
 Properties of structs with a synthesized memberwise initializer are considered assigned by it.
+
+## Unconstructed enum cases
+
+Since 3.22.0.
+
+Opt-in: [`--enable-unconstructed-enum-case-analysis`](options.md), key `enable_unconstructed_enum_case_analysis: true`.
+
+An enum case that is only matched in patterns, and never constructed, can never be produced: the case and the branches that match it are dead. Results use the `enumCaseNeverConstructed` kind, with the message `Enum case 'retrying' is only matched, never constructed`.
+
+Before:
+
+```swift
+enum Phase {
+    case idle
+    // Enum case 'retrying' is only matched, never constructed
+    case retrying
+}
+
+func label(_ phase: Phase) -> String {
+    switch phase {
+    case .idle: "Idle"
+    case .retrying: "Retrying"
+    }
+}
+```
+
+After:
+
+```swift
+enum Phase {
+    case idle
+}
+
+func label(_ phase: Phase) -> String {
+    switch phase {
+    case .idle: "Idle"
+    }
+}
+```
+
+A case is reported when every reference to it is the case pattern of a `switch` case, of an `if`, `guard` or `while case` condition, of a `for case` loop or of a `catch` clause: `.name`, `Type.name`, `.name(let value)`, `let .name(value)`, `.name?`, or a case nested in a tuple or in the pattern of another case. Any other reference counts as a construction, including a comparison (`state == .name`), a default argument, a return value, a closure, an interpolation or a function value (`Phase.name`).
+
+Enums whose cases may be produced without a visible construction are never analyzed:
+
+- raw representable, `CaseIterable`, `Codable`/`Decodable` and `CodingKey` enums, and `@objc` enums;
+- enums conforming to a protocol from another, unindexed module, other than `Equatable`, `Hashable`, `Comparable`, `Error`, `Sendable`, `Identifiable` and a few others without static requirements;
+- cases that satisfy a static requirement of a protocol (`static var fallback: Self`);
+- enums with a custom attribute, such as a macro, and public enums when [`--retain-public`](options.md) or `--retain-public-modules` retains them;
+- enums that a custom `~=` operator can receive, and every enum when a generic `~=` operator is declared; a case nested in the pattern of such an enum's case (`.wrap(.name)`) counts as constructed;
+- enums of a module that expands a macro other than the Observation, SwiftData, SwiftUI preview and Swift Testing ones, as the index does not see what an expansion constructs, and every public enum as soon as one module does;
+- cases whose name is written in an `#if` block, which may construct them in a branch that was not compiled, or in a file left out by [`--index-exclude`](options.md), such as generated code.
+
+Retained cases (including [comment commands](comment-commands.md)) are not reported.
 
 ## Redundant public accessibility
 
