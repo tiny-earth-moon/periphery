@@ -7,12 +7,15 @@ import XCTest
 final class QuietModeTest: XCTestCase {
     private static let packageWithResult = Result { try makePackage(source: "struct UnusedFixtureType {}\n") }
     private static let packageWithoutResult = Result { try makePackage(source: "public struct PublicFixtureType {}\n") }
+    private static let packageWithInvalidConfiguration = Result {
+        try makePackage(source: "public struct PublicFixtureType {}\n", configuration: "not_a_setting: 1\n")
+    }
 
     private var outputDirectory: URL!
 
     // swiftlint:disable:next static_over_final_class
     override class func tearDown() {
-        for package in [packageWithResult, packageWithoutResult] {
+        for package in [packageWithResult, packageWithoutResult, packageWithInvalidConfiguration] {
             if let url = try? package.get() {
                 try? FileManager.default.removeItem(at: url)
             }
@@ -112,6 +115,20 @@ final class QuietModeTest: XCTestCase {
         XCTAssertEqual(output.stdoutText, "")
     }
 
+    func testQuietPrintsNoConfigurationWarning() throws {
+        let output = try scan(["--format", "xcode", "--retain-public", "--quiet"], in: Self.packageWithInvalidConfiguration)
+
+        XCTAssertEqual(output.status, 0, output.stderrText)
+        XCTAssertFalse(output.stderrText.contains("not_a_setting"), output.stderrText)
+    }
+
+    func testWithoutQuietTheConfigurationWarningIsPrintedOnStderr() throws {
+        let output = try scan(["--format", "xcode", "--retain-public"], in: Self.packageWithInvalidConfiguration)
+
+        XCTAssertEqual(output.status, 0, output.stderrText)
+        XCTAssertTrue(output.stderrText.contains("not_a_setting"), output.stderrText)
+    }
+
     // MARK: - Private
 
     private struct ScanOutput {
@@ -128,7 +145,7 @@ final class QuietModeTest: XCTestCase {
         }
     }
 
-    private static func makePackage(source: String) throws -> URL {
+    private static func makePackage(source: String, configuration: String? = nil) throws -> URL {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("periphery-quiet-\(UUID().uuidString)")
         let sources = root.appendingPathComponent("Sources/Fixture")
@@ -139,6 +156,9 @@ final class QuietModeTest: XCTestCase {
         let package = Package(name: "Fixture", targets: [.target(name: "Fixture")])
         """.write(to: root.appendingPathComponent("Package.swift"), atomically: true, encoding: .utf8)
         try source.write(to: sources.appendingPathComponent("Fixture.swift"), atomically: true, encoding: .utf8)
+        if let configuration {
+            try configuration.write(to: root.appendingPathComponent(".outskirts.yml"), atomically: true, encoding: .utf8)
+        }
         return root
     }
 
