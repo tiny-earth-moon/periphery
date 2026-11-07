@@ -120,7 +120,7 @@ final class ConfigurationLoadTest: XCTestCase {
             XCTAssertEqual(configuration.outputFormat, .xcode, value)
             XCTAssertEqual(
                 warnings,
-                ["\(file): 'format' has invalid value '\(value)' (expected one of xcode, csv, json, checkstyle, codeclimate, github-actions, github-markdown, gitlab-codequality, sarif); using default 'xcode'"],
+                ["\(file): 'format' has invalid value '\(value)' (expected one of xcode, csv, json, checkstyle, codeclimate, github-actions, github-markdown, gitlab-codequality, sarif, agent); using default 'xcode'"],
                 value
             )
         }

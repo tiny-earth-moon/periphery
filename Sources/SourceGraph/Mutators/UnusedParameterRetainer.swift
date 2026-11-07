@@ -3,6 +3,10 @@ import Foundation
 import Shared
 
 final class UnusedParameterRetainer: SourceGraphMutator {
+    private static var reason: RetentionReason {
+        RetentionReason(UnusedParameterRetainer.self, "parameter that must be kept for the function signature")
+    }
+
     private let graph: SourceGraph
     private let configuration: Configuration
 
@@ -33,7 +37,7 @@ final class UnusedParameterRetainer: SourceGraphMutator {
                     // existential type. Leaving the function parameters as unused would put produce awkward results.
                     let allFunctionDecls = extFuncDecls + [protoFuncDecl]
                     for functionDecl in allFunctionDecls {
-                        functionDecl.unusedParameters.forEach { graph.markRetained($0, reason: RetentionReason(Self.self, "parameter that must be kept for the function signature")) }
+                        graph.markRetained(functionDecl.unusedParameters, reason: Self.reason)
                     }
                 } else {
                     let overrideDecls = conformingDecls.flatMap { graph.allOverrideDeclarations(fromBase: $0) }
@@ -41,7 +45,7 @@ final class UnusedParameterRetainer: SourceGraphMutator {
 
                     for functionDecl in allFunctionDecls {
                         if configuration.retainUnusedProtocolFuncParams {
-                            functionDecl.unusedParameters.forEach { graph.markRetained($0, reason: RetentionReason(Self.self, "parameter that must be kept for the function signature")) }
+                            graph.markRetained(functionDecl.unusedParameters, reason: Self.reason)
                         } else {
                             retain(params: Array(functionDecl.unusedParameters), usedIn: allFunctionDecls)
                         }
@@ -53,7 +57,7 @@ final class UnusedParameterRetainer: SourceGraphMutator {
         if configuration.retainUnusedParametersWithoutDefault {
             // Applied last so that it only adds to what the other rules retain.
             for param in graph.declarations(ofKind: .varParameter) where !param.hasDefaultValue {
-                graph.markRetained(param, reason: RetentionReason(Self.self, "parameter that must be kept for the function signature"))
+                graph.markRetained(param, reason: Self.reason)
             }
         }
     }
@@ -96,12 +100,12 @@ final class UnusedParameterRetainer: SourceGraphMutator {
         methodDeclarations
             .lazy
             .flatMap(\.unusedParameters)
-            .forEach { graph.markRetained($0, reason: RetentionReason(Self.self, "parameter that must be kept for the function signature")) }
+            .forEach { graph.markRetained($0, reason: Self.reason) }
     }
 
     private func retain(params: [Declaration], usedIn functionDecls: [Declaration]) {
         for param in params where isParam(param, usedInAnyOf: functionDecls) {
-            graph.markRetained(param, reason: RetentionReason(Self.self, "parameter that must be kept for the function signature"))
+            graph.markRetained(param, reason: Self.reason)
         }
     }
 

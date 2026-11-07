@@ -13,7 +13,8 @@ outskirts builds the project, reads the index store and reports declarations not
 - Xcode project or workspace: `outskirts scan --project MyApp.xcodeproj --schemes MyApp` (pass the `.xcworkspace` for a workspace; list every scheme whose code should count as a use).
 - Index already fresh (you just built with Xcode or `xcodebuild`): `outskirts scan --skip-build --index-store-path <DerivedData>/<Project>/Index.noindex/DataStore` skips the build.
 - A `.outskirts.yml` (or `.periphery.yml`) at the root holds the options: read it before passing flags, and prefer adding options there.
-- To parse results, add `--format json`: each result carries its kind, name, location and hints.
+- To act on the results yourself, add `--format agent` (since 3.22.0): compact Markdown grouped by file in the safe order of step 3, with each result's line range, first line of code and action (`delete`, `add final`, `remove import`…). Add `--max-results 50` on a large project and scan again after each batch for the next one.
+- With 3.21 or to parse results with a script, add `--format json`: each result carries its kind, name, location and hints.
 
 ## 2. Triage every result before touching code
 

@@ -31,7 +31,7 @@ public struct AttributeRetentionRule: Equatable {
     public let kinds: [String]?
 
     func retains(_ declaration: Declaration) -> Bool {
-        guard declaration.attributes.contains(where: { $0.name == attribute }) else { return false }
+        guard declaration.hasAttribute(named: attribute) else { return false }
         guard let kinds else { return true }
 
         return kinds.contains { declaration.kind.matches(identifier: $0) }
