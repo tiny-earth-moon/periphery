@@ -21,8 +21,7 @@ swift test --filter <TestCaseName>
 
 An option of `scan` that can also be set in the configuration file touches every item below; `ConfigurationSchemaTest` fails when one is missing.
 
-- The `@Setting` property in `Sources/Configuration/Configuration.swift`, and its entry in the `settings` array of the same file.
-- A one-line description of the key in `Sources/Configuration/SettingDescriptions.swift`.
+- The `@Setting` property in `Sources/Configuration/Configuration.swift`, with a one-line `description:` of the key, and its entry in the `settings` array of the same file.
 - The `@Option` or `@Flag` in `Sources/Frontend/Commands/ScanCommand.swift`, and its line in `apply(to:)`.
 - Its section in `CATEGORIES` of `site/scripts/sync.mjs`, then `npm run sync` in `site/`, which regenerates `docs/options.md` from the schema.
 - If it helps a common scenario, a commented use in a file under `examples/`.

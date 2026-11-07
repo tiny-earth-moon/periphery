@@ -277,7 +277,7 @@ function editLink(page) {
     return `Generated from <a href="${REPO_URL}/blob/master/CHANGELOG.md">CHANGELOG.md</a>, filled by each release.`;
   }
   if (page.name === "options") {
-    return `Generated from <a href="${REPO_URL}/blob/master/outskirts.schema.json">outskirts.schema.json</a>; edit the descriptions in <a href="${REPO_URL}/blob/master/Sources/Configuration/SettingDescriptions.swift">SettingDescriptions.swift</a>.`;
+    return `Generated from <a href="${REPO_URL}/blob/master/outskirts.schema.json">outskirts.schema.json</a>; edit the descriptions in <a href="${REPO_URL}/blob/master/Sources/Configuration/Configuration.swift">Configuration.swift</a>.`;
   }
   return `<a href="${REPO_URL}/edit/master/${page.source}">Edit this page on GitHub</a>`;
 }
