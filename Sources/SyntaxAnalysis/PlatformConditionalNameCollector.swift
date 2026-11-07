@@ -50,17 +50,6 @@ public final class PlatformConditionalNameCollector: PeripherySyntaxNodeVisitor 
         return collector.names
     }
 
-    /// The names with the line and condition of each place they are written, for `--explain`.
-    public static func collectSites(
-        from syntax: SourceFileSyntax,
-        configurations: [PlatformBuildConfiguration] = [],
-        locationConverter: SourceLocationConverter
-    ) -> [String: [Site]] {
-        let collector = PlatformConditionalNameCollector(configurations: configurations, locationConverter: locationConverter)
-        collector.walk(syntax)
-        return collector.sites
-    }
-
     public func visit(_ node: IfConfigDeclSyntax) {
         guard collectedBlock == nil, node.clauses.contains(where: { isPlatformCondition($0.condition) }) else { return }
 
