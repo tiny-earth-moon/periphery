@@ -81,12 +81,18 @@ public struct SourceFileCollector {
                 modificationDate: \.4
             )
             let modules = tuples.compactMapSet { $0.3 }
-            let sourceFile = SourceFile(path: file, modules: modules)
+            let variants = tuples.mapSet { IndexVariant(triple: $0.2.target, isOptimized: !$0.2.isDebugCompilation) }
+            let sourceFile = SourceFile(path: file, modules: modules, variants: variants)
             sourceFiles[sourceFile] = tuples.map { IndexUnit(store: $0.1, unit: $0.2, modificationDate: $0.4) }
 
             for tuple in Self.outdatedUnits(tuples, sourceModificationDate: sourceModificationDate, modificationDate: \.4) {
                 outdatedFiles[tuple.0, default: []].insert(file)
             }
+        }
+
+        let variants = sourceFiles.keys.reduce(into: Set<IndexVariant>()) { $0.formUnion($1.variants) }
+        if !variants.isEmpty {
+            logger.debug("Index variants: \(variants.sorted().map(\.description).joined(separator: ", "))")
         }
 
         if let warning = try Self.outdatedIndexWarning(outdatedFiles, relativeTo: currentFilePath, strict: configuration.strictIndex) {
