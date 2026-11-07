@@ -24,10 +24,6 @@ public struct SourceFileCollector {
         self.configuration = configuration
     }
 
-    public func collect() throws -> [SourceFile: [IndexUnit]] {
-        try collectWithIndexExcludedFiles().sourceFiles
-    }
-
     /// The source files to index, and the existing main files of the units that `index_exclude` leaves out.
     public func collectWithIndexExcludedFiles() throws -> (sourceFiles: [SourceFile: [IndexUnit]], indexExcludedFiles: Set<FilePath>) {
         let excludedTargets = excludedTestTargets.union(configuration.excludeTargets)
