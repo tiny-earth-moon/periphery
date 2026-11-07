@@ -48,6 +48,14 @@ Prints a summary after the results of the `xcode` format: the count of each resu
 
 See [Output formats: Summary](output-formats.md#summary), [Output formats: json](output-formats.md#json).
 
+### `--max-results`
+
+Since 3.22.0.
+
+With `--format agent`, prints at most this many results, a file entirely unused counting all its results; the report then ends with the number of results left out. Scan again after acting on them for the next batch. Default: every result.
+
+See [Output formats: agent](output-formats.md#agent).
+
 ## Project and build
 
 ### `--project`
@@ -552,7 +560,7 @@ See [Framework conventions and retention: Retaining by attribute](framework-conv
 
 Output format of the results.
 
-Key `format` · one of `xcode`, `csv`, `json`, `checkstyle`, `codeclimate`, `github-actions`, `github-markdown`, `gitlab-codequality`, `sarif` · default `xcode`.
+Key `format` · one of `xcode`, `csv`, `json`, `checkstyle`, `codeclimate`, `github-actions`, `github-markdown`, `gitlab-codequality`, `sarif`, `agent` · default `xcode`.
 
 See [Getting started: How a scan works](getting-started.md#how-a-scan-works), [Getting started: Results and messages](getting-started.md#results-and-messages), [Configuration: Command line and file](configuration.md#command-line-and-file), [Output formats](output-formats.md).
 
