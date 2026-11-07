@@ -4,7 +4,6 @@ import Foundation
 import Logger
 import PeripheryKit
 import Shared
-import SourceGraph
 import SystemPackage
 
 struct ScanCommand: ParsableCommand {

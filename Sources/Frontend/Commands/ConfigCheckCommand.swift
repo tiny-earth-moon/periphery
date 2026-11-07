@@ -2,9 +2,7 @@ import ArgumentParser
 import Configuration
 import Foundation
 import Logger
-import PeripheryKit
 import Shared
-import SourceGraph
 import SystemPackage
 
 struct ConfigCheckCommand: ParsableCommand {
