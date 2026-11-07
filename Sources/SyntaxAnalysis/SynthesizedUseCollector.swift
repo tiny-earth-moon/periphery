@@ -68,7 +68,7 @@ public final class SynthesizedUseCollector: SyntaxVisitor {
         let expression = unwrapped(expression)
 
         if let call = expression.as(FunctionCallExprSyntax.self) {
-            if let token = calleeNameToken(of: call.calledExpression) {
+            if let token = call.calledExpression.calleeNameToken {
                 insert(token, kind: kind)
             }
         } else if let reference = expression.as(DeclReferenceExprSyntax.self) {
@@ -101,22 +101,6 @@ public final class SynthesizedUseCollector: SyntaxVisitor {
         }
 
         return expression
-    }
-
-    private func calleeNameToken(of expression: ExprSyntax) -> TokenSyntax? {
-        if let reference = expression.as(DeclReferenceExprSyntax.self) {
-            return reference.baseName
-        }
-
-        if let memberAccess = expression.as(MemberAccessExprSyntax.self) {
-            return memberAccess.declName.baseName
-        }
-
-        if let specialization = expression.as(GenericSpecializationExprSyntax.self) {
-            return calleeNameToken(of: specialization.expression)
-        }
-
-        return nil
     }
 
     /// Local variables and parameters are not in the index store, so their type is recovered from their declaration:
