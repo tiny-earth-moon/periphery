@@ -165,7 +165,7 @@ public final class LocalizedStringSyntaxVisitor: PeripherySyntaxVisitor {
         }
 
         guard arguments.contains(where: { !$0.keys.isEmpty }) else { return }
-        guard let calleeToken = calleeNameToken(of: node.calledExpression) else {
+        guard let calleeToken = node.calledExpression.calleeNameToken else {
             // The callee cannot be resolved, conservatively assume the literals are keys.
             usedStringKeys.formUnion(arguments.flatMap(\.keys))
             return
@@ -173,22 +173,6 @@ public final class LocalizedStringSyntaxVisitor: PeripherySyntaxVisitor {
 
         let location = sourceLocationBuilder.location(at: calleeToken.positionAfterSkippingLeadingTrivia)
         callSites.append(LocalizedStringCallSite(line: location.line, column: location.column, arguments: arguments))
-    }
-
-    private func calleeNameToken(of expression: ExprSyntax) -> TokenSyntax? {
-        if let reference = expression.as(DeclReferenceExprSyntax.self) {
-            return reference.baseName
-        }
-
-        if let memberAccess = expression.as(MemberAccessExprSyntax.self) {
-            return memberAccess.declName.baseName
-        }
-
-        if let specialization = expression.as(GenericSpecializationExprSyntax.self) {
-            return calleeNameToken(of: specialization.expression)
-        }
-
-        return nil
     }
 
     /// Detects well-known localization APIs by name. These are retained regardless of index store resolution.
