@@ -87,3 +87,19 @@ enum ModelInput {
         }
     }
 }
+
+public extension IndexPlan {
+    /// The compiler version recorded by each Swift index store unit, see ``IndexUnit/swiftProviderVersion``.
+    var unitProviderVersions: [String] {
+        sourceFiles.values.flatMap { $0.compactMap(\.swiftProviderVersion) }
+    }
+}
+
+extension IndexUnit {
+    /// The compiler version this unit records (`UnitReader.providerVersion`) when the Swift compiler produced it, nil
+    /// for a unit of another provider (clang records its own version numbering). Empty when the unit records none, which
+    /// is what current Swift compilers write.
+    var swiftProviderVersion: String? {
+        unit.providerIdentifier == "swift" ? unit.providerVersion : nil
+    }
+}

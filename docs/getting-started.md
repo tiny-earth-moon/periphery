@@ -10,10 +10,12 @@ outskirts explores a Swift project, builds a map of what refers to what, and rep
 
 ### Requirements
 
-- **Build from source** (Homebrew without a bottle, Mint or `swift build`): macOS 15 or later (`Package.swift`), Swift 6.1.2 or later (checked at every scan) and Xcode 26.0 or later (required by the Homebrew formula). Xcode or the Command Line Tools must be installed, as outskirts loads `libIndexStore.dylib` from the toolchain.
+- **Build from source** (Homebrew without a bottle, Mint or `swift build`): macOS 15 or later (`Package.swift`), Swift 6.1.2 or later (checked at every scan; Swift 6.1 is deprecated and support ends in 4.0) and Xcode 26.0 or later (required by the Homebrew formula). Xcode or the Command Line Tools must be installed, as outskirts loads `libIndexStore.dylib` from the toolchain.
 - **Homebrew bottle**: Apple silicon with macOS 27 or later, built with Xcode 27.2. It loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools.
 - **Prebuilt archive** (also installed by aqua and mise): Apple silicon with macOS 15 or later. Like the bottle, it loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools.
 - **Linux**: Swift Package Manager projects only, see [Platforms](#platforms).
+
+The supported Xcode and Swift versions, and how support for one of them ends, are listed in [SUPPORT.md](https://github.com/tiny-earth-moon/outskirts/blob/master/SUPPORT.md).
 
 ### Homebrew
 
@@ -229,7 +231,7 @@ The Bazel mode (`--bazel` and every `--bazel-*` option) was removed in 3.13.0 ([
 
 outskirts supports both macOS and Linux. macOS supports both Xcode and Swift Package Manager projects, whereas only Swift Package Manager projects are supported on Linux.
 
-Linux is built and tested in CI on Ubuntu, in the official Swift container. Minimum versions: see [Requirements](#requirements).
+Linux is built and tested in CI on Ubuntu, in the official Swift containers (Swift 6.4 and the minimum, Swift 6.1). Minimum versions: see [Requirements](#requirements). Supported toolchains and the support policy: [SUPPORT.md](https://github.com/tiny-earth-moon/outskirts/blob/master/SUPPORT.md).
 
 ## Commands
 

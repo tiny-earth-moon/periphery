@@ -115,7 +115,12 @@ final class SwiftIndexer: Indexer {
             self.graph = graph
             self.logger = logger
             self.configuration = configuration
-            self.swiftVersion = swiftVersion
+            // Toolchain workarounds that adjust per-file syntax follow the compiler that produced this file's units.
+            self.swiftVersion = swiftVersion.producingIndexUnits(
+                withProviderVersions: units.compactMap(\.swiftProviderVersion),
+                logger: logger,
+                context: sourceFile.path.string
+            )
         }
 
         // swiftlint:disable nesting
