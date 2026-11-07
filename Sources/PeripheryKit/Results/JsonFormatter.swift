@@ -3,7 +3,7 @@ import Foundation
 import Logger
 import SystemPackage
 
-final class JsonFormatter: OutputFormatter {
+final class JsonFormatter: SummaryFormatter {
     let configuration: Configuration
     let logger: Logger
     lazy var currentFilePath: FilePath = .current
@@ -14,6 +14,18 @@ final class JsonFormatter: OutputFormatter {
     }
 
     func format(_ results: [ScanResult], colored _: Bool) throws -> String? {
+        try serializeJSON(resultObjects(results))
+    }
+
+    /// An object that holds the results under `results` and the summary under `summary`, where the report without
+    /// the summary is the bare array of results.
+    func format(_ results: [ScanResult], summary: ScanSummary, colored _: Bool) throws -> String? {
+        try serializeJSON(["results": resultObjects(results), "summary": summaryObject(summary)])
+    }
+
+    // MARK: - Private
+
+    private func resultObjects(_ results: [ScanResult]) -> [Any] {
         var jsonObject: [Any] = []
 
         for result in results {
@@ -60,6 +72,6 @@ final class JsonFormatter: OutputFormatter {
             }
         }
 
-        return try serializeJSON(jsonObject)
+        return jsonObject
     }
 }
