@@ -73,7 +73,7 @@ extension Reference: Hashable {
 
 extension Reference: Equatable {
     public static func == (lhs: Reference, rhs: Reference) -> Bool {
-        lhs.usr == rhs.usr && lhs.location == rhs.location && lhs.kind == rhs.kind
+        lhs === rhs || (lhs.usr == rhs.usr && lhs.location == rhs.location && lhs.kind == rhs.kind)
     }
 }
 
