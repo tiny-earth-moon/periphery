@@ -18,7 +18,10 @@ import SystemPackage
 /// - enums with a custom attribute (a macro may construct cases in code the index does not see);
 /// - public enums whose public declarations are retained (`retain_public`, `retain_public_modules`);
 /// - enums a custom `~=` operator may receive, as `~=` builds the value of an expression pattern;
-/// - cases whose name is written in an `#if` clause, which may construct them in code that was not compiled.
+/// - cases whose name is written in an `#if` clause, which may construct them in code that was not compiled, or in a
+///   file left out by `index_exclude`;
+/// - enums of a module that expands a macro other than a few known ones, whose expansion the index does not see (and
+///   every public enum when any module does).
 final class UnconstructedEnumCaseMarker: SourceGraphMutator {
     /// External protocols that have no static requirement a case could satisfy.
     private static let safeExternalProtocols: Set<String> = [
@@ -27,6 +30,12 @@ final class UnconstructedEnumCaseMarker: SourceGraphMutator {
     ]
     private static let dynamicCaseProtocols: Set<String> = ["CaseIterable", "RawRepresentable", "CodingKey"]
     private static let staticMemberKinds: Set<Declaration.Kind> = [.varStatic, .varClass, .functionMethodStatic, .functionMethodClass]
+    /// Macros whose expansion constructs no enum case of the project.
+    private static let knownMacros: Set<String> = [
+        "Observable", "ObservationTracked", "ObservationIgnored", "Model", "Attribute", "Relationship", "Transient", "Unique",
+        "Index", "Preview", "Previewable", "Entry", "Test", "Suite", "expect", "require", "warning", "error", "externalMacro",
+        "fileID", "filePath", "file", "line", "column", "function", "dsohandle", "isolation",
+    ]
 
     private let graph: SourceGraph
     private let configuration: Configuration
@@ -41,8 +50,9 @@ final class UnconstructedEnumCaseMarker: SourceGraphMutator {
               let enumsReceivedByPatternOperators = enumsReceivedByPatternOperators()
         else { return }
 
+        let macroModules = modulesExpandingUnknownMacros()
         let candidates = graph.declarations(ofKind: .enum)
-            .filter { !enumsReceivedByPatternOperators.contains($0) && !isExcluded($0) }
+            .filter { !enumsReceivedByPatternOperators.contains($0) && !isExcluded($0) && !mayBeConstructedByMacro($0, macroModules: macroModules) }
             .flatMap { enumDeclaration in
                 let staticRequirementNames = staticRequirementNames(of: enumDeclaration)
                 return enumDeclaration.declarations.filter {
@@ -55,16 +65,18 @@ final class UnconstructedEnumCaseMarker: SourceGraphMutator {
         let referencesByCase = candidates.reduce(into: [Declaration: Set<Reference>]()) {
             $0[$1] = graph.references(to: $1)
         }
-        // A file that cannot be read may construct a case in an `#if` clause.
+        // A file that cannot be read may construct a case in an `#if` clause or outside the index.
         guard let index = PatternIndex(
             referenceFiles: referencesByCase.values.flatMapSet { $0.mapSet(\.location.file) },
             allFiles: allSourceFiles(),
+            indexExcludedFiles: graph.indexExcludedSourceFiles.filter { $0.extension == "swift" },
+            enumsReceivedByPatternOperators: enumsReceivedByPatternOperators,
             enumElementReferences: Dictionary(grouping: graph.allReferences.filter { $0.declarationKind == .enumelement }, by: \.location),
             graph: graph
         ) else { return }
 
         for (enumCase, references) in referencesByCase {
-            guard !index.conditionalNames.contains(Self.baseName(of: enumCase.name)) else { continue }
+            guard !index.namesOutsideTheIndex.contains(Self.baseName(of: enumCase.name)) else { continue }
 
             let isOnlyMatched = references.allSatisfy {
                 $0.kind == .normal && index.isPattern($0.location, hasAssociatedValues: Self.hasAssociatedValues(enumCase))
@@ -114,6 +126,19 @@ final class UnconstructedEnumCaseMarker: SourceGraphMutator {
 
             return graph.declaration(withUsr: reference.usr) == nil && !Self.safeExternalProtocols.contains(reference.name)
         }
+    }
+
+    /// The modules referencing a macro that is not known to construct no case.
+    private func modulesExpandingUnknownMacros() -> Set<String> {
+        graph.allReferences
+            .filter { $0.declarationKind == .macro && !Self.knownMacros.contains(Self.baseName(of: $0.name)) }
+            .flatMapSet(\.location.file.modules)
+    }
+
+    private func mayBeConstructedByMacro(_ enumDeclaration: Declaration, macroModules: Set<String>) -> Bool {
+        guard !macroModules.isEmpty else { return false }
+
+        return enumDeclaration.accessibility.isAccessibleCrossModule || !enumDeclaration.location.file.modules.isDisjoint(with: macroModules)
     }
 
     private func isRawRepresentable(_ enumDeclaration: Declaration) -> Bool {
@@ -185,28 +210,33 @@ final class UnconstructedEnumCaseMarker: SourceGraphMutator {
     }
 }
 
-/// The pattern sites and `#if` names of the parsed source files.
+/// The pattern sites of the parsed source files, and the names written outside the index.
 private struct PatternIndex {
-    private(set) var conditionalNames: Set<String> = []
+    /// The names written in an `#if` clause or in a file left out by `index_exclude`.
+    private(set) var namesOutsideTheIndex: Set<String> = []
     private var sites: [Location: EnumCasePatternCollector.Site] = [:]
     private let enumElementReferences: [Location: [Reference]]
+    private let enumsReceivedByPatternOperators: Set<Declaration>
     private let graph: SourceGraph
 
     /// - Parameter referenceFiles: the files referencing a candidate case, parsed for their pattern sites.
     /// - Parameter allFiles: every Swift file of the graph, parsed for their `#if` names when they hold an `#if`.
+    /// - Parameter indexExcludedFiles: the files left out by `index_exclude`, whose every name is collected.
     /// - Returns: `nil` when a file cannot be read.
-    init?(referenceFiles: Set<SourceFile>, allFiles: Set<SourceFile>, enumElementReferences: [Location: [Reference]], graph: SourceGraph) {
+    init?(
+        referenceFiles: Set<SourceFile>,
+        allFiles: Set<SourceFile>,
+        indexExcludedFiles: Set<FilePath>,
+        enumsReceivedByPatternOperators: Set<Declaration>,
+        enumElementReferences: [Location: [Reference]],
+        graph: SourceGraph
+    ) {
         self.enumElementReferences = enumElementReferences
+        self.enumsReceivedByPatternOperators = enumsReceivedByPatternOperators
         self.graph = graph
 
         for file in referenceFiles.union(allFiles) {
-            let source: String
-            do {
-                source = try String(contentsOfFile: file.path.string, encoding: .utf8)
-            } catch {
-                return nil
-            }
-
+            guard let source = Self.read(file.path) else { return nil }
             guard referenceFiles.contains(file) || source.contains("#if") else { continue }
 
             let syntax = Parser.parse(source: source)
@@ -215,8 +245,26 @@ private struct PatternIndex {
                 locationConverter: SourceLocationConverter(fileName: file.path.string, tree: syntax)
             )
             collector.walk(syntax)
-            conditionalNames.formUnion(collector.conditionalNames)
+            namesOutsideTheIndex.formUnion(collector.conditionalNames)
             sites.merge(collector.sites) { current, _ in current }
+        }
+
+        for path in indexExcludedFiles {
+            guard let source = Self.read(path) else { return nil }
+
+            for token in Parser.parse(source: source).tokens(viewMode: .sourceAccurate) {
+                if case let .identifier(name) = token.tokenKind {
+                    namesOutsideTheIndex.insert(name.trimmingCharacters(in: CharacterSet(charactersIn: "`")))
+                }
+            }
+        }
+    }
+
+    private static func read(_ path: FilePath) -> String? {
+        do {
+            return try String(contentsOfFile: path.string, encoding: .utf8)
+        } catch {
+            return nil
         }
     }
 
@@ -233,16 +281,25 @@ private struct PatternIndex {
     }
 
     /// The arguments of a call are sub-patterns only when the callee is itself a case pattern: a reference to a case
-    /// with associated values, or to an external case (`Optional.some`, `Result.success`).
+    /// with associated values, or to an external case (`Optional.some`, `Result.success`). When a `~=` operator
+    /// receives the enum of the callee, the call is an expression pattern that builds its arguments.
     private func isInsideCasePattern(_ site: EnumCasePatternCollector.Site) -> Bool {
         guard let callLocation = site.enclosingCall else { return true }
         guard let calledCases = enumElementReferences[callLocation],
               let callSite = sites[callLocation],
-              !calledCases.contains(where: { reference in
-                  graph.declaration(withUsr: reference.usr).map { !UnconstructedEnumCaseMarker.hasAssociatedValues($0) } ?? false
-              })
+              !calledCases.contains(where: isNotCasePatternCallee)
         else { return false }
 
         return isInsideCasePattern(callSite)
+    }
+
+    private func isNotCasePatternCallee(_ reference: Reference) -> Bool {
+        guard let calledCase = graph.declaration(withUsr: reference.usr) else { return false }
+
+        if let calledEnum = calledCase.parent, enumsReceivedByPatternOperators.contains(calledEnum) {
+            return true
+        }
+
+        return !UnconstructedEnumCaseMarker.hasAssociatedValues(calledCase)
     }
 }

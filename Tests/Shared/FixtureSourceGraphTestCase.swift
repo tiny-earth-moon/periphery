@@ -32,6 +32,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         enableUnconstructedEnumCaseAnalysis: Bool = false,
         externalCodableProtocols: [String] = [],
         additionalFilesToIndex: [FilePath] = [],
+        indexExcludedFiles: Set<FilePath> = [],
         xibPaths: Set<FilePath> = [],
         plistPaths: Set<FilePath> = [],
         externalTestCaseClasses: [String] = [],
@@ -84,7 +85,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
             fatalError("\(testFixturePath.string) does not exist")
         }
 
-        Self.index(sourceFiles: [testFixturePath] + additionalFilesToIndex, xibPaths: xibPaths, plistPaths: plistPaths, configuration: configuration)
+        Self.index(sourceFiles: [testFixturePath] + additionalFilesToIndex, indexExcludedSourceFiles: indexExcludedFiles, xibPaths: xibPaths, plistPaths: plistPaths, configuration: configuration)
         try testBlock()
         return Self.results
     }

@@ -25,17 +25,22 @@ public struct SourceFileCollector {
     }
 
     public func collect() throws -> [SourceFile: [IndexUnit]] {
+        try collectWithIndexExcludedFiles().sourceFiles
+    }
+
+    /// The source files to index, and the existing main files of the units that `index_exclude` leaves out.
+    public func collectWithIndexExcludedFiles() throws -> (sourceFiles: [SourceFile: [IndexUnit]], indexExcludedFiles: Set<FilePath>) {
         let excludedTargets = excludedTestTargets.union(configuration.excludeTargets)
         let currentFilePath = FilePath.current
 
-        let collected = try JobPool(jobs: Array(indexStorePaths))
+        let collectedUnits = try JobPool(jobs: Array(indexStorePaths))
             .flatMap { indexStorePath in
                 logger.debug("Reading \(indexStorePath)")
                 let indexStore = try IndexStore(path: indexStorePath.string)
 
                 let unitsDirectory = indexStorePath.appending("v5/units")
 
-                return indexStore.units.filter { !$0.isSystem }.compactMap { unit -> (FilePath, FilePath, IndexStore, UnitReader, String, Date?)? in
+                return indexStore.units.filter { !$0.isSystem }.compactMap { unit -> (FilePath, FilePath, IndexStore, UnitReader, String, Date?, Bool)? in
                     let filePath = unit.mainFile
 
                     guard !filePath.isEmpty else {
@@ -54,14 +59,17 @@ public struct SourceFileCollector {
                             return nil
                         }
 
-                        return (file, indexStorePath, indexStore, unit, unit.moduleName, Self.modificationDate(of: unitsDirectory.appending(unit.name)))
+                        return (file, indexStorePath, indexStore, unit, unit.moduleName, Self.modificationDate(of: unitsDirectory.appending(unit.name)), false)
                     }
 
-                    return nil
+                    return file.exists ? (file, indexStorePath, indexStore, unit, unit.moduleName, nil, true) : nil
                 }
             }
+        let indexExcludedFiles = collectedUnits.filter(\.6).mapSet(\.0)
+        let collected = collectedUnits
+            .filter { !$0.6 }
             .reduce(into: [FilePath: [(FilePath, IndexStore, UnitReader, String, Date?)]]()) { result, tuple in
-                let (file, indexStorePath, indexStore, unit, module, date) = tuple
+                let (file, indexStorePath, indexStore, unit, module, date, _) = tuple
                 result[file, default: []].append((indexStorePath, indexStore, unit, module, date))
             }
 
@@ -89,7 +97,7 @@ public struct SourceFileCollector {
             logger.warn(warning)
         }
 
-        return sourceFiles
+        return (sourceFiles, indexExcludedFiles)
     }
 
     /// A unit written before its source file was last modified describes an older version of the file, e.g. a unit

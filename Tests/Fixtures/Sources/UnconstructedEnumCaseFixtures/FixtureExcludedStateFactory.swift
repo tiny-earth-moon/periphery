@@ -1,0 +1,3 @@
+func fixtureMakeExcludedState() -> FixtureExcludedState {
+    .constructedInExcludedFile
+}

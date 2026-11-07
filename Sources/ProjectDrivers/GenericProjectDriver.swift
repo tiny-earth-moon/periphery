@@ -127,10 +127,11 @@ extension GenericProjectDriver: ProjectDriver {
             logger: logger,
             configuration: configuration
         )
-        let sourceFiles = try collector.collect()
+        let (sourceFiles, indexExcludedSourceFiles) = try collector.collectWithIndexExcludedFiles()
 
         return IndexPlan(
             sourceFiles: sourceFiles,
+            indexExcludedSourceFiles: indexExcludedSourceFiles,
             plistPaths: plistPaths,
             xibPaths: xibPaths,
             xcDataModelPaths: xcDataModelsPaths,

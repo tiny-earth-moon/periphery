@@ -435,8 +435,9 @@ Enums whose cases may be produced without a visible construction are never analy
 - enums conforming to a protocol from another, unindexed module, other than `Equatable`, `Hashable`, `Comparable`, `Error`, `Sendable`, `Identifiable` and a few others without static requirements;
 - cases that satisfy a static requirement of a protocol (`static var fallback: Self`);
 - enums with a custom attribute, such as a macro, and public enums when [`--retain-public`](options.md) or `--retain-public-modules` retains them;
-- enums that a custom `~=` operator can receive, and every enum when a generic `~=` operator is declared;
-- cases whose name is written in an `#if` block, which may construct them in a branch that was not compiled.
+- enums that a custom `~=` operator can receive, and every enum when a generic `~=` operator is declared; a case nested in the pattern of such an enum's case (`.wrap(.name)`) counts as constructed;
+- enums of a module that expands a macro other than the Observation, SwiftData, SwiftUI preview and Swift Testing ones, as the index does not see what an expansion constructs, and every public enum as soon as one module does;
+- cases whose name is written in an `#if` block, which may construct them in a branch that was not compiled, or in a file left out by [`--index-exclude`](options.md), such as generated code.
 
 Retained cases (including [comment commands](comment-commands.md)) are not reported.
 

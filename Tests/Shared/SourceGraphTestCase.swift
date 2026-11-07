@@ -48,12 +48,19 @@ open class SourceGraphTestCase: XCTestCase {
         Self.index(sourceFiles: sourceFiles, configuration: configuration)
     }
 
-    static func index(sourceFiles: [FilePath]? = nil, xibPaths: Set<FilePath> = [], plistPaths: Set<FilePath> = [], configuration: Configuration) {
+    static func index(
+        sourceFiles: [FilePath]? = nil,
+        indexExcludedSourceFiles: Set<FilePath> = [],
+        xibPaths: Set<FilePath> = [],
+        plistPaths: Set<FilePath> = [],
+        configuration: Configuration
+    ) {
         var newPlan = plan!
 
         if let sourceFiles {
             newPlan = IndexPlan(
                 sourceFiles: plan.sourceFiles.filter { sourceFiles.contains($0.key.path) },
+                indexExcludedSourceFiles: indexExcludedSourceFiles,
                 plistPaths: plan.plistPaths.union(plistPaths),
                 xibPaths: plan.xibPaths.union(xibPaths),
                 xcDataModelPaths: plan.xcDataModelPaths,

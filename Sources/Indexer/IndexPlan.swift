@@ -4,6 +4,8 @@ import SystemPackage
 
 public struct IndexPlan {
     public let sourceFiles: [SourceFile: [IndexUnit]]
+    /// The main files of the index store units that `index_exclude` leaves out.
+    public let indexExcludedSourceFiles: Set<FilePath>
     public let plistPaths: Set<FilePath>
     public let xibPaths: Set<FilePath>
     public let xcDataModelPaths: Set<FilePath>
@@ -20,6 +22,7 @@ public struct IndexPlan {
 
     public init(
         sourceFiles: [SourceFile: [IndexUnit]],
+        indexExcludedSourceFiles: Set<FilePath> = [],
         plistPaths: Set<FilePath> = [],
         xibPaths: Set<FilePath> = [],
         xcDataModelPaths: Set<FilePath> = [],
@@ -31,6 +34,7 @@ public struct IndexPlan {
         globalAccentColorNames: Set<String>? = nil
     ) {
         self.sourceFiles = sourceFiles
+        self.indexExcludedSourceFiles = indexExcludedSourceFiles
         self.plistPaths = plistPaths
         self.xibPaths = xibPaths
         self.xcDataModelPaths = xcDataModelPaths

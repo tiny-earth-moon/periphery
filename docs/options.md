@@ -184,7 +184,7 @@ Source file globs to leave out of indexing, added to the default ones.
 
 Key `index_exclude` · list of strings · default `**/*?.build/**/*`, `**/SourcePackages/checkouts/**`.
 
-See [Analysis: Asset catalog colors](analysis.md#asset-catalog-colors), [Analysis: Metal functions](analysis.md#metal-functions), [Framework conventions and retention: Protobuf](framework-conventions.md#protobuf), [Excluding files: Excluding indexed files](excluding-files.md#excluding-indexed-files).
+See [Analysis: Unconstructed enum cases](analysis.md#unconstructed-enum-cases), [Analysis: Asset catalog colors](analysis.md#asset-catalog-colors), [Analysis: Metal functions](analysis.md#metal-functions), [Framework conventions and retention: Protobuf](framework-conventions.md#protobuf).
 
 ### `--report-exclude`
 

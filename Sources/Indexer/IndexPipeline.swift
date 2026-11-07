@@ -32,6 +32,10 @@ public struct IndexPipeline {
             }
         }
 
+        if configuration.enableUnconstructedEnumCaseAnalysis {
+            graph.withLock { $0.addIndexExcludedSourceFiles(plan.indexExcludedSourceFiles) }
+        }
+
         // Generated String Catalog symbols are mapped to their keys rather than indexed as source.
         let generatedStringSymbolFiles = plan.sourceFiles.filter { configuration.isAnalyzedGeneratedStringSymbolsFile($0.key.path) }
         try SwiftIndexer(

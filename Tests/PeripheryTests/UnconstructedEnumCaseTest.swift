@@ -163,6 +163,39 @@ final class UnconstructedEnumCaseTest: FixtureSourceGraphTestCase {
         }
     }
 
+    func testCasesNestedInPatternsOfOperatorEnumsAreNotReported() {
+        analyze(retainPublic: true, enableUnconstructedEnumCaseAnalysis: true) {
+            assertReferenced(.enum("FixtureOperatorInner")) {
+                self.assertNotEnumCaseNeverConstructed(.enumelement("onlyInWrappedPattern"))
+                self.assertNotEnumCaseNeverConstructed(.enumelement("onlyInOptionalWrappedPattern"))
+            }
+        }
+    }
+
+    func testCasesConstructedInIndexExcludedFilesAreNotReported() {
+        let excludedFile = FixturesProjectPath.appending("Sources/UnconstructedEnumCaseFixtures/FixtureExcludedStateFactory.swift")
+
+        analyze(retainPublic: true, enableUnconstructedEnumCaseAnalysis: true, indexExcludedFiles: [excludedFile]) {
+            assertReferenced(.enum("FixtureExcludedState")) {
+                self.assertNotEnumCaseNeverConstructed(.enumelement("constructedInExcludedFile"))
+                // Control: a case named in no excluded file is reported.
+                self.assertEnumCaseNeverConstructed(.enumelement("matchedOnly"))
+            }
+        }
+    }
+
+    func testEnumsOfModulesExpandingMacrosAreNotReported() throws {
+        #if !canImport(Testing)
+            throw XCTSkip("The fixture expands a Swift Testing macro")
+        #else
+            analyze(retainPublic: true, enableUnconstructedEnumCaseAnalysis: true) {
+                assertReferenced(.enum("FixtureMacroModuleState")) {
+                    self.assertNotEnumCaseNeverConstructed(.enumelement("onlyMatched"))
+                }
+            }
+        #endif
+    }
+
     func testNothingReportedWithoutOption() {
         analyze(retainPublic: true) {
             assertReferenced(.enum("FixtureWithoutOptionState")) {
