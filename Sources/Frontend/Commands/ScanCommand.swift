@@ -129,7 +129,19 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$detectUnusedMetalFunctions, analysisOptions.detectUnusedMetalFunctions)
     }
 
-    func run() throws {
+    /// What a command needs to run the scan pipeline: the loaded configuration, the logger and the project.
+    struct PreparedScan {
+        let configuration: Configuration
+        let logger: Logger
+        let shell: ShellImpl
+        let swiftVersion: SwiftVersion
+        let project: Project
+        let baseline: Baseline?
+    }
+
+    /// Loads the configuration, applies the command line options and sets the project up, before the build.
+    /// - Parameter messagesToStderr: sends progress and debug messages to stderr whatever the output format.
+    func prepareScan(messagesToStderr: Bool = false) throws -> PreparedScan {
         let projectRoot = try projectOptions.locationOptions.changeToProjectRoot()
 
         let configuration = Configuration()
@@ -148,7 +160,7 @@ struct ScanCommand: ParsableCommand {
         configuration.buildFilenameMatchers()
         let baseline = try ScanPreflight.validate(configuration)
 
-        let logger = Logger(configuration: configuration)
+        let logger = Logger(configuration: configuration, messagesToStderr: messagesToStderr)
         configurationWarnings.forEach { logger.warn($0) }
         ScanPreflight.applyOutputFormatRequirements(to: configuration, logger: logger)
         ScanPreflight.warnAboutIgnoredSummary(of: configuration, logger: logger)
@@ -172,14 +184,24 @@ struct ScanCommand: ParsableCommand {
             try Project(configuration: configuration, shell: shell, logger: logger)
         }
 
+        return PreparedScan(configuration: configuration, logger: logger, shell: shell, swiftVersion: swiftVersion, project: project, baseline: baseline)
+    }
+
+    func run() throws {
+        let prepared = try prepareScan()
+        let configuration = prepared.configuration
+        let logger = prepared.logger
+        let shell = prepared.shell
+        let baseline = prepared.baseline
+
         let updateChecker = UpdateChecker(logger: logger, configuration: configuration)
         updateChecker.run()
 
         let scanOutput = try Scan(
             configuration: configuration,
             logger: logger,
-            swiftVersion: swiftVersion
-        ).perform(project: project)
+            swiftVersion: prepared.swiftVersion
+        ).perform(project: prepared.project)
 
         let results = scanOutput.results
         let interval = logger.beginInterval("result:output")

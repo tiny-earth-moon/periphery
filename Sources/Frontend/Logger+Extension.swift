@@ -3,7 +3,7 @@ import Logger
 
 public extension Logger {
     @inlinable
-    init(configuration: Configuration) {
+    init(configuration: Configuration, messagesToStderr: Bool = false) {
         let colorMode: LoggerColorMode = switch configuration.color {
         case .auto: .auto
         case .always: .always
@@ -13,7 +13,7 @@ public extension Logger {
             quiet: configuration.quiet,
             verbose: configuration.verbose,
             colorMode: colorMode,
-            messagesToStderr: !configuration.outputFormat.supportsAuxiliaryOutput
+            messagesToStderr: messagesToStderr || !configuration.outputFormat.supportsAuxiliaryOutput
         )
     }
 }
