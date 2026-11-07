@@ -40,21 +40,13 @@ final class LinkageAttributeRetainer: SourceGraphMutator {
     }
 
     private func isLinkageVisible(_ decl: Declaration) -> Bool {
-        let isFunction = decl.kind.isFunctionKind
-
-        if isFunction {
-            if decl.hasAttribute(in: Self.exportingFunctionAttributes) {
-                return true
-            }
-
-            // Only a definition provides the symbol. A bodyless declaration imports it.
-            if decl.hasBody, decl.hasAttribute(named: "_silgen_name") {
-                return true
-            }
+        if decl.kind.isFunctionKind {
+            // Only a definition provides a `_silgen_name` symbol. A bodyless declaration imports it.
+            return decl.hasAttribute(in: Self.exportingFunctionAttributes)
+                || (decl.hasBody && decl.hasAttribute(named: "_silgen_name"))
+                || decl.hasAttribute(in: Self.linkerVisibleAttributes)
         }
 
-        guard isFunction || decl.kind.isVariableKind else { return false }
-
-        return decl.hasAttribute(in: Self.linkerVisibleAttributes)
+        return decl.kind.isVariableKind && decl.hasAttribute(in: Self.linkerVisibleAttributes)
     }
 }
