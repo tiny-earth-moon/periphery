@@ -161,12 +161,11 @@ struct BaselineMatcher {
     func entries(matchedBy result: ScanResult) -> Set<String> {
         var matched = result.usrs.union(result.legacyUsrs(projectRoot: projectRoot)).intersection(usrs)
 
-        if !legacyCatalogSuffixes.isEmpty, result.declaration.kind == .localizedString {
+        let suffixes = legacyCatalogSuffixes(of: result)
+        if !suffixes.isEmpty {
             let absoluteCatalogPrefix = SyntheticUsr.localizedStringPrefix + "/"
 
-            for usr in result.usrs where usr.hasPrefix(SyntheticUsr.localizedStringPrefix) {
-                let suffix = "/" + usr.dropFirst(SyntheticUsr.localizedStringPrefix.count)
-
+            for suffix in suffixes {
                 for entry in usrs where entry.hasPrefix(absoluteCatalogPrefix) && entry.hasSuffix(suffix) {
                     matched.insert(entry)
                 }
@@ -184,12 +183,16 @@ struct BaselineMatcher {
     // MARK: - Private
 
     private func matchesLegacyCatalogEntry(_ result: ScanResult) -> Bool {
-        guard !legacyCatalogSuffixes.isEmpty, result.declaration.kind == .localizedString else { return false }
+        legacyCatalogSuffixes(of: result).contains { legacyCatalogSuffixes.contains($0) }
+    }
 
-        return result.usrs.contains { usr in
-            guard usr.hasPrefix(SyntheticUsr.localizedStringPrefix) else { return false }
+    /// The catalog-relative suffixes of a String Catalog key result, which legacy absolute-path entries end with.
+    /// Empty when the baseline holds no legacy catalog entry.
+    private func legacyCatalogSuffixes(of result: ScanResult) -> [String] {
+        guard !legacyCatalogSuffixes.isEmpty, result.declaration.kind == .localizedString else { return [] }
 
-            return legacyCatalogSuffixes.contains("/" + usr.dropFirst(SyntheticUsr.localizedStringPrefix.count))
-        }
+        return result.usrs
+            .filter { $0.hasPrefix(SyntheticUsr.localizedStringPrefix) }
+            .map { "/" + $0.dropFirst(SyntheticUsr.localizedStringPrefix.count) }
     }
 }
