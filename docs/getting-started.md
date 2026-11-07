@@ -238,6 +238,7 @@ Linux is built and tested in CI on Ubuntu, in the official Swift containers (Swi
 | Command | Meaning |
 |---------|---------|
 | `outskirts scan` | Scan the project, see the [options](options.md). |
+| `outskirts fix` | Scan, then apply the syntax-only fixes: a unified diff by default, the files with `--apply`; see [Fixing results](fixing-results.md). |
 | `outskirts check-update` | Check whether a newer version is available. |
 | `outskirts clear-cache` | Clear the build cache of outskirts. |
 | `outskirts config check` | Check the configuration file without scanning, exit status 1 on any problem. |

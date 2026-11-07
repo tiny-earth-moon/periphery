@@ -82,7 +82,7 @@ public struct SourceFileCollector {
             )
             let modules = tuples.compactMapSet { $0.3 }
             let sourceFile = SourceFile(path: file, modules: modules)
-            sourceFiles[sourceFile] = tuples.map { IndexUnit(store: $0.1, unit: $0.2) }
+            sourceFiles[sourceFile] = tuples.map { IndexUnit(store: $0.1, unit: $0.2, modificationDate: $0.4) }
 
             for tuple in Self.outdatedUnits(tuples, sourceModificationDate: sourceModificationDate, modificationDate: \.4) {
                 outdatedFiles[tuple.0, default: []].insert(file)

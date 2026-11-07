@@ -44,8 +44,22 @@ var targets: [PackageDescription.Target] = [
             .target(name: "SourceGraph"),
             .target(name: "PeripheryKit"),
             .target(name: "ProjectDrivers"),
+            .target(name: "Fix"),
             .product(name: "ArgumentParser", package: "swift-argument-parser"),
             .product(name: "FilenameMatcher", package: "swift-filename-matcher"),
+        ],
+        swiftSettings: swift6
+    ),
+    .target(
+        name: "Fix",
+        dependencies: [
+            .target(name: "Configuration"),
+            .target(name: "PeripheryKit"),
+            .target(name: "SourceGraph"),
+            .target(name: "Shared"),
+            .product(name: "SystemPackage", package: "swift-system"),
+            .product(name: "SwiftSyntax", package: "swift-syntax"),
+            .product(name: "SwiftParser", package: "swift-syntax"),
         ],
         swiftSettings: swift6
     ),
@@ -146,6 +160,7 @@ var targets: [PackageDescription.Target] = [
         dependencies: [
             .target(name: "TestShared"),
             .target(name: "PeripheryKit"),
+            .target(name: "Fix"),
         ]
     ),
     .testTarget(

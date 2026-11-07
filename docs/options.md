@@ -18,7 +18,7 @@ This page is generated from [`outskirts.schema.json`](https://github.com/tiny-ea
 
 Guided setup: detects the project type, asks a few questions, then prints and runs the full scan command. Run it at the project root.
 
-See [Configuration: Command line and file](configuration.md#command-line-and-file).
+See [Configuration: Command line and file](configuration.md#command-line-and-file), [Fixing results](fixing-results.md).
 
 ### `--project-root`
 
@@ -102,7 +102,7 @@ Skip the project build step.
 
 Key `skip_build` · flag, `--no-skip-build` to switch off · default `false`.
 
-See [Getting started: How a scan works](getting-started.md#how-a-scan-works), [Getting started: Xcode projects](getting-started.md#xcode-projects), [Continuous integration: Reusing the build](ci.md#reusing-the-build), [Continuous integration: GitHub Actions](ci.md#github-actions).
+See [Getting started: How a scan works](getting-started.md#how-a-scan-works), [Getting started: Xcode projects](getting-started.md#xcode-projects), [Fixing results: Safety](fixing-results.md#safety), [Continuous integration: Reusing the build](ci.md#reusing-the-build).
 
 ### `--skip-schemes-validation`
 
@@ -116,7 +116,7 @@ Index store paths, relative to the project root; implies skip_build.
 
 Key `index_store_path` · list of strings · default empty.
 
-See [Getting started: Swift packages](getting-started.md#swift-packages), [Getting started: Xcode projects](getting-started.md#xcode-projects), [Configuration: Paths](configuration.md#paths), [Continuous integration: Reusing the build](ci.md#reusing-the-build).
+See [Getting started: Swift packages](getting-started.md#swift-packages), [Getting started: Xcode projects](getting-started.md#xcode-projects), [Configuration: Paths](configuration.md#paths), [Fixing results: Safety](fixing-results.md#safety).
 
 ### `--strict-index`
 
@@ -216,7 +216,7 @@ Report only the results in files that changed since this git ref: committed sinc
 
 Key `changed_since` · string · default none.
 
-See [Baselines: Baselines and pull requests](baselines.md#baselines-and-pull-requests), [Output formats: Summary](output-formats.md#summary), [Roadmap: Published](roadmap.md#published).
+See [Baselines: Baselines and pull requests](baselines.md#baselines-and-pull-requests), [Fixing results](fixing-results.md), [Output formats: Summary](output-formats.md#summary), [Roadmap: Published](roadmap.md#published).
 
 ### `--changed-lines`
 
@@ -250,7 +250,7 @@ Find redundant open accessibility and classes or members that could be final.
 
 Key `enable_open_final_analysis` · flag, `--no-enable-open-final-analysis` to switch off · default `false`.
 
-See [Analysis: Result kinds](analysis.md#result-kinds), [Analysis: Open and final](analysis.md#open-and-final).
+See [Analysis: Result kinds](analysis.md#result-kinds), [Analysis: Open and final](analysis.md#open-and-final), [Fixing results: Rules](fixing-results.md#rules).
 
 ### `--enable-empty-extension-analysis`
 
@@ -258,7 +258,7 @@ Find extensions that declare no member and no conformance.
 
 Key `enable_empty_extension_analysis` · flag, `--no-enable-empty-extension-analysis` to switch off · default `false`.
 
-See [Analysis: Result kinds](analysis.md#result-kinds), [Analysis: Empty extensions](analysis.md#empty-extensions).
+See [Analysis: Result kinds](analysis.md#result-kinds), [Analysis: Empty extensions](analysis.md#empty-extensions), [Fixing results: Rules](fixing-results.md#rules).
 
 ### `--enable-redundant-access-level-analysis`
 
@@ -266,7 +266,7 @@ Find access modifiers identical to the default of their enclosing context.
 
 Key `enable_redundant_access_level_analysis` · flag, `--no-enable-redundant-access-level-analysis` to switch off · default `false`.
 
-See [Analysis: Result kinds](analysis.md#result-kinds), [Analysis: Redundant access levels](analysis.md#redundant-access-levels).
+See [Analysis: Result kinds](analysis.md#result-kinds), [Analysis: Redundant access levels](analysis.md#redundant-access-levels), [Fixing results: Rules](fixing-results.md#rules).
 
 ### `--report-unused-type-parameters`
 
@@ -316,7 +316,7 @@ Report ignore comments that ignore nothing.
 
 Key `superfluous_ignore_comments` · flag, `--no-superfluous-ignore-comments` to switch off · default `true`.
 
-See [Analysis: Superfluous ignore comments](analysis.md#superfluous-ignore-comments).
+See [Analysis: Superfluous ignore comments](analysis.md#superfluous-ignore-comments), [Fixing results: Rules](fixing-results.md#rules).
 
 ### `--disable-platform-conditional-retention`
 
@@ -596,7 +596,7 @@ Also write the formatted results to a file.
 
 Key `write_results` · string · default none.
 
-See [Getting started: Results and messages](getting-started.md#results-and-messages), [Getting started: Exit status](getting-started.md#exit-status), [Configuration: Paths](configuration.md#paths), [Output formats: Writing to a file](output-formats.md#writing-to-a-file).
+See [Getting started: Results and messages](getting-started.md#results-and-messages), [Getting started: Exit status](getting-started.md#exit-status), [Configuration: Paths](configuration.md#paths), [Fixing results](fixing-results.md).
 
 ### `--skip-stdout-results`
 
@@ -670,7 +670,7 @@ Rewrite the baseline file keeping only the entries that still match a result; re
 
 Key `prune_baseline` · flag, `--no-prune-baseline` to switch off · default `false`.
 
-See [Baselines: Options](baselines.md#options), [Baselines: File format](baselines.md#file-format), [Baselines: Baseline ratchet](baselines.md#baseline-ratchet), [Continuous integration: Baseline ratchet](ci.md#baseline-ratchet).
+See [Baselines: Options](baselines.md#options), [Baselines: File format](baselines.md#file-format), [Baselines: Baseline ratchet](baselines.md#baseline-ratchet), [Fixing results](fixing-results.md).
 
 ### `--strict-baseline`
 
@@ -682,4 +682,4 @@ See [Getting started: Exit status](getting-started.md#exit-status), [Baselines: 
 
 ## Other commands
 
-`outskirts check-update`, `outskirts clear-cache`, `outskirts config check`, `outskirts config schema` and `outskirts version`: see [Commands](getting-started.md#commands).
+`outskirts fix`: see [Fixing results](fixing-results.md). `outskirts check-update`, `outskirts clear-cache`, `outskirts config check`, `outskirts config schema` and `outskirts version`: see [Commands](getting-started.md#commands).

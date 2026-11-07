@@ -6,6 +6,7 @@ import PeripheryKit
 import ProjectDrivers
 import Shared
 import SourceGraph
+import SystemPackage
 
 final class Scan {
     private let configuration: Configuration
@@ -22,6 +23,8 @@ final class Scan {
 
     struct Output {
         let results: [ScanResult]
+        /// When the newest index store unit of each source file was written.
+        let unitDates: [FilePath: Date]
     }
 
     func perform(project: Project) throws -> Output {
@@ -43,10 +46,10 @@ final class Scan {
         }
 
         try build(driver)
-        let indexStoreSwiftVersion = try index(driver)
+        let (indexStoreSwiftVersion, unitDates) = try index(driver)
         try analyze(swiftVersion: indexStoreSwiftVersion)
         explain()
-        return Output(results: buildResults())
+        return Output(results: buildResults(), unitDates: unitDates)
     }
 
     // MARK: - Private
@@ -64,8 +67,9 @@ final class Scan {
         logger.endInterval(driverBuildInterval)
     }
 
-    /// Returns the Swift version whose toolchain workarounds the analysis applies, resolved from the index store.
-    private func index(_ driver: ProjectDriver) throws -> SwiftVersion {
+    /// Returns the Swift version whose toolchain workarounds the analysis applies, resolved from the index store, and
+    /// when the newest unit of each source file was written.
+    private func index(_ driver: ProjectDriver) throws -> (SwiftVersion, [FilePath: Date]) {
         let indexInterval = logger.beginInterval("index")
 
         if configuration.outputFormat.supportsAuxiliaryOutput {
@@ -88,7 +92,13 @@ final class Scan {
             context: "index store"
         )
         indexLogger.debug("Toolchain workarounds gated on Swift \(indexStoreSwiftVersion.indexStoreVersion)")
-        return indexStoreSwiftVersion
+
+        let unitDates = plan.sourceFiles.reduce(into: [FilePath: Date]()) { result, entry in
+            if let newest = entry.value.compactMap(\.modificationDate).max() {
+                result[entry.key.path] = newest
+            }
+        }
+        return (indexStoreSwiftVersion, unitDates)
     }
 
     private func analyze(swiftVersion: SwiftVersion) throws {

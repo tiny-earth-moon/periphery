@@ -113,7 +113,7 @@ function optionsReference() {
   lines.push(
     "## Other commands",
     "",
-    "`outskirts check-update`, `outskirts clear-cache`, `outskirts config check`, `outskirts config schema` and `outskirts version`: see [Commands](getting-started.md#commands).",
+    "`outskirts fix`: see [Fixing results](fixing-results.md). `outskirts check-update`, `outskirts clear-cache`, `outskirts config check`, `outskirts config schema` and `outskirts version`: see [Commands](getting-started.md#commands).",
     "",
   );
   return lines.join("\n");

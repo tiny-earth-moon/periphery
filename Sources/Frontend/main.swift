@@ -19,6 +19,7 @@ struct OutskirtsCommand: ParsableCommand {
         version: PeripheryVersion,
         subcommands: [
             ScanCommand.self,
+            FixCommand.self,
             CheckUpdateCommand.self,
             ClearCacheCommand.self,
             ConfigCommand.self,
