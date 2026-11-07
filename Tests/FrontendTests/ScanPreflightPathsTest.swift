@@ -247,7 +247,7 @@ final class ScanPreflightPathsTest: XCTestCase {
         let path = try write("previous", to: "baseline.json")
         let inodeBefore = try inode(of: path)
 
-        try ScanCommand.writeBaseline(.v1(usrs: ["s:3Lib6TaggedC"]), to: path)
+        try Baseline.v1(usrs: ["s:3Lib6TaggedC"]).write(to: path)
 
         XCTAssertNotEqual(try inode(of: path), inodeBefore, "A non-atomic write truncates the file in place")
         let written = try JSONDecoder().decode(Baseline.self, from: Data(contentsOf: path.url))

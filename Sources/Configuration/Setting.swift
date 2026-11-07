@@ -5,6 +5,8 @@ protocol AbstractSetting {
     associatedtype Value
 
     var key: String { get }
+    /// One line shown by editors through the JSON Schema and in the options reference.
+    var description: String { get }
     var kind: SettingValueKind { get }
     var hasNonDefaultValue: Bool { get }
     /// The default value as it is written in the configuration file, nil when the setting has none.
@@ -28,6 +30,7 @@ extension AbstractSetting {
 
     public let defaultValue: Value
     let key: String
+    let description: String
     let kind: SettingValueKind
 
     private let convert: Converter
@@ -36,12 +39,14 @@ extension AbstractSetting {
 
     init(
         key: String,
+        description: String,
         defaultValue: Value,
         kind: SettingValueKind? = nil,
         normalize: @escaping (Value) -> Value = { $0 },
         convert: @escaping Converter
     ) {
         self.key = key
+        self.description = description
         self.kind = kind ?? SettingValueKind(inferredFrom: Value.self)
         value = defaultValue
         self.defaultValue = defaultValue
@@ -98,22 +103,23 @@ extension AbstractSetting {
 }
 
 extension Setting where Value == Bool {
-    convenience init(key: String, defaultValue: Value) {
-        self.init(key: key, defaultValue: defaultValue, convert: SettingConverter.bool)
+    convenience init(key: String, description: String, defaultValue: Value) {
+        self.init(key: key, description: description, defaultValue: defaultValue, convert: SettingConverter.bool)
     }
 }
 
 extension Setting where Value == Int {
-    convenience init(key: String, defaultValue: Value) {
-        self.init(key: key, defaultValue: defaultValue, convert: SettingConverter.int)
+    convenience init(key: String, description: String, defaultValue: Value) {
+        self.init(key: key, description: description, defaultValue: defaultValue, convert: SettingConverter.int)
     }
 }
 
 extension Setting where Value == [String] {
     /// - Parameter requireDefaultValues: Whether the default values are kept next to the ones given.
-    convenience init(key: String, defaultValue: Value, requireDefaultValues: Bool = false) {
+    convenience init(key: String, description: String, defaultValue: Value, requireDefaultValues: Bool = false) {
         self.init(
             key: key,
+            description: description,
             defaultValue: defaultValue,
             normalize: { requireDefaultValues ? Array(Set($0).union(defaultValue)) : $0 },
             convert: SettingConverter.stringList
@@ -122,9 +128,10 @@ extension Setting where Value == [String] {
 }
 
 extension Setting where Value: RawRepresentable & CaseIterable & Sendable, Value.RawValue == String {
-    convenience init(key: String, defaultValue: Value) {
+    convenience init(key: String, description: String, defaultValue: Value) {
         self.init(
             key: key,
+            description: description,
             defaultValue: defaultValue,
             kind: .enumeration(Value.allCases.map(\.rawValue)),
             convert: SettingConverter.rawValue(of: Value.self)

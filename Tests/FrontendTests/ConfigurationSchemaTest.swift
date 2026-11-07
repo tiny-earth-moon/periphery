@@ -9,7 +9,7 @@ import XCTest
 /// JSON Schema, so that an option added on one side only fails here.
 final class ConfigurationSchemaTest: XCTestCase {
     /// `scan` options that have no key in the configuration file.
-    private static let commandLineOnlyOptions: Set = ["config", "project_root", "setup", "explain", "summary", "no_color", "removed_bazel_options"]
+    private static let commandLineOnlyOptions: Set = ["config", "project_root", "setup", "explain", "summary", "max_results", "no_color", "removed_bazel_options"]
     /// Keys that have no `scan` option.
     private static let configurationFileOnlyKeys: Set = ["xcode_list_arguments"]
     /// `scan` options whose key in the configuration file has another name.
@@ -58,6 +58,7 @@ final class ConfigurationSchemaTest: XCTestCase {
         let groups: [Any] = [
             command,
             command.projectOptions,
+            command.projectOptions.locationOptions,
             command.buildOptions,
             command.analysisOptions,
             command.retentionOptions,

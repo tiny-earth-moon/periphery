@@ -3,6 +3,7 @@ import Foundation
 import Logger
 import PeripheryKit
 import Shared
+import SourceGraph
 import SystemPackage
 
 /// Checks and adjustments applied to the configuration before the scan starts, so that a mistake costs
@@ -23,6 +24,29 @@ enum ScanPreflight {
         logger.warn("The '--summary' option has no effect with the '\(configuration.outputFormat.rawValue)' format, only with 'xcode' and 'json'.")
     }
 
+    /// Runs every check a scan makes on the configuration before building, stopping at the first failure, and returns
+    /// the decoded baseline for filtering.
+    static func validate(_ configuration: Configuration) throws -> Baseline? {
+        for check in optionChecks(of: configuration) {
+            try check()
+        }
+        return try validatePaths(of: configuration)
+    }
+
+    /// The messages of every check `validate(_:)` makes, each check reporting independently of the others.
+    static func problems(in configuration: Configuration) -> [String] {
+        let checks = optionChecks(of: configuration) + [{ _ = try validatePaths(of: configuration) }]
+
+        return checks.compactMap { check in
+            do {
+                try check()
+                return nil
+            } catch {
+                return "\(error)"
+            }
+        }
+    }
+
     /// Checks the baseline and the output destinations, and returns the decoded baseline for filtering.
     static func validatePaths(of configuration: Configuration) throws -> Baseline? {
         try validateBaselineOptions(of: configuration)
@@ -41,6 +65,23 @@ enum ScanPreflight {
     }
 
     // MARK: - Private
+
+    private static func optionChecks(of configuration: Configuration) -> [() throws -> Void] {
+        [
+            {
+                if configuration.skipStdoutResults, configuration.writeResults == nil {
+                    throw PeripheryError.usageError("The '--skip-stdout-results' option requires '--write-results', otherwise the results would not be output anywhere.")
+                }
+            },
+            {
+                if configuration.changedLines, configuration.changedSince == nil {
+                    throw PeripheryError.usageError("The '--changed-lines' option requires '--changed-since', otherwise there is nothing to compare the lines with.")
+                }
+            },
+            { _ = try ReportExcludeRule.resolve(configuration) },
+            { _ = try AttributeRetentionRule.resolve(configuration) },
+        ]
+    }
 
     private static func validateBaselineOptions(of configuration: Configuration) throws {
         if configuration.strictBaseline, configuration.baseline == nil {

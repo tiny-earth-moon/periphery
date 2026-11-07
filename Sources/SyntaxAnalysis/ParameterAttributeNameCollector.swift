@@ -6,12 +6,10 @@ import SwiftSyntax
 ///
 /// A property wrapper applied to a parameter is initialized implicitly at each call site, a use that the index store
 /// does not record against the wrapper's initializer.
-public final class ParameterAttributeNameCollector: SyntaxVisitor {
+public final class ParameterAttributeNameCollector: PeripherySyntaxNodeVisitor {
     public private(set) var names: Set<String> = []
 
-    public init() {
-        super.init(viewMode: .sourceAccurate)
-    }
+    public init() {}
 
     public static func collect(from syntax: SourceFileSyntax) -> Set<String> {
         let collector = ParameterAttributeNameCollector()
@@ -19,14 +17,12 @@ public final class ParameterAttributeNameCollector: SyntaxVisitor {
         return collector.names
     }
 
-    override public func visit(_ node: FunctionParameterSyntax) -> SyntaxVisitorContinueKind {
+    public func visit(_ node: FunctionParameterSyntax) {
         collect(node.attributes)
-        return .visitChildren
     }
 
-    override public func visit(_ node: ClosureParameterSyntax) -> SyntaxVisitorContinueKind {
+    public func visit(_ node: ClosureParameterSyntax) {
         collect(node.attributes)
-        return .visitChildren
     }
 
     // MARK: - Private

@@ -5,9 +5,9 @@ import SwiftParser
 import SwiftSyntax
 import SystemPackage
 
-public protocol PeripherySyntaxVisitor {
-    init(sourceLocationBuilder: SourceLocationBuilder, swiftVersion: SwiftVersion)
-
+/// A visitor of the syntax nodes that a `ForwardingSyntaxVisitor` forwards, so that several visitors share a single
+/// walk of the syntax tree.
+public protocol PeripherySyntaxNodeVisitor: AnyObject {
     func visit(_ node: ActorDeclSyntax)
     func visit(_ node: ClassDeclSyntax)
     func visit(_ node: ProtocolDeclSyntax)
@@ -30,6 +30,12 @@ public protocol PeripherySyntaxVisitor {
     func visit(_ node: FunctionCallExprSyntax)
     func visit(_ node: AttributeSyntax)
     func visit(_ node: DeclModifierSyntax)
+    func visit(_ node: StringLiteralExprSyntax)
+    func visit(_ node: FunctionParameterSyntax)
+    func visit(_ node: ClosureParameterSyntax)
+    func visit(_ node: KeyPathExprSyntax)
+    func visit(_ node: ExpressionSegmentSyntax)
+    func visit(_ node: IfConfigDeclSyntax)
 
     func visitPost(_ node: ActorDeclSyntax)
     func visitPost(_ node: ClassDeclSyntax)
@@ -51,9 +57,15 @@ public protocol PeripherySyntaxVisitor {
     func visitPost(_ node: ImportDeclSyntax)
     func visitPost(_ node: OptionalBindingConditionSyntax)
     func visitPost(_ node: FunctionCallExprSyntax)
+    func visitPost(_ node: IfConfigDeclSyntax)
 }
 
-public extension PeripherySyntaxVisitor {
+/// A node visitor that the `MultiplexingSyntaxVisitor` of a file creates.
+public protocol PeripherySyntaxVisitor: PeripherySyntaxNodeVisitor {
+    init(sourceLocationBuilder: SourceLocationBuilder, swiftVersion: SwiftVersion)
+}
+
+public extension PeripherySyntaxNodeVisitor {
     func visit(_: ActorDeclSyntax) {}
     func visit(_: ClassDeclSyntax) {}
     func visit(_: ProtocolDeclSyntax) {}
@@ -76,6 +88,12 @@ public extension PeripherySyntaxVisitor {
     func visit(_: FunctionCallExprSyntax) {}
     func visit(_: AttributeSyntax) {}
     func visit(_: DeclModifierSyntax) {}
+    func visit(_: StringLiteralExprSyntax) {}
+    func visit(_: FunctionParameterSyntax) {}
+    func visit(_: ClosureParameterSyntax) {}
+    func visit(_: KeyPathExprSyntax) {}
+    func visit(_: ExpressionSegmentSyntax) {}
+    func visit(_: IfConfigDeclSyntax) {}
 
     func visitPost(_: ActorDeclSyntax) {}
     func visitPost(_: ClassDeclSyntax) {}
@@ -97,39 +115,24 @@ public extension PeripherySyntaxVisitor {
     func visitPost(_: ImportDeclSyntax) {}
     func visitPost(_: OptionalBindingConditionSyntax) {}
     func visitPost(_: FunctionCallExprSyntax) {}
+    func visitPost(_: IfConfigDeclSyntax) {}
 }
 
-public final class MultiplexingSyntaxVisitor: SyntaxVisitor {
-    public let sourceFile: SourceFile
-    public let syntax: SourceFileSyntax
-    public let locationConverter: SourceLocationConverter
-    let sourceLocationBuilder: SourceLocationBuilder
-    let swiftVersion: SwiftVersion
+/// Walks a syntax tree once and forwards the visited nodes to each of its visitors, in the order they were added.
+/// Every node is visited: a visitor that needs to skip a subtree remembers it until its `visitPost`.
+public class ForwardingSyntaxVisitor: SyntaxVisitor {
+    private var visitors: [PeripherySyntaxNodeVisitor]
 
-    private var visitors: [PeripherySyntaxVisitor] = []
-
-    public required init(file: SourceFile, swiftVersion: SwiftVersion) throws {
-        sourceFile = file
-        let source = try String(contentsOf: file.path.url, encoding: .utf8)
-        syntax = Parser.parse(source: source)
-        locationConverter = SourceLocationConverter(fileName: file.path.string, tree: syntax)
-        sourceLocationBuilder = SourceLocationBuilder(file: file, locationConverter: locationConverter)
-        self.swiftVersion = swiftVersion
+    public init(visitors: [PeripherySyntaxNodeVisitor] = []) {
+        self.visitors = visitors
         super.init(viewMode: .sourceAccurate)
     }
 
-    public func add<T: PeripherySyntaxVisitor>(_ visitorType: T.Type) -> T {
-        let visitor = visitorType.init(sourceLocationBuilder: sourceLocationBuilder, swiftVersion: swiftVersion)
+    /// Adds a visitor that receives the nodes of the next walk.
+    @discardableResult
+    public func add<T: PeripherySyntaxNodeVisitor>(_ visitor: T) -> T {
         visitors.append(visitor)
         return visitor
-    }
-
-    public func visit() {
-        walk(syntax)
-    }
-
-    public func parseComments() -> [CommentCommand] {
-        CommentCommand.parseCommands(in: syntax.leadingTrivia)
     }
 
     override public func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
@@ -242,6 +245,36 @@ public final class MultiplexingSyntaxVisitor: SyntaxVisitor {
         return .visitChildren
     }
 
+    override public func visit(_ node: StringLiteralExprSyntax) -> SyntaxVisitorContinueKind {
+        visitors.forEach { $0.visit(node) }
+        return .visitChildren
+    }
+
+    override public func visit(_ node: FunctionParameterSyntax) -> SyntaxVisitorContinueKind {
+        visitors.forEach { $0.visit(node) }
+        return .visitChildren
+    }
+
+    override public func visit(_ node: ClosureParameterSyntax) -> SyntaxVisitorContinueKind {
+        visitors.forEach { $0.visit(node) }
+        return .visitChildren
+    }
+
+    override public func visit(_ node: KeyPathExprSyntax) -> SyntaxVisitorContinueKind {
+        visitors.forEach { $0.visit(node) }
+        return .visitChildren
+    }
+
+    override public func visit(_ node: ExpressionSegmentSyntax) -> SyntaxVisitorContinueKind {
+        visitors.forEach { $0.visit(node) }
+        return .visitChildren
+    }
+
+    override public func visit(_ node: IfConfigDeclSyntax) -> SyntaxVisitorContinueKind {
+        visitors.forEach { $0.visit(node) }
+        return .visitChildren
+    }
+
     override public func visitPost(_ node: ActorDeclSyntax) {
         visitors.forEach { $0.visitPost(node) }
     }
@@ -320,5 +353,46 @@ public final class MultiplexingSyntaxVisitor: SyntaxVisitor {
 
     override public func visitPost(_ node: FunctionCallExprSyntax) {
         visitors.forEach { $0.visitPost(node) }
+    }
+
+    override public func visitPost(_ node: IfConfigDeclSyntax) {
+        visitors.forEach { $0.visitPost(node) }
+    }
+}
+
+public final class MultiplexingSyntaxVisitor: ForwardingSyntaxVisitor {
+    public let sourceFile: SourceFile
+    public let syntax: SourceFileSyntax
+    public let locationConverter: SourceLocationConverter
+    let sourceLocationBuilder: SourceLocationBuilder
+    let swiftVersion: SwiftVersion
+
+    public required init(file: SourceFile, swiftVersion: SwiftVersion) throws {
+        sourceFile = file
+        let source = try String(contentsOf: file.path.url, encoding: .utf8)
+        syntax = Parser.parse(source: source)
+        locationConverter = SourceLocationConverter(fileName: file.path.string, tree: syntax)
+        sourceLocationBuilder = SourceLocationBuilder(file: file, locationConverter: locationConverter)
+        self.swiftVersion = swiftVersion
+        super.init()
+    }
+
+    public func add<T: PeripherySyntaxVisitor>(_ visitorType: T.Type) -> T {
+        add(visitorType.init(sourceLocationBuilder: sourceLocationBuilder, swiftVersion: swiftVersion))
+    }
+
+    public func visit() {
+        walk(syntax)
+    }
+
+    public func parseComments() -> [CommentCommand] {
+        CommentCommand.parseCommands(in: syntax.leadingTrivia)
+    }
+}
+
+extension PeripherySyntaxNodeVisitor {
+    /// Walks the node with this visitor alone.
+    func walk(_ node: some SyntaxProtocol) {
+        ForwardingSyntaxVisitor(visitors: [self]).walk(node)
     }
 }

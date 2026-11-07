@@ -287,6 +287,30 @@ final class SwiftIndexer: Indexer {
                 ? multiplexingSyntaxVisitor.add(EmptyExtensionSyntaxVisitor.self)
                 : nil
 
+            let isGeneratedAssetSymbolsFile = configuration.isAnalyzedGeneratedAssetSymbolsFile(sourceFile.path)
+            // The platform conditionals of generated asset symbols only name the generated symbols themselves,
+            // which would retain every asset.
+            let platformConditionalNameCollector: PlatformConditionalNameCollector? =
+                !configuration.disablePlatformConditionalRetention && !isGeneratedAssetSymbolsFile
+                    ? multiplexingSyntaxVisitor.add(PlatformConditionalNameCollector(
+                        configurations: platformBuildConfigurations(),
+                        locationConverter: configuration.explain.isEmpty ? nil : multiplexingSyntaxVisitor.locationConverter
+                    ))
+                    : nil
+            let parameterAttributeNameCollector = multiplexingSyntaxVisitor.add(ParameterAttributeNameCollector())
+            // Assets can be loaded by name, e.g. `Color("AccentColor")` or `UIColor(named: "AccentColor")`.
+            let matchesAssetNames = configuration.detectsUnusedAssetCatalogSymbols && !isGeneratedAssetSymbolsFile
+            let matchesLocalizedStringKeyLiterals = localizedStringSyntaxVisitor != nil && configuration.localizedStringKeyLiteralMatch
+            let stringLiteralCollector: StringLiteralCollector? = matchesAssetNames || matchesLocalizedStringKeyLiterals
+                ? multiplexingSyntaxVisitor.add(StringLiteralCollector())
+                : nil
+            let synthesizedUseCollector: SynthesizedUseCollector? = configuration.retainSynthesizedUses
+                ? multiplexingSyntaxVisitor.add(SynthesizedUseCollector.self)
+                : nil
+            let keyPathComponentCollector: KeyPathComponentCollector? = configuration.enableUnassignedOptionalAnalysis
+                ? multiplexingSyntaxVisitor.add(KeyPathComponentCollector.self)
+                : nil
+
             multiplexingSyntaxVisitor.visit()
 
             sourceFile.importStatements = importSyntaxVisitor.importStatements
@@ -301,58 +325,29 @@ final class SwiftIndexer: Indexer {
                 }
             }
 
-            // The platform conditionals of generated asset symbols only name the generated symbols themselves,
-            // which would retain every asset.
-            if !configuration.disablePlatformConditionalRetention,
-               !configuration.isAnalyzedGeneratedAssetSymbolsFile(sourceFile.path)
-            {
-                let names = PlatformConditionalNameCollector.collect(
-                    from: multiplexingSyntaxVisitor.syntax,
-                    configurations: platformBuildConfigurations()
-                )
-
-                if !names.isEmpty {
-                    graph.withLock { $0.addPlatformConditionalNames(names, in: sourceFile) }
-                }
+            if let platformConditionalNameCollector {
+                let names = platformConditionalNameCollector.names
+                addToGraph(names) { $0.addPlatformConditionalNames($1, in: sourceFile) }
 
                 if !names.isEmpty, !configuration.explain.isEmpty {
-                    let sites = PlatformConditionalNameCollector.collectSites(
-                        from: multiplexingSyntaxVisitor.syntax,
-                        configurations: platformBuildConfigurations(),
-                        locationConverter: multiplexingSyntaxVisitor.locationConverter
-                    ).mapValues { sites in
+                    let sites = platformConditionalNameCollector.sites.mapValues { sites in
                         sites.map { PlatformConditionalNameSite(file: sourceFile, line: $0.line, condition: $0.condition) }
                     }
                     graph.withLock { $0.addPlatformConditionalNameSites(sites) }
                 }
             }
 
-            let parameterAttributeNames = ParameterAttributeNameCollector.collect(from: multiplexingSyntaxVisitor.syntax)
+            addToGraph(parameterAttributeNameCollector.names) { $0.addParameterAttributeNames($1) }
 
-            if !parameterAttributeNames.isEmpty {
-                graph.withLock { $0.addParameterAttributeNames(parameterAttributeNames) }
-            }
-
-            // Assets can be loaded by name, e.g. `Color("AccentColor")` or `UIColor(named: "AccentColor")`.
-            if configuration.detectsUnusedAssetCatalogSymbols,
-               !configuration.isAnalyzedGeneratedAssetSymbolsFile(sourceFile.path)
-            {
-                let literals = StringLiteralCollector.collect(from: multiplexingSyntaxVisitor.syntax)
-
-                if !literals.isEmpty {
-                    graph.withLock { $0.addAssetCatalogNameReferences(literals) }
-                }
+            if matchesAssetNames, let stringLiteralCollector {
+                addToGraph(stringLiteralCollector.values) { $0.addAssetCatalogNameReferences($1) }
             }
 
             if let localizedStringSyntaxVisitor {
                 collectUsedLocalizedStringKeys(using: localizedStringSyntaxVisitor)
 
-                if configuration.localizedStringKeyLiteralMatch {
-                    let literals = StringLiteralCollector.collect(from: multiplexingSyntaxVisitor.syntax)
-
-                    if !literals.isEmpty {
-                        graph.withLock { $0.addUsedLocalizedStringKeys(literals) }
-                    }
+                if matchesLocalizedStringKeyLiterals, let stringLiteralCollector {
+                    addToGraph(stringLiteralCollector.values) { $0.addUsedLocalizedStringKeys($1) }
                 }
             }
 
@@ -360,28 +355,12 @@ final class SwiftIndexer: Indexer {
                 collectMetalFunctionNameReferences(using: multiplexingSyntaxVisitor)
             }
 
-            if configuration.retainSynthesizedUses {
-                let uses = SynthesizedUseCollector.collect(
-                    from: multiplexingSyntaxVisitor.syntax,
-                    file: sourceFile,
-                    locationConverter: multiplexingSyntaxVisitor.locationConverter
-                )
-
-                if !uses.isEmpty {
-                    graph.withLock { $0.addSynthesizedUses(uses) }
-                }
+            if let synthesizedUseCollector {
+                addToGraph(synthesizedUseCollector.uses) { $0.addSynthesizedUses($1) }
             }
 
-            if configuration.enableUnassignedOptionalAnalysis {
-                let locations = KeyPathComponentCollector.collect(
-                    from: multiplexingSyntaxVisitor.syntax,
-                    file: sourceFile,
-                    locationConverter: multiplexingSyntaxVisitor.locationConverter
-                )
-
-                if !locations.isEmpty {
-                    graph.withLock { $0.addKeyPathComponentLocations(locations) }
-                }
+            if let keyPathComponentCollector {
+                addToGraph(keyPathComponentCollector.locations) { $0.addKeyPathComponentLocations($1) }
             }
 
             if let emptyExtensionSyntaxVisitor {
@@ -431,6 +410,13 @@ final class SwiftIndexer: Indexer {
             }
 
             return Array(configurations)
+        }
+
+        /// Adds the values collected from the file's syntax to the graph, unless there are none.
+        private func addToGraph<Values: Collection>(_ values: Values, _ add: (SourceGraph, Values) -> Void) {
+            guard !values.isEmpty else { return }
+
+            graph.withLock { add($0, values) }
         }
 
         /// Calls are recognized from syntax, an assignment to a `name` property only when the index store records
