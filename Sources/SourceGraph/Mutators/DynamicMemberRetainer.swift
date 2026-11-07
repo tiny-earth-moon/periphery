@@ -30,10 +30,8 @@ final class DynamicMemberRetainer: SourceGraphMutator {
             decl.unusedParameters.forEach { graph.markRetained($0, reason: RetentionReason(Self.self, "dynamic member lookup or dynamic callable requirement")) }
         }
 
-        for decl in graph.declarations(ofKinds: Declaration.Kind.functionKinds.union(Declaration.Kind.variableKinds)) {
-            if decl.attributes.contains(where: { $0.name == "_dynamicReplacement" }) {
-                graph.markRetained(decl, reason: RetentionReason(Self.self, "dynamic member lookup or dynamic callable requirement"))
-            }
+        for decl in graph.declarations(ofKinds: Declaration.Kind.functionKinds.union(Declaration.Kind.variableKinds)) where decl.hasAttribute(named: "_dynamicReplacement") {
+            graph.markRetained(decl, reason: RetentionReason(Self.self, "dynamic member lookup or dynamic callable requirement"))
         }
     }
 }

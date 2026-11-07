@@ -35,29 +35,25 @@ final class LinkageAttributeRetainer: SourceGraphMutator {
     private func isImplementation(_ decl: Declaration) -> Bool {
         guard decl.kind.isExtensionKind || [.class, .struct, .enum].contains(decl.kind) else { return false }
 
-        return hasAttribute(in: Self.implementationAttributes, decl)
+        return decl.hasAttribute(in: Self.implementationAttributes)
     }
 
     private func isLinkageVisible(_ decl: Declaration) -> Bool {
         let isFunction = decl.kind.isFunctionKind
 
         if isFunction {
-            if hasAttribute(in: Self.exportingFunctionAttributes, decl) {
+            if decl.hasAttribute(in: Self.exportingFunctionAttributes) {
                 return true
             }
 
             // Only a definition provides the symbol. A bodyless declaration imports it.
-            if decl.hasBody, hasAttribute(in: ["_silgen_name"], decl) {
+            if decl.hasBody, decl.hasAttribute(named: "_silgen_name") {
                 return true
             }
         }
 
         guard isFunction || decl.kind.isVariableKind else { return false }
 
-        return hasAttribute(in: Self.linkerVisibleAttributes, decl)
-    }
-
-    private func hasAttribute(in names: Set<String>, _ decl: Declaration) -> Bool {
-        decl.attributes.contains { names.contains($0.name) }
+        return decl.hasAttribute(in: Self.linkerVisibleAttributes)
     }
 }
