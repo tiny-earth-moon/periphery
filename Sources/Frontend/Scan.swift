@@ -43,8 +43,8 @@ final class Scan {
         }
 
         try build(driver)
-        try index(driver)
-        try analyze()
+        let indexStoreSwiftVersion = try index(driver)
+        try analyze(swiftVersion: indexStoreSwiftVersion)
         explain()
         return Output(results: buildResults())
     }
@@ -64,7 +64,8 @@ final class Scan {
         logger.endInterval(driverBuildInterval)
     }
 
-    private func index(_ driver: ProjectDriver) throws {
+    /// Returns the Swift version whose toolchain workarounds the analysis applies, resolved from the index store.
+    private func index(_ driver: ProjectDriver) throws -> SwiftVersion {
         let indexInterval = logger.beginInterval("index")
 
         if configuration.outputFormat.supportsAuxiliaryOutput {
@@ -78,9 +79,19 @@ final class Scan {
         let pipeline = IndexPipeline(plan: plan, graph: graphMutex, logger: indexLogger, configuration: configuration, swiftVersion: swiftVersion)
         try pipeline.perform()
         logger.endInterval(indexInterval)
+
+        // Workarounds applied to the whole graph cannot tell which unit a declaration came from, so they follow the
+        // oldest compiler that produced any unit.
+        let indexStoreSwiftVersion = swiftVersion.producingIndexUnits(
+            withProviderVersions: plan.unitProviderVersions,
+            logger: indexLogger,
+            context: "index store"
+        )
+        indexLogger.debug("Toolchain workarounds gated on Swift \(indexStoreSwiftVersion.indexStoreVersion)")
+        return indexStoreSwiftVersion
     }
 
-    private func analyze() throws {
+    private func analyze(swiftVersion: SwiftVersion) throws {
         let analyzeInterval = logger.beginInterval("analyze")
 
         if configuration.outputFormat.supportsAuxiliaryOutput {
