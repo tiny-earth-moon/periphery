@@ -30,7 +30,7 @@ const COMMAND_LINE_ONLY = [
   ["--project-root", "Root directory of the project, from which relative paths are resolved. Default: the current directory."],
   ["--config", "Configuration file. A relative path is resolved from `--project-root`. Default: `.outskirts.yml`, else `.periphery.yml`, in the project root."],
   ["--explain", "Explains why a declaration is reported, used or retained, before the results. Accepts a name (`draw()`, `draw` or `Beta.draw()`), a USR or a `file:line` location; repeat the option to explain several declarations, e.g. `--explain 'draw()' --explain Sources/Kit/Shape.swift:12`.", "3.22.0"],
-  ["--summary", "Prints a summary after the results of the `xcode` format: the count of each result kind, an estimate of the removable lines and the files entirely unused. On by default with `xcode`, `--no-summary` to switch off; with `json`, `--summary` adds a `summary` object to the report. The other formats never hold one.", "3.22.0"],
+  ["--summary", "Prints a summary after the results of the `xcode` format: the count of each result kind, an estimate of the unused lines and the files entirely unused. On by default with `xcode`, `--no-summary` to switch off; with `json`, `--summary` adds a `summary` object to the report. The other formats never hold one.", "3.22.0"],
   ["--max-results", "With `--format agent`, prints at most this many results, a file entirely unused counting all its results; the report then ends with the number of results left out. Scan again after acting on them for the next batch. Default: every result.", "3.22.0"],
 ];
 

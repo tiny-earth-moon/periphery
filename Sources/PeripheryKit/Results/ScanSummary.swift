@@ -16,7 +16,7 @@ public struct ScanSummary: Equatable {
     public let countsByAnnotation: [String: Int]
     /// The lines of the unused declarations and empty extensions, attached doc comments and attributes included,
     /// each line counted once however many reported declarations cover it.
-    public let removableLineCount: Int
+    public let unusedLineCount: Int
     /// The Swift files whose every top-level declaration, imports excepted, is reported as unused, sorted by path.
     public let unusedFiles: [UnusedFile]
 }
@@ -40,7 +40,7 @@ struct ScanSummaryBuilder {
             }
         }
 
-        var removableLineCount = 0
+        var unusedLineCount = 0
         var unusedFiles: [ScanSummary.UnusedFile] = []
 
         for (file, removed) in removedByFile.sorted(by: { $0.key.string < $1.key.string }) {
@@ -61,7 +61,7 @@ struct ScanSummaryBuilder {
             let lines = removedSpans.reduce(into: Set<Int>()) { lines, span in
                 lines.formUnion(declarations.spans[span].lines)
             }
-            removableLineCount += lines.count
+            unusedLineCount += lines.count
 
             if !declarations.hasOtherTopLevelCode, !declarations.topLevelSpans.isEmpty, declarations.topLevelSpans.allSatisfy(removedSpans.contains) {
                 unusedFiles.append(.init(path: file, lineCount: declarations.lineCount))
@@ -71,7 +71,7 @@ struct ScanSummaryBuilder {
         return ScanSummary(
             resultCount: results.count,
             countsByAnnotation: countsByAnnotation,
-            removableLineCount: removableLineCount,
+            unusedLineCount: unusedLineCount,
             unusedFiles: unusedFiles
         )
     }

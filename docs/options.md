@@ -44,7 +44,7 @@ See [Troubleshooting: Why a declaration is reported or kept](troubleshooting.md#
 
 Since 3.22.0.
 
-Prints a summary after the results of the `xcode` format: the count of each result kind, an estimate of the removable lines and the files entirely unused. On by default with `xcode`, `--no-summary` to switch off; with `json`, `--summary` adds a `summary` object to the report. The other formats never hold one.
+Prints a summary after the results of the `xcode` format: the count of each result kind, an estimate of the unused lines and the files entirely unused. On by default with `xcode`, `--no-summary` to switch off; with `json`, `--summary` adds a `summary` object to the report. The other formats never hold one.
 
 See [Output formats: Summary](output-formats.md#summary), [Output formats: json](output-formats.md#json).
 

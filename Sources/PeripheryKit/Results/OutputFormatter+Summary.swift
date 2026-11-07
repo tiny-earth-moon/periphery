@@ -30,7 +30,7 @@ public extension OutputFormatter {
 
         var lines = [
             "\(asterisk) Summary: \(counted(summary.resultCount, "result")) (\(counts))",
-            "\(asterisk) Removable lines (estimate): \(summary.removableLineCount)",
+            "\(asterisk) Unused lines (estimate): \(summary.unusedLineCount)",
             "\(asterisk) Files entirely unused: \(summary.unusedFiles.count)",
         ]
         lines += summary.unusedFiles.map { "  \(outputPath($0.path).string) (\(counted($0.lineCount, "line")))" }
@@ -44,7 +44,7 @@ extension OutputFormatter {
         [
             "total": summary.resultCount,
             "counts": summary.countsByAnnotation,
-            "removableLines": summary.removableLineCount,
+            "unusedLines": summary.unusedLineCount,
             "unusedFiles": summary.unusedFiles.map { ["path": outputPath($0.path).string, "lines": $0.lineCount] },
         ]
     }

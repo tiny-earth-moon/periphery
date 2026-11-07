@@ -1,7 +1,7 @@
 import Foundation
 
 /// A type that nothing uses.
-/// Its doc comment counts as removable.
+/// Its doc comment counts as unused.
 @available(macOS 10.15, *)
 final class SummaryUnusedClass {
     struct Nested {

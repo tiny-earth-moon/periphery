@@ -207,7 +207,7 @@ struct ResultsOptions: ParsableArguments {
     @Option(help: "Explain why a declaration is reported, used or retained. Accepts a name (e.g. 'draw()' or 'Beta.draw()'), a USR or a 'file:line' location; repeat the option to explain several")
     var explain: [String] = []
 
-    @Flag(inversion: .prefixedNo, help: "Print a summary after the results: counts per result kind, files entirely unused and an estimate of the removable lines. On by default with the 'xcode' format; adds a 'summary' object to the 'json' format")
+    @Flag(inversion: .prefixedNo, help: "Print a summary after the results: counts per result kind, files entirely unused and an estimate of the unused lines. On by default with the 'xcode' format; adds a 'summary' object to the 'json' format")
     var summary: Bool?
 
     @Option(help: "With '--format agent', the maximum number of results to print; the report then ends with the number of results left out (default: every result)")

@@ -23,7 +23,7 @@ final class ScanSummaryOutputTest: XCTestCase {
 
     private static let expectedTextSummary = """
     * Summary: 1 result (unused: 1)
-    * Removable lines (estimate): 1
+    * Unused lines (estimate): 1
     * Files entirely unused: 1
       Sources/Fixture/Fixture.swift (1 line)
 
@@ -75,7 +75,7 @@ final class ScanSummaryOutputTest: XCTestCase {
         XCTAssertEqual(object["summary"] as? NSDictionary, [
             "total": 1,
             "counts": ["unused": 1],
-            "removableLines": 1,
+            "unusedLines": 1,
             "unusedFiles": [["path": "Sources/Fixture/Fixture.swift", "lines": 1]],
         ] as NSDictionary)
     }

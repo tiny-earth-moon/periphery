@@ -165,7 +165,7 @@ For an Xcode project, outskirts keeps its build in a cache folder that is keyed 
 
 The results are written to stdout. With any `--format` other than `xcode`, progress and `--verbose` messages go to stderr, so stdout carries only the report, e.g. `outskirts scan --format json > report.json`. `--write-results <file>` also writes the report to a file, and `--skip-stdout-results` then stops it from being printed to stdout.
 
-With the `xcode` format, a summary follows the results: the count of each result kind, an estimate of the removable lines and the files entirely unused. `--no-summary` turns it off; see [Output formats: Summary](output-formats.md#summary).
+With the `xcode` format, a summary follows the results: the count of each result kind, an estimate of the unused lines and the files entirely unused. `--no-summary` turns it off; see [Output formats: Summary](output-formats.md#summary).
 
 With `--quiet`, a scan that finds nothing prints nothing at all on stdout, whatever the format (no "No unused code detected." line, no empty JSON array), and `--quiet --write-results <file>` writes the report to the file only, as if `--skip-stdout-results` were given; the file always holds the complete report, an empty document included. Exit statuses are unchanged.
 
