@@ -40,6 +40,12 @@ final class FormatterTests: XCTestCase {
             DeclarationAttribute(name: "available", arguments: "iOS 18, *"),
             DeclarationAttribute(name: "MainActor", arguments: nil),
         ]
+        widget.range = DeclarationRange(
+            start: SourcePosition(line: 3, column: 1),
+            end: SourcePosition(line: 9, column: 2),
+            attributesStart: SourcePosition(line: 2, column: 1),
+            docCommentStart: SourcePosition(line: 1, column: 1)
+        )
 
         let marker = Declaration(name: "Marker", kind: .protocol, usrs: ["s:4Demo6MarkerP"], location: location("/Project/Sources/Demo/Marker.swift", modules: ["Demo"], line: 1, column: 10))
 
@@ -60,6 +66,7 @@ final class FormatterTests: XCTestCase {
 
         let publicHelper = Declaration(name: "helper()", kind: .functionFree, usrs: ["s:3Lib6helperyyF"], location: location("/Project/Sources/Lib/Helper.swift", modules: ["Lib"], line: 5, column: 13))
         publicHelper.accessibility = DeclarationAccessibility(value: .public, isExplicit: true)
+        publicHelper.range = DeclarationRange(start: SourcePosition(line: 5, column: 1), end: SourcePosition(line: 7, column: 2))
 
         let accent = Declaration(name: "accent", kind: .varStatic, usrs: ["s:accent"], location: location("/DerivedSources/GeneratedAssetSymbols.swift", modules: ["App"], line: 3, column: 16))
         let symbol = AssetCatalogSymbol(

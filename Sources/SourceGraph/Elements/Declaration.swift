@@ -246,6 +246,8 @@ public final class Declaration {
     public var isConstant: Bool = false
     /// `false` for a function declared without a body: a protocol requirement or an imported symbol.
     public var hasBody: Bool = true
+    /// The extent of the declaration in its source file, nil when it has no syntax, e.g. an implicit declaration.
+    public var range: DeclarationRange?
     public var parent: Declaration?
     public var related: Set<Reference> = []
     public var isImplicit: Bool = false

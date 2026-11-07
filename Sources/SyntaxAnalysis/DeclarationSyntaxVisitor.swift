@@ -27,7 +27,8 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
         hasNonNilInitialValue: Bool,
         isActor: Bool,
         isConstant: Bool,
-        hasBody: Bool
+        hasBody: Bool,
+        range: DeclarationRange
     )
 
     private let sourceLocationBuilder: SourceLocationBuilder
@@ -56,6 +57,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             genericParameterClause: node.genericParameterClause,
             genericWhereClause: node.genericWhereClause,
             isActor: true,
+            range: range(of: node),
             at: node.name.positionAfterSkippingLeadingTrivia
         )
     }
@@ -68,6 +70,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             inheritanceClause: node.inheritanceClause,
             genericParameterClause: node.genericParameterClause,
             genericWhereClause: node.genericWhereClause,
+            range: range(of: node),
             at: node.name.positionAfterSkippingLeadingTrivia
         )
     }
@@ -79,6 +82,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             trivia: node.commentCommandTrivia,
             inheritanceClause: node.inheritanceClause,
             genericWhereClause: node.genericWhereClause,
+            range: range(of: node),
             at: node.name.positionAfterSkippingLeadingTrivia
         )
     }
@@ -91,6 +95,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             inheritanceClause: node.inheritanceClause,
             genericParameterClause: node.genericParameterClause,
             genericWhereClause: node.genericWhereClause,
+            range: range(of: node),
             at: node.name.positionAfterSkippingLeadingTrivia
         )
     }
@@ -103,6 +108,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             inheritanceClause: node.inheritanceClause,
             genericParameterClause: node.genericParameterClause,
             genericWhereClause: node.genericWhereClause,
+            range: range(of: node),
             at: node.name.positionAfterSkippingLeadingTrivia
         )
     }
@@ -114,6 +120,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
                 attributes: node.attributes,
                 trivia: node.leadingTrivia,
                 enumCaseParameterClause: element.parameterClause,
+                range: range(of: node),
                 at: element.name.positionAfterSkippingLeadingTrivia
             )
         }
@@ -143,6 +150,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             trivia: node.commentCommandTrivia,
             inheritanceClause: node.inheritanceClause,
             genericWhereClause: node.genericWhereClause,
+            range: range(of: node),
             at: position
         )
     }
@@ -158,6 +166,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             genericParameterClause: node.genericParameterClause,
             genericWhereClause: node.genericWhereClause,
             hasBody: node.body != nil,
+            range: range(of: node),
             at: node.name.positionAfterSkippingLeadingTrivia
         )
     }
@@ -171,6 +180,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             throwsClause: node.signature.effectSpecifiers?.throwsClause,
             genericParameterClause: node.genericParameterClause,
             genericWhereClause: node.genericWhereClause,
+            range: range(of: node),
             at: node.initKeyword.positionAfterSkippingLeadingTrivia
         )
     }
@@ -180,6 +190,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             modifiers: node.modifiers,
             attributes: node.attributes,
             trivia: node.commentCommandTrivia,
+            range: range(of: node),
             at: node.deinitKeyword.positionAfterSkippingLeadingTrivia
         )
     }
@@ -193,6 +204,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             returnClause: node.returnClause,
             genericParameterClause: node.genericParameterClause,
             genericWhereClause: node.genericWhereClause,
+            range: range(of: node),
             at: node.subscriptKeyword.positionAfterSkippingLeadingTrivia
         )
     }
@@ -214,6 +226,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
                     variableInitExpr: binding.initializer?.value,
                     hasNonNilInitialValue: hasNonNilInitialValue(binding.initializer?.value),
                     isConstant: node.bindingSpecifier.tokenKind == .keyword(.let),
+                    range: range(of: node),
                     at: binding.positionAfterSkippingLeadingTrivia
                 )
             } else if let tuplePatternSyntax = binding.pattern.as(TuplePatternSyntax.self) {
@@ -229,6 +242,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
                     modifiers: node.modifiers,
                     attributes: node.attributes,
                     trivia: node.leadingTrivia.merging(node.trailingTrivia),
+                    range: range(of: node),
                     at: binding.positionAfterSkippingLeadingTrivia
                 )
             }
@@ -260,6 +274,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
                     variableType: type?.type,
                     variableInitFunctionCallExpr: initializer?.expression.as(FunctionCallExprSyntax.self),
                     hasNonNilInitialValue: hasOpaqueInitializer || hasNonNilInitialValue(initializer?.expression),
+                    range: range(of: node),
                     at: element.positionAfterSkippingLeadingTrivia
                 )
             }
@@ -274,6 +289,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             genericParameterClause: node.genericParameterClause,
             genericWhereClause: node.genericWhereClause,
             typeInitializerClause: node.initializer,
+            range: range(of: node),
             at: node.name.positionAfterSkippingLeadingTrivia
         )
     }
@@ -286,6 +302,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             inheritanceClause: node.inheritanceClause,
             genericWhereClause: node.genericWhereClause,
             typeInitializerClause: node.initializer,
+            range: range(of: node),
             at: node.name.positionAfterSkippingLeadingTrivia
         )
     }
@@ -297,6 +314,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             trivia: node.commentCommandTrivia,
             genericParameterClause: node.genericParameterClause,
             genericWhereClause: node.genericWhereClause,
+            range: range(of: node),
             at: node.name.positionAfterSkippingLeadingTrivia
         )
     }
@@ -306,6 +324,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             modifiers: nil,
             attributes: nil,
             trivia: node.commentCommandTrivia,
+            range: sourceLocationBuilder.declarationRange(of: node, attributes: nil),
             at: node.name.positionAfterSkippingLeadingTrivia
         )
     }
@@ -315,6 +334,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             modifiers: node.modifiers,
             attributes: node.attributes,
             trivia: node.commentCommandTrivia,
+            range: range(of: node),
             at: node.name.positionAfterSkippingLeadingTrivia
         )
     }
@@ -341,6 +361,7 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
         isActor: Bool = false,
         isConstant: Bool = false,
         hasBody: Bool = true,
+        range: DeclarationRange,
         at position: AbsolutePosition
     ) {
         let modifierNames = modifiers?.map(\.name.text) ?? []
@@ -400,8 +421,13 @@ public final class DeclarationSyntaxVisitor: PeripherySyntaxVisitor {
             hasNonNilInitialValue: hasNonNilInitialValue,
             isActor: isActor,
             isConstant: isConstant,
-            hasBody: hasBody
+            hasBody: hasBody,
+            range: range
         ))
+    }
+
+    private func range(of node: some WithAttributesSyntax) -> DeclarationRange {
+        sourceLocationBuilder.declarationRange(of: node, attributes: node.attributes)
     }
 
     /// Determines whether the function has generic metatype parameters that are also returned.

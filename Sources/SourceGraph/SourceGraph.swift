@@ -562,15 +562,17 @@ public final class SourceGraph {
         guard let usr = numberedSyntheticUsr(id, at: statement.location) else { return }
 
         let decl = Declaration(name: statement.module, kind: .module, usrs: [usr], location: statement.location)
+        decl.range = statement.range
         unusedModuleImports.insert(decl)
     }
 
     /// Empty extensions are absent from the index store, so they are recorded from the syntax tree.
-    public func markEmptyExtension(extendedTypeName: String, location: Location) {
+    public func markEmptyExtension(extendedTypeName: String, location: Location, range: DeclarationRange? = nil) {
         let id = SyntheticUsr.emptyExtension(of: extendedTypeName, in: location.file.path, projectRoot: configuration.projectRoot)
         guard let usr = numberedSyntheticUsr(id, at: location) else { return }
 
         let decl = Declaration(name: extendedTypeName, kind: .extension, usrs: [usr], location: location)
+        decl.range = range
         emptyExtensions.insert(decl)
     }
 
