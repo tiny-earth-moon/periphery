@@ -14,7 +14,7 @@ public extension Xcodebuild {
         return try CacheManager.evictStale(
             cacheDirectory: URL(fileURLWithPath: Constants.cachePath().string),
             maxAgeDays: maxAgeDays,
-            maxSizeGB: maxSizeGB,
+            maxSizeBytes: Int64(maxSizeGB) << 30,
             keeping: currentURL
         )
     }

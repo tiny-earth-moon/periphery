@@ -94,33 +94,13 @@ public enum CacheManager {
 
     /// Removes the `DerivedData-*` folders of the cache, except `keeping`, that are stale. A folder is stale when
     /// the project recorded in its sidecar no longer exists, or when its modification date is older than
-    /// `maxAgeDays` (0 disables this age rule). Then, when `maxSizeGB` is above 0, the least recently
-    /// used folders are removed until the folders left fit in `maxSizeGB` gigabytes (the size of `keeping` counts).
+    /// `maxAgeDays` (0 disables this age rule). Then, when `maxSizeBytes` is above 0, the least recently
+    /// used folders are removed until the folders left fit in `maxSizeBytes` bytes (the size of `keeping` counts).
     @discardableResult
     public static func evictStale(
         cacheDirectory: URL,
         maxAgeDays: Int,
-        maxSizeGB: Int = 0,
-        keeping: URL?,
-        now: Date = Date(),
-        fileManager: FileManager = .default
-    ) throws -> [EvictedCacheEntry] {
-        try evictStale(
-            cacheDirectory: cacheDirectory,
-            maxAgeDays: maxAgeDays,
-            maxSizeBytes: Int64(maxSizeGB) << 30,
-            keeping: keeping,
-            now: now,
-            fileManager: fileManager
-        )
-    }
-
-    /// Same as the gigabyte variant, with the size limit in bytes. 0 disables the limit.
-    @discardableResult
-    static func evictStale(
-        cacheDirectory: URL,
-        maxAgeDays: Int,
-        maxSizeBytes: Int64,
+        maxSizeBytes: Int64 = 0,
         keeping: URL?,
         now: Date = Date(),
         fileManager: FileManager = .default
