@@ -126,7 +126,7 @@ final class FixCommandEndToEndTest: XCTestCase {
         XCTAssertEqual(output.status, 0, output.stderr)
         XCTAssertTrue(output.stdout.contains("+    public func render(width _: Int, _: Int) -> Int {"), output.stdout)
         XCTAssertFalse(output.stdout.contains("-import Helpers"), output.stdout)
-        XCTAssertTrue(output.stderr.contains("Would apply 2 fixes in 1 file"), output.stderr)
+        XCTAssertTrue(output.stderr.contains("Would apply 2 fixes in 1 file, skipped 0.\n  unused-parameter: 2"), output.stderr)
     }
 
     // MARK: - Verify
@@ -181,7 +181,7 @@ final class FixCommandEndToEndTest: XCTestCase {
         XCTAssertEqual(aggressive.status, 0, aggressive.stderr)
         XCTAssertTrue(aggressive.stdout.contains("-class Box {\n+final class Box {"), aggressive.stdout)
         XCTAssertFalse(aggressive.stdout.contains("+final final class Done"), aggressive.stdout)
-        XCTAssertTrue(aggressive.stderr.contains("Would apply 1 fix in 1 file, skipped 0."), aggressive.stderr)
+        XCTAssertTrue(aggressive.stderr.contains("Would apply 1 fix in 1 file, skipped 0.\n  missing-final: 1"), aggressive.stderr)
 
         let tierOne = try run(["fix", "--enable-open-final-analysis"])
         XCTAssertEqual(tierOne.status, 0, tierOne.stderr)

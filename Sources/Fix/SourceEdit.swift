@@ -86,12 +86,48 @@ struct EditResolution {
         output.reserveCapacity(bytes.count)
         var cursor = 0
 
-        for edit in edits {
+        for edit in Self.coalescingDeletions(edits, in: bytes) {
             output.append(contentsOf: bytes[cursor ..< edit.range.lowerBound])
             output.append(contentsOf: edit.replacement)
             cursor = edit.range.upperBound
         }
         output.append(contentsOf: bytes[cursor...])
         return output
+    }
+
+    /// Consecutive whole-line deletions merge into one, which then takes along one of the two blank lines that would
+    /// end up next to each other, or the blank line that would start the file, as a single removal does.
+    private static func coalescingDeletions(_ edits: [SourceEdit], in bytes: [UInt8]) -> [SourceEdit] {
+        let newline = UInt8(ascii: "\n")
+        var result: [SourceEdit] = []
+        var index = 0
+
+        while index < edits.count {
+            var range = edits[index].range
+            var next = index + 1
+            while next < edits.count, edits[next].replacement.isEmpty, edits[next].range.lowerBound == range.upperBound,
+                  edits[index].replacement.isEmpty, !range.isEmpty, bytes[range.upperBound - 1] == newline
+            {
+                range = range.lowerBound ..< edits[next].range.upperBound
+                next += 1
+            }
+
+            if next - index > 1 {
+                var lowerBound = range.lowerBound
+                var upperBound = range.upperBound
+                let startsLine = lowerBound == 0 || bytes[lowerBound - 1] == newline
+                let followsBlankLine = lowerBound == 0 || (lowerBound >= 2 && bytes[lowerBound - 2] == newline)
+                if startsLine, followsBlankLine, upperBound < bytes.count, bytes[upperBound] == newline {
+                    upperBound += 1
+                } else if startsLine, upperBound == bytes.count, lowerBound >= 2, bytes[lowerBound - 2] == newline {
+                    lowerBound -= 1
+                }
+                result.append(SourceEdit(range: lowerBound ..< upperBound))
+            } else {
+                result.append(edits[index])
+            }
+            index = next
+        }
+        return result
     }
 }

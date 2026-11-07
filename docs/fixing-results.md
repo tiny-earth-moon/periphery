@@ -4,7 +4,14 @@ description: Apply the mechanical results of outskirts with the fix command: red
 
 # Fixing results
 
-`outskirts fix` scans the project like `outskirts scan`, then applies the results that a syntax-only edit can fix. By default it changes nothing and prints a unified diff on stdout; `--apply` writes the files. A short summary of the applied and skipped results, with the reason of each skip, goes to stderr.
+`outskirts fix` scans the project like `outskirts scan`, then applies the results that a syntax-only edit can fix. By default it changes nothing and prints a unified diff on stdout; `--apply` writes the files. A short summary goes to stderr: the total, one line per rule with its applied count and its skipped count by reason, then one line per skipped result with its location and reason. For example:
+
+```
+Would apply 219 fixes in 212 files, skipped 2.
+  unused-import: 219, skipped 2 (testable import 2)
+  skipped unused-import 'Kit' at A.swift:3:1: testable import
+  skipped unused-import 'Kit' at B.swift:2:1: testable import
+```
 
 ```sh
 outskirts fix                  # print the diff
@@ -42,7 +49,7 @@ A class made `final` can no longer be subclassed, including by a module the scan
 ## Options
 
 - **`--apply`**: write the fixes. Each file is written atomically, and only if it still holds the content the edits were made on.
-- **`--verify`**: with `--apply`, rebuild the project with the same build as the scan (the Xcode schemes or `swift build`, with `--build-arguments`) once the fixes are written. If the build fails, every fixed file gets back its original bytes, the restored files are listed, and the command exits with a non-zero status. A file edited again during the build is not restored and is listed as such. `--verify` is refused when the build is skipped (`--skip-build`, `--index-store-path`) and for `--generic-project-config` projects, since outskirts does not build them.
+- **`--verify`**: with `--apply`, rebuild the project with the same build as the scan (the Xcode schemes or `swift build`, with `--build-arguments`) once the fixes are written. The build covers test targets too: for an Xcode project, each scheme of `--schemes` runs `xcodebuild build-for-testing`, which builds the targets of the scheme's Build and Test actions (test targets included), without running the tests; for a Swift package, `swift build --build-tests` builds every target of the package, test targets included. Targets outside the listed schemes, and tests themselves, are not checked. If the build fails, every fixed file gets back its original bytes, the restored files are listed, and the command exits with a non-zero status. A file edited again during the build is not restored and is listed as such. `--verify` is refused when the build is skipped (`--skip-build`, `--index-store-path`) and for `--generic-project-config` projects, since outskirts does not build them.
 - **`--aggressive`**: also apply the tier-2 rules.
 - **`--rule <rule>`**: only apply this rule; repeat the option to apply several.
 - **`--include <glob>`**: only fix the files that match the glob, relative to `--project-root`; repeat the option to give several.

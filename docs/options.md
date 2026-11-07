@@ -70,7 +70,7 @@ Schemes to build; every target they build is scanned.
 
 Key `schemes` · list of strings · default empty.
 
-See [Getting started: How a scan works](getting-started.md#how-a-scan-works), [Troubleshooting: A declaration used only by a target that was not built](troubleshooting.md#a-declaration-used-only-by-a-target-that-was-not-built).
+See [Getting started: How a scan works](getting-started.md#how-a-scan-works), [Fixing results: Options](fixing-results.md#options), [Troubleshooting: A declaration used only by a target that was not built](troubleshooting.md#a-declaration-used-only-by-a-target-that-was-not-built).
 
 ### `-- <args>`
 

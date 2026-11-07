@@ -220,6 +220,8 @@ public struct FixPlan {
         let verb = applying ? "Applied" : "Would apply"
         var lines = ["\(verb) \(applied.count) fix\(applied.count == 1 ? "" : "es") in \(changes.count) file\(changes.count == 1 ? "" : "s"), skipped \(skipped.count)."]
 
+        lines += ruleBreakdown()
+
         let sortedSkips = skipped.sorted { ($0.target.file.string, $0.target.line, $0.target.column) < ($1.target.file.string, $1.target.line, $1.target.column) }
         for skip in sortedSkips {
             let target = skip.target
@@ -227,6 +229,25 @@ public struct FixPlan {
             lines.append("  skipped \(target.rule.rawValue) '\(target.name)' at \(location): \(skip.reason)")
         }
         return lines.joined(separator: "\n")
+    }
+
+    /// One line per rule, in the order of `FixRule`: the applied count, then the skipped count with each reason.
+    private func ruleBreakdown() -> [String] {
+        FixRule.allCases.compactMap { rule in
+            let appliedCount = applied.count { $0.rule == rule }
+            let skips = skipped.filter { $0.target.rule == rule }
+            guard appliedCount > 0 || !skips.isEmpty else { return nil }
+
+            var line = "  \(rule.rawValue): \(appliedCount)"
+            if !skips.isEmpty {
+                let reasons = Dictionary(grouping: skips, by: { $0.reason.description })
+                    .map { (reason: $0.key, count: $0.value.count) }
+                    .sorted { ($1.count, $0.reason) < ($0.count, $1.reason) }
+                    .map { "\($0.reason) \($0.count)" }
+                line += ", skipped \(skips.count) (\(reasons.joined(separator: ", ")))"
+            }
+            return line
+        }
     }
 }
 
