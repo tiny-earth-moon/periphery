@@ -5,21 +5,29 @@ import SystemPackage
 /// never through a shell.
 public enum GitWorkingTree {
     public static func state(at directory: FilePath) throws -> WorkingTreeState {
-        guard let topLevel = try run(["rev-parse", "--show-toplevel"], in: directory)?
-            .trimmingCharacters(in: .whitespacesAndNewlines),
-            !topLevel.isEmpty
+        guard let root = topLevel(of: directory),
+              let status = try run(["status", "--porcelain=v1", "-z", "--untracked-files=all", "--no-renames"], in: directory)
         else { return .notARepository }
-        guard let status = try run(["status", "--porcelain=v1", "-z", "--untracked-files=all", "--no-renames"], in: directory) else {
-            return .notARepository
-        }
 
-        let root = RealPath.resolve(topLevel)
         let paths = status.split(separator: "\0").compactMap { entry -> String? in
             guard entry.count > 3 else { return nil }
 
             return RealPath.resolve(root + "/" + entry.dropFirst(3))
         }
-        return .uncommitted(Set(paths))
+        return .repository(topLevel: root, uncommitted: Set(paths))
+    }
+
+    /// The real path of the top level of the working tree that holds the directory, nil outside any working tree or
+    /// when it cannot be read.
+    static func topLevel(of directory: FilePath) -> String? {
+        do {
+            guard let output = try run(["rev-parse", "--show-toplevel"], in: directory) else { return nil }
+
+            let path = output.trimmingCharacters(in: .whitespacesAndNewlines)
+            return path.isEmpty ? nil : RealPath.resolve(path)
+        } catch {
+            return nil
+        }
     }
 
     // MARK: - Private

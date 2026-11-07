@@ -102,7 +102,7 @@ Skip the project build step.
 
 Key `skip_build` · flag, `--no-skip-build` to switch off · default `false`.
 
-See [Getting started: How a scan works](getting-started.md#how-a-scan-works), [Getting started: Xcode projects](getting-started.md#xcode-projects), [Continuous integration: Reusing the build](ci.md#reusing-the-build), [Continuous integration: GitHub Actions](ci.md#github-actions).
+See [Getting started: How a scan works](getting-started.md#how-a-scan-works), [Getting started: Xcode projects](getting-started.md#xcode-projects), [Fixing results: Safety](fixing-results.md#safety), [Continuous integration: Reusing the build](ci.md#reusing-the-build).
 
 ### `--skip-schemes-validation`
 
@@ -116,7 +116,7 @@ Index store paths, relative to the project root; implies skip_build.
 
 Key `index_store_path` · list of strings · default empty.
 
-See [Getting started: Swift packages](getting-started.md#swift-packages), [Getting started: Xcode projects](getting-started.md#xcode-projects), [Configuration: Paths](configuration.md#paths), [Continuous integration: Reusing the build](ci.md#reusing-the-build).
+See [Getting started: Swift packages](getting-started.md#swift-packages), [Getting started: Xcode projects](getting-started.md#xcode-projects), [Configuration: Paths](configuration.md#paths), [Fixing results: Safety](fixing-results.md#safety).
 
 ### `--strict-index`
 

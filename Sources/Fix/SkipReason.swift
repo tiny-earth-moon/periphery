@@ -10,6 +10,9 @@ public enum SkipReason: Error, Hashable, Sendable, CustomStringConvertible {
     case changedSinceIndexing
     case uncommittedChanges
     case notInGitRepository
+    case outsideRepository
+    case nestedRepository
+    case symbolicLink
     case unreadableFile
     case overlappingEdit
     case modifierNotFound
@@ -30,6 +33,9 @@ public enum SkipReason: Error, Hashable, Sendable, CustomStringConvertible {
         case .changedSinceIndexing: "file changed since indexing"
         case .uncommittedChanges: "uncommitted changes, use --allow-dirty"
         case .notInGitRepository: "not in a git repository, use --allow-dirty"
+        case .outsideRepository: "outside the git repository of the project"
+        case .nestedRepository: "in a submodule or a nested git repository"
+        case .symbolicLink: "symbolic link"
         case .unreadableFile: "unreadable file"
         case .overlappingEdit: "overlapping edit"
         case .modifierNotFound: "modifier not found"

@@ -44,7 +44,7 @@ struct FixCommand: ParsableCommand {
         let configuration = prepared.configuration
         let logger = prepared.logger
 
-        let indexedAt = Date()
+        let scanStartedAt = Date()
         let output = try Scan(configuration: configuration, logger: logger, swiftVersion: prepared.swiftVersion)
             .perform(project: prepared.project)
         let filtered = try OutputDeclarationFilter(configuration: configuration, logger: logger)
@@ -54,7 +54,8 @@ struct FixCommand: ParsableCommand {
 
         let targets = selectTargets(from: reported, configuration: configuration)
         let workingTree: WorkingTreeState = try allowDirty ? .ignored : GitWorkingTree.state(at: configuration.projectRoot)
-        let plan = FixPlanner(workingTree: workingTree, indexedAt: indexedAt, isIndexExcluded: configuration.isIndexExcluded)
+        let indexDates = IndexDates(scanStartedAt: scanStartedAt, unitDates: output.unitDates)
+        let plan = FixPlanner(workingTree: workingTree, indexDates: indexDates, isIndexExcluded: configuration.isIndexExcluded)
             .plan(targets)
 
         if apply {

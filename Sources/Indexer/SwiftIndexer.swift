@@ -15,6 +15,8 @@ private struct LocalizedStringCalleePosition: Hashable {
 public struct IndexUnit {
     let store: IndexStore
     let unit: UnitReader
+    /// When the unit was written, nil when its file could not be read.
+    public let modificationDate: Date?
 }
 
 final class SwiftIndexer: Indexer {

@@ -45,6 +45,11 @@ struct EditResolution {
                     if lhs.edit.range.lowerBound != rhs.edit.range.lowerBound {
                         return lhs.edit.range.lowerBound < rhs.edit.range.lowerBound
                     }
+                    // An insertion goes before the edit that starts at the same offset, which would otherwise move
+                    // the cursor past it.
+                    if lhs.edit.range.isEmpty != rhs.edit.range.isEmpty {
+                        return lhs.edit.range.isEmpty
+                    }
                     return lhs.edit.range.upperBound > rhs.edit.range.upperBound
                 }
 

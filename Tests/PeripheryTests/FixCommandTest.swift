@@ -314,6 +314,26 @@ final class FixCommandTest: XCTestCase {
         XCTAssertEqual(resolution.edits, [nested, separate])
     }
 
+    func testInsertionAtTheStartOfADeletionIsAppliedBeforeIt() {
+        let deletion = SourceEdit(range: 2 ..< 5)
+        let insertion = SourceEdit(range: 2 ..< 2, replacement: "X")
+
+        let resolution = EditResolution([0: [deletion], 1: [insertion]])
+
+        XCTAssertEqual(resolution.edits, [insertion, deletion])
+        XCTAssertEqual(resolution.apply(to: Array("abcdefg".utf8)), Array("abXfg".utf8))
+    }
+
+    func testByteOrderMarkDoesNotShiftTheEdits() throws {
+        let source = "\u{FEFF}import A\nimport B\nfunc f(a: Int) {}\n"
+        let fixed = try fix(source, [
+            target(.unusedImport, "B", .module, at: "import B", in: source),
+            target(.unusedParameter, "a", .varParameter, at: "a:", in: source),
+        ])
+
+        XCTAssertEqual(fixed, "\u{FEFF}import A\nfunc f(a _: Int) {}\n")
+    }
+
     // MARK: - Refusals
 
     func testLocationMismatchIsSkipped() throws {
@@ -332,16 +352,46 @@ final class FixCommandTest: XCTestCase {
     func testDirtyFileAndMissingRepositoryAreRefused() throws {
         let source = "public func render() {}\n"
         try write(source)
+        try commitAll()
         let renderTarget = target(.redundantPublic, "render()", .functionFree, at: "render", in: source)
 
-        let dirty = FixPlanner(workingTree: .uncommitted([RealPath.resolve(file.string)]), indexedAt: nil) { _ in false }
+        XCTAssertEqual(try FixPlanner(workingTree: GitWorkingTree.state(at: directory), indexDates: nil) { _ in false }.plan([renderTarget]).applied, [renderTarget])
+
+        try write(source + "// changed\n")
+        let dirty = try FixPlanner(workingTree: GitWorkingTree.state(at: directory), indexDates: nil) { _ in false }
         XCTAssertEqual(dirty.plan([renderTarget]).skipped.map(\.reason), [.uncommittedChanges])
 
-        let noRepository = FixPlanner(workingTree: .notARepository, indexedAt: nil) { _ in false }
+        let noRepository = FixPlanner(workingTree: .notARepository, indexDates: nil) { _ in false }
         XCTAssertEqual(noRepository.plan([renderTarget]).skipped.map(\.reason), [.notInGitRepository])
+    }
 
-        let clean = FixPlanner(workingTree: .uncommitted([]), indexedAt: nil) { _ in false }
-        XCTAssertEqual(clean.plan([renderTarget]).applied, [renderTarget])
+    func testFilesGitCannotRestoreAreRefused() throws {
+        let source = "public func render() {}\n"
+        try write(source)
+        try commitAll()
+
+        let outside = try makeTemporaryDirectory("outside")
+        let outsideFile = outside.appending("Outside.swift")
+        try Data(source.utf8).write(to: URL(fileURLWithPath: outsideFile.string))
+        let link = directory.appending("Link.swift")
+        try FileManager.default.createSymbolicLink(atPath: link.string, withDestinationPath: outsideFile.string)
+
+        let origin = try makeTemporaryDirectory("submodule")
+        try Data(source.utf8).write(to: URL(fileURLWithPath: origin.appending("Sub.swift").string))
+        try git(in: origin, "init", "-q")
+        try git(in: origin, "add", "Sub.swift")
+        try git(in: origin, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "init")
+        try git("-c", "protocol.file.allow=always", "submodule", "add", "-q", origin.string, "Sub")
+        try commitAll()
+
+        let planner = try FixPlanner(workingTree: GitWorkingTree.state(at: directory), indexDates: nil) { _ in false }
+        let targets = [link, outsideFile, directory.appending("Sub/Sub.swift")].map { path in
+            FixTarget(rule: .redundantPublic, name: "render()", kind: .functionFree, file: path, line: 1, column: 13)
+        }
+        let reasons = planner.plan(targets).skipped.reduce(into: [String: SkipReason]()) { $0[$1.target.file.lastComponent?.string ?? ""] = $1.reason }
+
+        XCTAssertEqual(reasons, ["Link.swift": .symbolicLink, "Outside.swift": .outsideRepository, "Sub.swift": .nestedRepository])
+        XCTAssertEqual(try String(contentsOfFile: outsideFile.string, encoding: .utf8), source)
     }
 
     func testGitWorkingTreeReportsModifiedAndUntrackedFiles() throws {
@@ -372,15 +422,29 @@ final class FixCommandTest: XCTestCase {
         try write(source)
         let renderTarget = target(.redundantPublic, "render()", .functionFree, at: "render", in: source)
 
-        let excluded = FixPlanner(workingTree: .ignored, indexedAt: nil) { _ in true }
+        let excluded = FixPlanner(workingTree: .ignored, indexDates: nil) { _ in true }
         XCTAssertEqual(excluded.plan([renderTarget]).skipped.map(\.reason), [.indexExcluded])
-
-        let stale = FixPlanner(workingTree: .ignored, indexedAt: Date(timeIntervalSinceNow: -3600)) { _ in false }
-        XCTAssertEqual(stale.plan([renderTarget]).skipped.map(\.reason), [.changedSinceIndexing])
 
         XCTAssertTrue(GeneratedFile.isGenerated(path: "/p/.build/debug/Foo.swift"))
         XCTAssertTrue(GeneratedFile.isGenerated(path: "/p/GeneratedAssetSymbols.swift"))
         XCTAssertFalse(GeneratedFile.isGenerated(path: "/p/Sources/Foo.swift"))
+    }
+
+    func testFileModifiedAfterItsIndexUnitIsRefused() throws {
+        let source = "public func render() {}\n"
+        try write(source)
+        let renderTarget = target(.redundantPublic, "render()", .functionFree, at: "render", in: source)
+        let later = Date(timeIntervalSinceNow: 60)
+
+        func reasons(_ dates: IndexDates) -> [SkipReason] {
+            FixPlanner(workingTree: .ignored, indexDates: dates) { _ in false }.plan([renderTarget]).skipped.map(\.reason)
+        }
+
+        // The scan started after the edit, but the index store was written before it, e.g. with --skip-build.
+        XCTAssertEqual(reasons(IndexDates(scanStartedAt: later, unitDates: [file: Date(timeIntervalSinceNow: -3600)])), [.changedSinceIndexing])
+        XCTAssertEqual(reasons(IndexDates(scanStartedAt: later, unitDates: [:])), [.changedSinceIndexing])
+        XCTAssertEqual(reasons(IndexDates(scanStartedAt: Date(timeIntervalSinceNow: -3600), unitDates: [file: later])), [.changedSinceIndexing])
+        XCTAssertEqual(reasons(IndexDates(scanStartedAt: later, unitDates: [file: later])), [])
     }
 
     func testLocationOverrideIsSkipped() throws {
@@ -397,11 +461,11 @@ final class FixCommandTest: XCTestCase {
     }
 
     private func makePlanner() -> FixPlanner {
-        FixPlanner(workingTree: .ignored, indexedAt: nil) { _ in false }
+        FixPlanner(workingTree: .ignored, indexDates: nil) { _ in false }
     }
 
     private func write(_ source: String) throws {
-        try source.write(toFile: file.string, atomically: true, encoding: .utf8)
+        try Data(source.utf8).write(to: URL(fileURLWithPath: file.string))
     }
 
     private func planned(_ source: String, _ targets: [FixTarget]) throws -> FixPlan {
@@ -411,7 +475,7 @@ final class FixCommandTest: XCTestCase {
 
     private func apply(_ plan: FixPlan) throws -> String {
         try FixWriter.apply(plan)
-        return try String(contentsOfFile: file.string, encoding: .utf8)
+        return try XCTUnwrap(String(validating: Data(contentsOf: URL(fileURLWithPath: file.string)), as: UTF8.self))
     }
 
     private func fix(_ source: String, _ targets: [FixTarget], file: StaticString = #filePath, line: UInt = #line) throws -> String {
@@ -447,7 +511,30 @@ final class FixCommandTest: XCTestCase {
         return FixTarget(rule: rule, name: name, kind: kind, file: file, line: line, column: column, accessibility: accessibility)
     }
 
+    private func makeTemporaryDirectory(_ name: String) throws -> FilePath {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("outskirts-fix-\(name)-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: url) }
+        return FilePath(url.path)
+    }
+
+    private func commitAll() throws {
+        if !FileManager.default.fileExists(atPath: directory.appending(".git").string) {
+            try git("init", "-q")
+        }
+        try git("add", "-A")
+        try git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "commit")
+    }
+
     private func git(_ arguments: String...) throws {
+        try git(in: directory, arguments)
+    }
+
+    private func git(in directory: FilePath, _ arguments: String...) throws {
+        try git(in: directory, arguments)
+    }
+
+    private func git(in directory: FilePath, _ arguments: [String]) throws {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
         process.arguments = ["git", "-C", directory.string] + arguments
@@ -459,7 +546,7 @@ final class FixCommandTest: XCTestCase {
     }
 
     private func uncommitted() throws -> Set<String> {
-        guard case let .uncommitted(paths) = try GitWorkingTree.state(at: directory) else {
+        guard case let .repository(_, paths) = try GitWorkingTree.state(at: directory) else {
             XCTFail("the directory is a working tree")
             return []
         }

@@ -107,6 +107,19 @@ final class FixCommandEndToEndTest: XCTestCase {
         XCTAssertTrue(rescan.stderr.contains("Would apply 0 fixes in 0 files, skipped 0."), rescan.stderr)
     }
 
+    func testFileEditedAfterItsIndexWasWrittenIsRefused() throws {
+        let built = try run(["fix"])
+        XCTAssertEqual(built.status, 0, built.stderr)
+
+        try write(Self.library + "// edited after the build\n", to: "Sources/Lib/Lib.swift")
+        try commitAll()
+        let stale = try run(["fix", "--skip-build"])
+
+        XCTAssertEqual(stale.status, 0, stale.stderr)
+        XCTAssertEqual(stale.stdout, "")
+        XCTAssertTrue(stale.stderr.contains("file changed since indexing"), stale.stderr)
+    }
+
     func testRuleFilterOnlyAppliesTheGivenRule() throws {
         let output = try run(["fix", "--rule", "unused-parameter"])
 

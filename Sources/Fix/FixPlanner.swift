@@ -2,26 +2,45 @@ import Foundation
 import SwiftParser
 import SystemPackage
 
-/// The uncommitted files of the working tree, as far as a fix may touch them.
+/// The git working tree, as far as a fix may touch its files.
 public enum WorkingTreeState: Sendable {
     /// Every file may be edited (`--allow-dirty`).
     case ignored
-    /// The real paths of the files with uncommitted changes, untracked files included.
-    case uncommitted(Set<String>)
+    /// The real path of the top level of the working tree, and the real paths of its files with uncommitted changes,
+    /// untracked files included.
+    case repository(topLevel: String, uncommitted: Set<String>)
     /// The project is not in a git repository, so changes could not be reverted.
     case notARepository
+}
+
+/// When the index store and the scan read each file: a file modified since then may not match the results.
+public struct IndexDates: Sendable {
+    public let scanStartedAt: Date
+    /// When the newest index store unit of each source file was written.
+    public let unitDates: [FilePath: Date]
+
+    public init(scanStartedAt: Date, unitDates: [FilePath: Date]) {
+        self.scanStartedAt = scanStartedAt
+        self.unitDates = unitDates
+    }
+
+    func isStale(_ file: FilePath, modifiedAt modified: Date) -> Bool {
+        guard modified <= scanStartedAt, let unitDate = unitDates[file] else { return true }
+
+        return modified > unitDate
+    }
 }
 
 /// Turns results into edits of the original buffers, applying the safety rules.
 public struct FixPlanner {
     public let workingTree: WorkingTreeState
-    /// The time the scan started: files modified since then may not match the index.
-    public let indexedAt: Date?
+    /// Nil skips the check, for buffers that were not indexed.
+    public let indexDates: IndexDates?
     public let isIndexExcluded: (FilePath) -> Bool
 
-    public init(workingTree: WorkingTreeState, indexedAt: Date?, isIndexExcluded: @escaping (FilePath) -> Bool) {
+    public init(workingTree: WorkingTreeState, indexDates: IndexDates?, isIndexExcluded: @escaping (FilePath) -> Bool) {
         self.workingTree = workingTree
-        self.indexedAt = indexedAt
+        self.indexDates = indexDates
         self.isIndexExcluded = isIndexExcluded
     }
 
@@ -47,16 +66,19 @@ public struct FixPlanner {
         if let reason = fileRefusal(file) {
             return skipAll(reason)
         }
-        guard let data = FileManager.default.contents(atPath: file.string),
-              let text = String(data: data, encoding: .utf8)
-        else { return skipAll(.unreadableFile) }
+        guard let data = FileManager.default.contents(atPath: file.string) else { return skipAll(.unreadableFile) }
 
         let bytes = [UInt8](data)
         if GeneratedFile.isGenerated(path: file, contents: bytes) {
             return skipAll(.generatedFile)
         }
 
-        let source = ParsedSource(path: file.string, bytes: bytes, tree: Parser.parse(source: text))
+        // The edits are offsets of the bytes on disk, so the bytes themselves are parsed: decoding them first would
+        // drop a byte order mark and shift every offset.
+        let tree = bytes.withUnsafeBufferPointer { Parser.parse(source: $0) }
+        guard tree.totalLength.utf8Length == bytes.count else { return skipAll(.unreadableFile) }
+
+        let source = ParsedSource(path: file.string, bytes: bytes, tree: tree)
         let builder = EditBuilder(source: source)
         let ignoredParameterNames = superfluousParameterIgnores(in: targets)
 
@@ -99,27 +121,49 @@ public struct FixPlanner {
             return .generatedFile
         }
 
-        switch workingTree {
-        case .ignored:
-            break
-        case .notARepository:
-            return .notInGitRepository
-        case let .uncommitted(paths):
-            if paths.contains(RealPath.resolve(file.string)) {
-                return .uncommittedChanges
-            }
+        var status = stat()
+        guard lstat(file.string, &status) == 0 else { return .unreadableFile }
+
+        if (status.st_mode & S_IFMT) == S_IFLNK {
+            return .symbolicLink
         }
 
-        if let indexedAt {
-            guard let attributes = try? FileManager.default.attributesOfItem(atPath: file.string),
-                  let modified = attributes[.modificationDate] as? Date
-            else { return .unreadableFile }
+        if let reason = workingTreeRefusal(file) {
+            return reason
+        }
 
-            if modified > indexedAt {
-                return .changedSinceIndexing
-            }
+        if let indexDates, indexDates.isStale(file, modifiedAt: modificationDate(of: status)) {
+            return .changedSinceIndexing
         }
         return nil
+    }
+
+    private func modificationDate(of status: stat) -> Date {
+        #if os(Linux)
+            let time = status.st_mtim
+        #else
+            let time = status.st_mtimespec
+        #endif
+        return Date(timeIntervalSince1970: TimeInterval(time.tv_sec) + TimeInterval(time.tv_nsec) / 1_000_000_000)
+    }
+
+    /// Only the files that git can restore are edited: tracked by the working tree itself, not by a submodule or a
+    /// nested repository, and without uncommitted changes.
+    private func workingTreeRefusal(_ file: FilePath) -> SkipReason? {
+        switch workingTree {
+        case .ignored:
+            return nil
+        case .notARepository:
+            return .notInGitRepository
+        case let .repository(topLevel, uncommitted):
+            let realPath = RealPath.resolve(file.string)
+            guard realPath.hasPrefix(topLevel + "/") else { return .outsideRepository }
+
+            let directory = FilePath(realPath).removingLastComponent()
+            guard GitWorkingTree.topLevel(of: directory) == topLevel else { return .nestedRepository }
+
+            return uncommitted.contains(realPath) ? .uncommittedChanges : nil
+        }
     }
 
     /// The names of the parameters whose `ignore:parameters` comment is superfluous, by function position.

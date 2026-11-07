@@ -5,16 +5,18 @@ import Shared
 public enum FixWriter {
     public static func apply(_ plan: FixPlan) throws {
         for change in plan.changes {
-            let url = URL(fileURLWithPath: change.path.string)
+            // The planner refuses symbolic links; the real path also covers a link created since.
+            let path = RealPath.resolve(change.path.string)
+            let url = URL(fileURLWithPath: path)
             let current = try Data(contentsOf: url)
             guard [UInt8](current) == change.original else {
                 throw PeripheryError.underlyingError(FixWriterError.fileChanged(change.path.string))
             }
 
-            let permissions = try FileManager.default.attributesOfItem(atPath: change.path.string)[.posixPermissions]
+            let permissions = try FileManager.default.attributesOfItem(atPath: path)[.posixPermissions]
             try Data(change.fixed).write(to: url, options: .atomic)
             if let permissions {
-                try FileManager.default.setAttributes([.posixPermissions: permissions], ofItemAtPath: change.path.string)
+                try FileManager.default.setAttributes([.posixPermissions: permissions], ofItemAtPath: path)
             }
         }
     }
