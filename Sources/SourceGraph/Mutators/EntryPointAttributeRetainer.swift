@@ -40,23 +40,23 @@ final class EntryPointAttributeRetainer: SourceGraphMutator {
                 where extensionDeclaration.hasAttribute(named: "main")
             {
                 retainEntryPoint(extendedDeclaration)
-                graph.markRetained(extensionDeclaration, reason: RetentionReason(Self.self, "@main entry point"))
+                graph.markRetainedWithAncestors(
+                    extensionDeclaration,
+                    reason: RetentionReason(Self.self, "@main entry point"),
+                    ancestorReason: RetentionReason(Self.self, "encloses a @main entry point")
+                )
                 retainMainFunction(in: extensionDeclaration)
-
-                for ancestralDeclaration in extensionDeclaration.ancestralDeclarations {
-                    graph.markRetained(ancestralDeclaration, reason: RetentionReason(Self.self, "encloses a @main entry point"))
-                }
             }
         }
     }
 
     private func retainEntryPoint(_ declaration: Declaration) {
-        graph.markRetained(declaration, reason: RetentionReason(Self.self, Self.entryPointDetail(of: declaration)))
+        graph.markRetainedWithAncestors(
+            declaration,
+            reason: RetentionReason(Self.self, Self.entryPointDetail(of: declaration)),
+            ancestorReason: RetentionReason(Self.self, "encloses an entry point")
+        )
         graph.markMainAttributed(declaration)
-
-        for ancestralDeclaration in declaration.ancestralDeclarations {
-            graph.markRetained(ancestralDeclaration, reason: RetentionReason(Self.self, "encloses an entry point"))
-        }
     }
 
     private static func entryPointDetail(of declaration: Declaration) -> String {
