@@ -23,6 +23,9 @@ public struct ScanSummary: Equatable {
 
 struct ScanSummaryBuilder {
     let logger: Logger
+    /// The declarations of a Swift file, nil when it cannot be read, for a caller that has already parsed the files;
+    /// each file is read and parsed otherwise.
+    var declarationsInFile: ((FilePath) -> SourceFileDeclarations?)?
 
     func build(_ results: [ScanResult]) -> ScanSummary {
         var countsByAnnotation: [String: Int] = [:]
@@ -76,6 +79,10 @@ struct ScanSummaryBuilder {
     // MARK: - Private
 
     private func declarations(in file: FilePath) -> SourceFileDeclarations? {
+        if let declarationsInFile {
+            return declarationsInFile(file)
+        }
+
         do {
             return try SourceFileDeclarations(source: String(contentsOfFile: file.string, encoding: .utf8))
         } catch {

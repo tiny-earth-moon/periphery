@@ -45,6 +45,10 @@ struct ScanCommand: ParsableCommand {
 
     func validate() throws {
         try removedBazelOptions.rejectUse()
+
+        if let maxResults = resultsOptions.maxResults, maxResults < 1 {
+            throw ValidationError("'--max-results' must be at least 1")
+        }
     }
 
     /// Applies the options given on the command line to a configuration that holds the values of the configuration file.
@@ -204,6 +208,7 @@ struct ScanCommand: ParsableCommand {
 
         let outputFormat = configuration.outputFormat
         let formatter = outputFormat.formatter.init(configuration: configuration, logger: logger)
+        (formatter as? AgentFormatter)?.maxResults = resultsOptions.maxResults
         let colored = outputFormat.supportsColoredOutput && logger.isColoredOutputEnabled
 
         let printsToStdout = Self.shouldPrintToStdout(configuration: configuration, resultCount: filteredResults.count)

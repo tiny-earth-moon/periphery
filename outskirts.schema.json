@@ -89,7 +89,8 @@
         "github-actions",
         "github-markdown",
         "gitlab-codequality",
-        "sarif"
+        "sarif",
+        "agent"
       ],
       "default": "xcode"
     },

@@ -217,6 +217,8 @@ public extension OutputFormat {
             GitLabCodeQualityFormatter.self
         case .sarif:
             SarifFormatter.self
+        case .agent:
+            AgentFormatter.self
         }
     }
 }
