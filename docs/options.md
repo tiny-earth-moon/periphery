@@ -40,6 +40,14 @@ Explains why a declaration is reported, used or retained, before the results. Ac
 
 See [Troubleshooting: Why a declaration is reported or kept](troubleshooting.md#why-a-declaration-is-reported-or-kept).
 
+### `--summary`
+
+Since 3.22.0.
+
+Prints a summary after the results of the `xcode` format: the count of each result kind, an estimate of the removable lines and the files entirely unused. On by default with `xcode`, `--no-summary` to switch off; with `json`, `--summary` adds a `summary` object to the report. The other formats never hold one.
+
+See [Output formats: Summary](output-formats.md#summary), [Output formats: json](output-formats.md#json).
+
 ## Project and build
 
 ### `--project`
@@ -200,7 +208,7 @@ Report only the results in files that changed since this git ref: committed sinc
 
 Key `changed_since` · string · default none.
 
-See [Baselines: Baselines and pull requests](baselines.md#baselines-and-pull-requests), [Roadmap: Published](roadmap.md#published).
+See [Baselines: Baselines and pull requests](baselines.md#baselines-and-pull-requests), [Output formats: Summary](output-formats.md#summary), [Roadmap: Published](roadmap.md#published).
 
 ### `--changed-lines`
 

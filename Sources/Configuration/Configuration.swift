@@ -246,6 +246,10 @@ public final class Configuration {
     /// The declarations to explain (`--explain`, command line only): names, USRs or `file:line` locations.
     public var explain: [String] = []
 
+    /// `--summary` or `--no-summary` (command line only), nil when neither is given: the summary is then printed with
+    /// the `xcode` format and left out of the `json` format.
+    public var summary: Bool?
+
     public var hasNonDefaultValues: Bool {
         settings.contains(where: \.hasNonDefaultValue)
     }

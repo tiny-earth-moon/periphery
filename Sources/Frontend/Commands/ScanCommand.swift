@@ -139,6 +139,7 @@ struct ScanCommand: ParsableCommand {
 
         configuration.guidedSetup = projectOptions.setup
         configuration.explain = resultsOptions.explain
+        configuration.summary = resultsOptions.summary
         configuration.projectRoot = projectRoot
         apply(to: configuration)
 
@@ -157,6 +158,7 @@ struct ScanCommand: ParsableCommand {
 
         let logger = Logger(configuration: configuration)
         ScanPreflight.applyOutputFormatRequirements(to: configuration, logger: logger)
+        ScanPreflight.warnAboutIgnoredSummary(of: configuration, logger: logger)
         logger.contextualized(with: "version").debug(PeripheryVersion)
         let shell = ShellImpl(logger: logger) {
             logger.warn(
@@ -204,21 +206,31 @@ struct ScanCommand: ParsableCommand {
         let formatter = outputFormat.formatter.init(configuration: configuration, logger: logger)
         let colored = outputFormat.supportsColoredOutput && logger.isColoredOutputEnabled
 
-        let formattedOutput = try formatter.format(reportedResults, colored: colored)
+        let printsToStdout = Self.shouldPrintToStdout(configuration: configuration, resultCount: filteredResults.count)
+        let summaryPlacement = Self.summaryPlacement(configuration: configuration, printsToStdout: printsToStdout, resultCount: reportedResults.count)
+        let summary = summaryPlacement == .none ? nil : formatter.summarize(reportedResults)
+        let reportSummary = summaryPlacement == .inReport ? summary : nil
 
-        if let output = formattedOutput, Self.shouldPrintToStdout(configuration: configuration, resultCount: filteredResults.count) {
+        let formattedOutput = try formatter.format(reportedResults, summary: reportSummary, colored: colored)
+
+        if let output = formattedOutput, printsToStdout {
             if outputFormat.supportsAuxiliaryOutput {
                 logger.info("", canQuiet: true)
             }
 
             logger.output(output)
+
+            if summaryPlacement == .afterResults, let summary {
+                logger.info("", canQuiet: true)
+                logger.info(formatter.describe(summary, colored: colored), canQuiet: true)
+            }
         }
 
         if let resultsPath = configuration.writeResults {
             let output: String = if colored {
                 // The formatted output contains ANSI escape codes, so we need to re-format
                 // with coloring disabled.
-                try formatter.format(reportedResults, colored: false) ?? ""
+                try formatter.format(reportedResults, summary: reportSummary, colored: false) ?? ""
             } else {
                 formattedOutput ?? ""
             }
@@ -251,6 +263,29 @@ struct ScanCommand: ParsableCommand {
             return false
         }
         return true
+    }
+
+    enum SummaryPlacement {
+        case none
+        /// Text printed after the results on stdout, never written to the `--write-results` file.
+        case afterResults
+        /// Part of the report, on stdout and in the `--write-results` file.
+        case inReport
+    }
+
+    /// The summary follows the results of the `xcode` format unless `--no-summary` is given, and is part of the
+    /// `json` report only with `--summary`. The other formats never have one, so that their parsers are unaffected.
+    /// The text summary needs results printed on stdout, and is silenced by `--quiet` like every other message.
+    static func summaryPlacement(configuration: Configuration, printsToStdout: Bool, resultCount: Int) -> SummaryPlacement {
+        switch configuration.outputFormat {
+        case .xcode:
+            let enabled = configuration.summary ?? true
+            return enabled && printsToStdout && resultCount > 0 && !configuration.quiet ? .afterResults : .none
+        case .json:
+            return configuration.summary == true ? .inReport : .none
+        default:
+            return .none
+        }
     }
 
     static func staleBaselineFailure(configuration: Configuration, staleEntryCount: Int) -> PeripheryError? {
