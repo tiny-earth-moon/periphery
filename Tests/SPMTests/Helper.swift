@@ -10,4 +10,8 @@ var SPMProjectPath: FilePath {
     var SPMProjectMacOSPath: FilePath {
         ProjectRootPath.appending("Tests/SPMTests/SPMProjectMacOS")
     }
+
+    var SPMProjectMultiVariantPath: FilePath {
+        ProjectRootPath.appending("Tests/SPMTests/SPMProjectMultiVariant")
+    }
 #endif

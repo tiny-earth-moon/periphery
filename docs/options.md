@@ -38,7 +38,7 @@ Since 3.22.0.
 
 Explains why a declaration is reported, used or retained, before the results. Accepts a name (`draw()`, `draw` or `Beta.draw()`), a USR or a `file:line` location; repeat the option to explain several declarations, e.g. `--explain 'draw()' --explain Sources/Kit/Shape.swift:12`.
 
-See [Troubleshooting: Why a declaration is reported or kept](troubleshooting.md#why-a-declaration-is-reported-or-kept).
+See [Troubleshooting: Why a declaration is reported or kept](troubleshooting.md#why-a-declaration-is-reported-or-kept), [Troubleshooting: Retaining only what the missing builds may use](troubleshooting.md#retaining-only-what-the-missing-builds-may-use).
 
 ### `--summary`
 
@@ -320,11 +320,21 @@ See [Analysis: Superfluous ignore comments](analysis.md#superfluous-ignore-comme
 
 ### `--disable-platform-conditional-retention`
 
-Do not retain declarations unavailable on a platform or referenced from platform conditional compilation blocks.
+Do not retain declarations unavailable on a platform or referenced from platform conditional compilation blocks. Alias of 'platform_conditional_retention: off', which it overrides when true.
 
 Key `disable_platform_conditional_retention` · flag, `--no-disable-platform-conditional-retention` to switch off · default `false`.
 
 See [Framework conventions and retention: Platform conditionals](framework-conventions.md#platform-conditionals), [Troubleshooting: Scanning several platforms or configurations](troubleshooting.md#scanning-several-platforms-or-configurations).
+
+### `--platform-conditional-retention`
+
+Since 3.22.0.
+
+How declarations possibly used by a build missing from the index are retained: 'all-clauses' retains the names written in the platform #if clauses no indexed build compiled, and the declarations marked @available(X, unavailable); 'auto' also narrows #if blocks nested in another one, and stops retaining @available(X, unavailable) once builds for X and for a platform where the declaration is available are indexed, e.g. with '--index-store-path' repeated; 'off' retains neither.
+
+Key `platform_conditional_retention` · one of `auto`, `all-clauses`, `off` · default `all-clauses`.
+
+See [Framework conventions and retention: Platform conditionals](framework-conventions.md#platform-conditionals), [Troubleshooting: Scanning several platforms or configurations](troubleshooting.md#scanning-several-platforms-or-configurations), [Troubleshooting: Retaining only what the missing builds may use](troubleshooting.md#retaining-only-what-the-missing-builds-may-use).
 
 ### `--detect-unused-asset-catalog-colors`
 

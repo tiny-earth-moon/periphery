@@ -79,6 +79,7 @@ struct ScanCommand: ParsableCommand {
         configuration.apply(\.$enableRedundantAccessLevelAnalysis, analysisOptions.enableRedundantAccessLevelAnalysis)
         configuration.apply(\.$reportUnusedTypeParameters, analysisOptions.reportUnusedTypeParameters)
         configuration.apply(\.$disablePlatformConditionalRetention, analysisOptions.disablePlatformConditionalRetention)
+        configuration.apply(\.$platformConditionalRetention, analysisOptions.platformConditionalRetention)
         configuration.apply(\.$disableUnusedImportAnalysis, analysisOptions.disableUnusedImportAnalysis)
         configuration.apply(\.$enableUnusedSystemImports, analysisOptions.enableUnusedSystemImports)
         configuration.apply(\.$superfluousIgnoreComments, analysisOptions.superfluousIgnoreComments)
@@ -323,6 +324,7 @@ struct ScanCommand: ParsableCommand {
 
 extension OutputFormat: ArgumentParser.ExpressibleByArgument {}
 extension ColorOption: ArgumentParser.ExpressibleByArgument {}
+extension PlatformConditionalRetention: ArgumentParser.ExpressibleByArgument {}
 
 extension FilePath: ArgumentParser.ExpressibleByArgument {
     public init?(argument: String) {

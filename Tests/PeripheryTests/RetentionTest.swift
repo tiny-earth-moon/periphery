@@ -633,6 +633,52 @@ final class RetentionTest: FixtureSourceGraphTestCase {
         }
     }
 
+    /// With a single indexed build, `platform_conditional_retention: auto` keeps every retention of `all-clauses` for
+    /// the other platforms: declarations marked unavailable, and names written in clauses the build did not compile.
+    func testAutoRetentionWithASingleBuildKeepsTheRetentionsOfOtherPlatforms() {
+        let fixtureTests = [
+            "testRetainsDeclarationsUnavailableOnPlatform",
+            "testRetainsDeclarationsReferencedInPlatformConditionalBlocks",
+            "testRetainsNamesFromUncompiledClausesOfPlatformConditionalChain",
+            "testRetainsWholeBlockWhenPlatformConditionalCannotBeEvaluated",
+        ]
+        analyze(retainPublic: true, platformConditionalRetention: .auto, fixtureTests: fixtureTests) {
+            assertReferenced(.class("FixtureClass223")) {
+                self.assertReferenced(.functionMethodInstance("unavailableOnIOS()"))
+                self.assertReferenced(.functionMethodInstance("unavailableOnMacOS()"))
+                self.assertReferenced(.functionMethodInstance("unavailableOnTvOS()"))
+                self.assertNotReferenced(.functionMethodInstance("introducedOnMacOS()"))
+            }
+            assertReferenced(.class("FixtureClass225")) {
+                self.assertReferenced(.functionMethodInstance("onlyUsedOnIOS()"))
+                self.assertReferenced(.functionMethodInstance("onlyUsedOnWindows()"))
+                self.assertNotReferenced(.functionMethodInstance("onlyUsedUnderCustomFlag()"))
+            }
+            assertReferenced(.class("FixtureUncompiledChainUser")) {
+                self.assertReferenced(.functionMethodInstance("onlyOnTVOS()"))
+                self.assertReferenced(.functionMethodInstance("onlyInElse()"))
+            }
+            for name in ["Flag", "Import", "Version", "Nested"] {
+                assertReferenced(.struct("FixtureUnevaluated\(name)Beta")) {
+                    self.assertReferenced(.functionMethodInstance("unevaluated\(name)()"))
+                }
+            }
+        }
+    }
+
+    /// `auto` narrows a block nested in another one: the clause the indexed build compiled retains nothing more.
+    func testAutoRetentionNarrowsNestedBlocksCompiledByTheIndexedBuild() {
+        let fixtureTests = ["testRetainsWholeBlockWhenPlatformConditionalCannotBeEvaluated"]
+        analyze(retainPublic: true, platformConditionalRetention: .auto, fixtureTests: fixtureTests) {
+            assertReferenced(.struct("FixtureUnevaluatedInnerAlpha")) {
+                self.assertReferenced(.functionMethodInstance("unevaluatedInner()"))
+            }
+            assertReferenced(.struct("FixtureUnevaluatedInnerBeta")) {
+                self.assertNotReferenced(.functionMethodInstance("unevaluatedInner()"))
+            }
+        }
+    }
+
     func testRetainsSameNamedMembersCalledThroughUnknownReceiver() {
         analyze(retainPublic: true) {
             assertReferenced(.struct("FixtureStruct234")) {

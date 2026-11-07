@@ -111,8 +111,16 @@ public final class Configuration {
     @Setting(key: "report_unused_type_parameters", description: "Also report unused generic parameters of types, ignored by default as they may be phantom types.", defaultValue: false)
     public var reportUnusedTypeParameters: Bool
 
-    @Setting(key: "disable_platform_conditional_retention", description: "Do not retain declarations unavailable on a platform or referenced from platform conditional compilation blocks.", defaultValue: false)
+    @Setting(key: "disable_platform_conditional_retention", description: "Do not retain declarations unavailable on a platform or referenced from platform conditional compilation blocks. Alias of 'platform_conditional_retention: off', which it overrides when true.", defaultValue: false)
     public var disablePlatformConditionalRetention: Bool
+
+    @Setting(key: "platform_conditional_retention", description: "How declarations possibly used by a build missing from the index are retained: 'all-clauses' retains the names written in the platform #if clauses no indexed build compiled, and the declarations marked @available(X, unavailable); 'auto' also narrows #if blocks nested in another one, and stops retaining @available(X, unavailable) once builds for X and for a platform where the declaration is available are indexed, e.g. with '--index-store-path' repeated; 'off' retains neither.", defaultValue: .default)
+    public var platformConditionalRetention: PlatformConditionalRetention
+
+    /// The platform conditional retention in effect: `disable_platform_conditional_retention` forces `off`.
+    public var resolvedPlatformConditionalRetention: PlatformConditionalRetention {
+        disablePlatformConditionalRetention ? .off : platformConditionalRetention
+    }
 
     @Setting(key: "disable_unused_import_analysis", description: "Turn off the analysis of unused imports.", defaultValue: false)
     public var disableUnusedImportAnalysis: Bool
@@ -332,7 +340,7 @@ public final class Configuration {
         $project, $schemes, $excludeTargets, $excludeTests, $indexExclude, $reportExclude, $reportInclude, $outputFormat,
         $retainPublic, $retainPublicModules, $noRetainSPI, $retainFiles, $retainAssignOnlyProperties, $retainAssignOnlyPropertyTypes, $enableUnassignedOptionalAnalysis, $enableUnconstructedEnumCaseAnalysis, $retainObjcAccessible,
         $retainJsAccessible, $retainObjcAnnotated, $retainUnusedProtocolFuncParams, $retainUnusedParametersWithoutDefault, $retainSwiftUIPreviews, $disableRedundantPublicAnalysis, $enableRedundantPublicMembers, $enableOpenFinalAnalysis, $enableEmptyExtensionAnalysis, $enableRedundantAccessLevelAnalysis, $reportUnusedTypeParameters,
-        $disablePlatformConditionalRetention, $disableUnusedImportAnalysis, $enableUnusedSystemImports, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $retainRuntimeLocalizedKeys, $superfluousIgnoreComments, $retainUnusedImportedModules,
+        $disablePlatformConditionalRetention, $platformConditionalRetention, $disableUnusedImportAnalysis, $enableUnusedSystemImports, $disableUnusedLocalizedStringAnalysis, $localizedStringCatalogExclude, $localizedStringKeyPatterns, $localizedStringKeyLiteralMatch, $retainRuntimeLocalizedKeys, $superfluousIgnoreComments, $retainUnusedImportedModules,
         $externalEncodableProtocols, $externalCodableProtocols, $externalTestCaseClasses, $verbose, $quiet, $color,
         $disableUpdateCheck, $strict, $indexStorePath,
         $skipBuild, $skipSchemesValidation, $cleanBuild, $strictIndex, $cacheMaxAgeDays, $cacheMaxSizeGB, $buildArguments, $xcodeListArguments, $relativeResults, $relativeResultsBase, $changedSince, $changedLines,

@@ -148,6 +148,11 @@ public struct DeclarationExplainer {
             lines.append("  \(files.count) file(s) of module \(module) have no index data, so their references are unknown: \(listed)\(more)")
         }
 
+        let variants = declaration.location.file.variants
+        if variants.count > 1 {
+            lines.append("  its file was indexed for \(variants.count) builds: \(variants.sorted().map(\.description).joined(separator: ", "))")
+        }
+
         return lines.joined(separator: "\n")
     }
 
