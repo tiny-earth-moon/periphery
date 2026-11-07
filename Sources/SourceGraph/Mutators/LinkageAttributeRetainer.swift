@@ -11,6 +11,7 @@ final class LinkageAttributeRetainer: SourceGraphMutator {
     private static let linkerVisibleAttributes: Set<String> = ["used", "_used", "section", "_section"]
     /// Attributes of a declaration implemented on behalf of an imported C or Objective-C declaration.
     private static let implementationAttributes: Set<String> = ["implementation", "_objcImplementation"]
+    private static var reason: RetentionReason { RetentionReason(LinkageAttributeRetainer.self, "linkage attribute (@_cdecl, @_silgen_name, @_used or @_section)") }
 
     private let graph: SourceGraph
 
@@ -21,11 +22,11 @@ final class LinkageAttributeRetainer: SourceGraphMutator {
     func mutate() {
         for decl in graph.allDeclarations where !decl.attributes.isEmpty {
             if isImplementation(decl) {
-                graph.markRetained(decl, reason: RetentionReason(Self.self, "linkage attribute (@_cdecl, @_silgen_name, @_used or @_section)"))
-                decl.descendentDeclarations.forEach { graph.markRetained($0, reason: RetentionReason(Self.self, "linkage attribute (@_cdecl, @_silgen_name, @_used or @_section)")) }
+                graph.markRetained(decl, reason: Self.reason)
+                graph.markRetained(decl.descendentDeclarations, reason: Self.reason)
             } else if isLinkageVisible(decl) {
-                graph.markRetained(decl, reason: RetentionReason(Self.self, "linkage attribute (@_cdecl, @_silgen_name, @_used or @_section)"))
-                decl.unusedParameters.forEach { graph.markRetained($0, reason: RetentionReason(Self.self, "linkage attribute (@_cdecl, @_silgen_name, @_used or @_section)")) }
+                graph.markRetained(decl, reason: Self.reason)
+                graph.markRetained(decl.unusedParameters, reason: Self.reason)
             }
         }
     }
