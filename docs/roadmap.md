@@ -26,37 +26,33 @@ Recent releases, newest first:
 
 ## In progress
 
-- Documentation site with one source for the README and outskirts.dev, generated options reference and changelog.
-- Fix the `JobPool` error data race and adopt the Swift 6 language mode target by target ([#181](https://github.com/tiny-earth-moon/outskirts/issues/181)).
-- Regenerate the Linux self-scan baseline and make the step blocking ([#281](https://github.com/tiny-earth-moon/outskirts/issues/281)); detect system modules on Linux ([#280](https://github.com/tiny-earth-moon/outskirts/issues/280)).
+3.22.0, merged so far:
+
+- `scan --explain`, to show why a declaration is reported, used or retained ([#234](https://github.com/tiny-earth-moon/outskirts/issues/234)).
+- Scan summary: files entirely unused and an estimate of removable lines ([#329](https://github.com/tiny-earth-moon/outskirts/issues/329)).
+- An output format for AI coding agents ([#330](https://github.com/tiny-earth-moon/outskirts/issues/330)).
+- Opt-in analysis of enum cases only matched in patterns and never constructed ([#224](https://github.com/tiny-earth-moon/outskirts/issues/224)).
 
 ## Next
 
-Analysis and retention:
+3.22.0, still to do:
 
-- Assign-only analysis of properties without an explicit type annotation ([#214](https://github.com/tiny-earth-moon/outskirts/issues/214)).
-- `retain_public` per module, for packages that mix libraries and apps ([#217](https://github.com/tiny-earth-moon/outskirts/issues/217)).
-- Platform `#if` retention limited to the clauses the indexed build did not compile ([#218](https://github.com/tiny-earth-moon/outskirts/issues/218)).
-- `scan --explain`, to show why a declaration is reported, used or retained ([#234](https://github.com/tiny-earth-moon/outskirts/issues/234)).
-- Opt-in analysis of enum cases only matched in patterns and never constructed ([#224](https://github.com/tiny-earth-moon/outskirts/issues/224)).
-- A type in a `where Self ==` protocol extension is retained even when its members are unused ([#223](https://github.com/tiny-earth-moon/outskirts/issues/223)).
-- Gate the `appendInterpolation` workaround on the toolchains that need it ([#222](https://github.com/tiny-earth-moon/outskirts/issues/222)).
+- Detect system modules on Linux ([#280](https://github.com/tiny-earth-moon/outskirts/issues/280)).
+- A support policy for Xcode, Swift and Linux, enforced by CI ([#235](https://github.com/tiny-earth-moon/outskirts/issues/235)).
 
-Tooling and distribution:
+3.23.0:
 
-- A strict self-scan in CI ([#220](https://github.com/tiny-earth-moon/outskirts/issues/220)).
-- Prebuilt binaries beyond macOS 27 ([#229](https://github.com/tiny-earth-moon/outskirts/issues/229)).
+- An `outskirts fix` command with syntax-only fixes and a dry-run diff ([#237](https://github.com/tiny-earth-moon/outskirts/issues/237)).
+- Scan the union of all platform and configuration variants ([#233](https://github.com/tiny-earth-moon/outskirts/issues/233)).
 
 ## Toward 4.0
 
 The 4.0 theme ([#241](https://github.com/tiny-earth-moon/outskirts/issues/241)): what ships on any platform or configuration is used; everything else is reported with a stable id and can be removed safely. These changes are breaking and ship together:
 
-- Scan the union of all platform and configuration variants instead of name-based retention ([#233](https://github.com/tiny-earth-moon/outskirts/issues/233)).
 - Configuration v2: schema, strict validation and per-module overrides ([#238](https://github.com/tiny-earth-moon/outskirts/issues/238)).
 - Output v2: stable rule-aware ids, relative paths and baseline v2 ([#239](https://github.com/tiny-earth-moon/outskirts/issues/239)).
 - Distinct, documented exit codes for findings and failures ([#232](https://github.com/tiny-earth-moon/outskirts/issues/232)).
 - Cleanup: drop the hidden `--no-color` flag and the Bazel shims, and a quieter `--index-store-path` mode ([#240](https://github.com/tiny-earth-moon/outskirts/issues/240)).
-- A support policy for Xcode, Swift and Linux, enforced by CI ([#235](https://github.com/tiny-earth-moon/outskirts/issues/235)).
-- A `fix` command: syntax-only fixes with a dry-run diff by default ([#237](https://github.com/tiny-earth-moon/outskirts/issues/237)), then removal of unused declarations once every variant is scanned ([#236](https://github.com/tiny-earth-moon/outskirts/issues/236)).
+- Removal of unused declarations by `outskirts fix` once every variant is scanned ([#236](https://github.com/tiny-earth-moon/outskirts/issues/236)).
 
 Ideas and requests are welcome as [issues](https://github.com/tiny-earth-moon/outskirts/issues).
