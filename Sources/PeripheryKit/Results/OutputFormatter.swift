@@ -48,32 +48,7 @@ extension OutputFormatter {
     }
 
     func describe(_ annotation: ScanResult.Annotation) -> String {
-        switch annotation {
-        case .unused:
-            "unused"
-        case .assignOnlyProperty:
-            "assignOnlyProperty"
-        case .unassignedOptionalProperty:
-            "unassignedOptionalProperty"
-        case .redundantProtocol:
-            "redundantProtocol"
-        case .redundantPublicAccessibility:
-            "redundantPublicAccessibility"
-        case .redundantOpenAccessibility:
-            "redundantOpenAccessibility"
-        case .missingFinal:
-            "missingFinal"
-        case .redundantAccessLevel:
-            "redundantAccessLevel"
-        case .emptyExtension:
-            "emptyExtension"
-        case .superfluousIgnoreCommand:
-            "superfluousIgnoreCommand"
-        case let .unusedAssetCatalogSymbol(symbol):
-            symbol.kind.annotationName
-        case .missingMetalFunction:
-            "missingMetalFunction"
-        }
+        annotation.name
     }
 
     func describe(_ result: ScanResult, colored: Bool) -> [(Location, String)] {
