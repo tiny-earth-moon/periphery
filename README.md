@@ -25,10 +25,12 @@ outskirts explores your Xcode project or Swift package, builds a map of what ref
 
 ### Requirements
 
-- **Build from source** (Homebrew without a bottle, Mint or `swift build`): macOS 15 or later (`Package.swift`), Swift 6.1.2 or later (checked at every scan) and Xcode 26.0 or later (required by the Homebrew formula). Xcode or the Command Line Tools must be installed, as outskirts loads `libIndexStore.dylib` from the toolchain.
+- **Build from source** (Homebrew without a bottle, Mint or `swift build`): macOS 15 or later (`Package.swift`), Swift 6.1.2 or later (checked at every scan; Swift 6.1 is deprecated and support ends in 4.0) and Xcode 26.0 or later (required by the Homebrew formula). Xcode or the Command Line Tools must be installed, as outskirts loads `libIndexStore.dylib` from the toolchain.
 - **Homebrew bottle**: Apple silicon with macOS 27 or later, built with Xcode 27.2. It loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools.
 - **Prebuilt archive** (also installed by aqua and mise): Apple silicon with macOS 15 or later. Like the bottle, it loads `libIndexStore.dylib` from `/Applications/Xcode.app`, or else from the Command Line Tools.
 - **Linux**: Swift Package Manager projects only, see [Platforms](https://outskirts.dev/docs/getting-started/#platforms).
+
+The supported Xcode and Swift versions, and how support for one of them ends, are listed in [SUPPORT.md](https://github.com/tiny-earth-moon/outskirts/blob/master/SUPPORT.md).
 
 ### Homebrew
 
