@@ -98,6 +98,9 @@ struct AnalysisOptions: ParsableArguments {
     @Flag(inversion: .prefixedNo, help: "Report optional properties that are read, but never assigned (always nil)")
     var enableUnassignedOptionalAnalysis: Bool?
 
+    @Flag(inversion: .prefixedNo, help: "Report enum cases that are only matched in patterns, never constructed")
+    var enableUnconstructedEnumCaseAnalysis: Bool?
+
     @Flag(inversion: .prefixedNo, help: "Report unused colors of Xcode asset catalogs, analyzing the symbols Xcode generates for them in GeneratedAssetSymbols.swift (indexed despite '--index-exclude')")
     var detectUnusedAssetCatalogColors: Bool?
 
