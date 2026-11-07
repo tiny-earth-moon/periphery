@@ -226,6 +226,25 @@ final class FixCommandTest: XCTestCase {
         XCTAssertEqual(fixed, "import A\n\nlet x = 1\n")
     }
 
+    func testSummaryBreaksDownTheResultsByRuleAndSkipReason() throws {
+        let source = "import A\nimport B\n@testable import C\n@testable import D\n\npublic func f(a: Int) {}\n"
+        let plan = try planned(source, [
+            target(.unusedImport, "A", .module, at: "import A", in: source),
+            target(.unusedImport, "B", .module, at: "import B", in: source),
+            target(.unusedImport, "C", .module, at: "@testable import C", in: source),
+            target(.unusedImport, "D", .module, at: "@testable import D", in: source),
+            target(.unusedParameter, "a", .varParameter, at: "a: Int", in: source),
+        ])
+
+        let lines = plan.summary(relativeTo: directory, applying: false).components(separatedBy: "\n")
+        XCTAssertEqual(Array(lines.prefix(3)), [
+            "Would apply 3 fixes in 1 file, skipped 2.",
+            "  unused-import: 2, skipped 2 (testable import 2)",
+            "  unused-parameter: 1",
+        ])
+        XCTAssertEqual(lines.count, 5, "one line per skipped result follows")
+    }
+
     func testUnusedImportSharingALineWithAnotherStatement() throws {
         let source = "import A; import B\nlet x = 1\n"
         let fixed = try fix(source, [target(.unusedImport, "B", .module, at: "import B", in: source)])
