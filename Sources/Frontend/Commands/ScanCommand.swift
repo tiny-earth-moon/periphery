@@ -162,6 +162,9 @@ struct ScanCommand: ParsableCommand {
         let swiftVersion = try SwiftVersion(shell: shell)
         logger.debug(swiftVersion.fullVersion)
         try swiftVersion.validateVersion()
+        if let deprecationWarning = swiftVersion.deprecationWarning {
+            logger.warn(deprecationWarning)
+        }
 
         let project: Project = if configuration.guidedSetup {
             try GuidedSetup(configuration: configuration, shell: shell, logger: logger).perform()
