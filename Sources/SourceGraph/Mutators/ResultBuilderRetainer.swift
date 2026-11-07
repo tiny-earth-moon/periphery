@@ -26,7 +26,7 @@ final class ResultBuilderRetainer: SourceGraphMutator {
         for decl in graph.declarations(ofKinds: Declaration.Kind.toplevelAttributableKind) where decl.attributes.contains(where: { $0.name == "resultBuilder" }) {
             for childDecl in decl.declarations {
                 if isResultBuilderMethod(childDecl.name) {
-                    graph.markRetained(childDecl)
+                    graph.markRetained(childDecl, reason: RetentionReason(Self.self, "result builder method"))
                 }
             }
         }

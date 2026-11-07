@@ -19,7 +19,7 @@ final class AttributeRetainer: SourceGraphMutator {
 
         for declaration in graph.allDeclarations where !declaration.attributes.isEmpty {
             if rules.contains(where: { $0.retains(declaration) }) {
-                graph.markRetained(declaration)
+                graph.markRetained(declaration, reason: RetentionReason(Self.self, "retain_attributes"))
             }
         }
     }

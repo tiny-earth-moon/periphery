@@ -39,7 +39,7 @@ final class LocalizedStringRetainer: SourceGraphMutator {
                 : owners.reduce(into: globalPrefixes) { $0.formUnion(modulePrefixes[$1] ?? []) }
 
             if matcher.matches(key) || prefixes.contains(where: { key.hasPrefix($0) }) {
-                graph.markRetained(declaration)
+                graph.markRetained(declaration, reason: RetentionReason(Self.self, "localized string key used by the code"))
             }
         }
     }

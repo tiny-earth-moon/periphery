@@ -31,18 +31,30 @@ final class PlatformConditionalRetainer: SourceGraphMutator {
 
         for decl in graph.allDeclarations {
             if isUnavailableOnPlatform(decl) {
-                graph.markRetained(decl)
-                graph.markRetained(decl.descendentDeclarations)
+                graph.markRetained(decl, reason: RetentionReason(Self.self, "declared unavailable on a platform with @available"))
+                graph.markRetained(decl.descendentDeclarations, reason: RetentionReason(Self.self, "inside \(decl.name), declared unavailable on a platform with @available"))
             } else if !names.isEmpty,
                       !Self.nonReferenceableKinds.contains(decl.kind),
                       names.contains(Self.baseName(of: decl.name))
             {
-                graph.markRetained(decl)
+                graph.markRetained(decl, reason: nameRetentionReason(Self.baseName(of: decl.name)))
             }
         }
     }
 
     // MARK: - Private
+
+    /// The first place, in file and line order, where the name is written in a platform conditional block.
+    private func nameRetentionReason(_ name: String) -> RetentionReason {
+        let site = graph.platformConditionalNameSites[name, default: []].min {
+            ($0.file.path.string, $0.line) < ($1.file.path.string, $1.line)
+        }
+        guard let site else {
+            return RetentionReason(Self.self, "name '\(name)' written in a platform conditional block")
+        }
+
+        return RetentionReason(Self.self, "name '\(name)' written in \(site.condition) at \(site.file.path.string):\(site.line)")
+    }
 
     static func baseName(of declarationName: String) -> String {
         declarationName.prefix { $0 != "(" }.trimmingCharacters(in: CharacterSet(charactersIn: "`"))

@@ -16,7 +16,7 @@ final class SwiftTestingRetainer: SourceGraphMutator {
             guard decl.location.file.importsSwiftTesting else { continue }
 
             if decl.attributes.contains(where: { $0.name == "Suite" }) {
-                graph.markRetained(decl)
+                graph.markRetained(decl, reason: RetentionReason(Self.self, "@Suite"))
             }
         }
 
@@ -24,10 +24,10 @@ final class SwiftTestingRetainer: SourceGraphMutator {
             guard decl.location.file.importsSwiftTesting else { continue }
 
             if decl.attributes.contains(where: { $0.name == "Test" }) {
-                graph.markRetained(decl)
+                graph.markRetained(decl, reason: RetentionReason(Self.self, "@Test"))
 
                 if let parent = decl.parent {
-                    graph.markRetained(parent)
+                    graph.markRetained(parent, reason: RetentionReason(Self.self, "type of the @Test function \(decl.name)"))
                 }
             }
         }

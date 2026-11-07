@@ -27,8 +27,8 @@ final class AssetCatalogSymbolRetainer: SourceGraphMutator {
     private func retainNonSymbols(_ declaration: Declaration, kinds: [AssetCatalogSymbolKind]) {
         guard GeneratedAssetSymbols.symbolKind(of: declaration, in: kinds) == nil else { return }
 
-        graph.markRetained(declaration)
-        graph.markRetained(declaration.unusedParameters)
+        graph.markRetained(declaration, reason: RetentionReason(Self.self, "asset catalog symbol"))
+        graph.markRetained(declaration.unusedParameters, reason: RetentionReason(Self.self, "asset catalog symbol"))
 
         for child in declaration.declarations {
             retainNonSymbols(child, kinds: kinds)

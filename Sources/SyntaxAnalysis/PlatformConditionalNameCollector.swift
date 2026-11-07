@@ -18,14 +18,25 @@ public final class PlatformConditionalNameCollector: SyntaxVisitor {
 
     private static let evaluableConditions: Set<String> = ["os", "arch", "targetEnvironment"]
 
+    /// A line that names an identifier inside a platform conditional clause, and the clause's condition.
+    public struct Site: Hashable {
+        public let line: Int
+        public let condition: String
+    }
+
     public private(set) var names: Set<String> = []
+    /// The sites of each name, only collected when a location converter is given (for `--explain`).
+    public private(set) var sites: [String: [Site]] = [:]
 
     private let configurations: [PlatformBuildConfiguration]
+    private let locationConverter: SourceLocationConverter?
 
     /// - Parameter configurations: the configurations the file was compiled for. When empty, every clause of every
     ///   platform conditional block is collected.
-    public init(configurations: [PlatformBuildConfiguration] = []) {
+    /// - Parameter locationConverter: when given, the line and condition of each name are collected too.
+    public init(configurations: [PlatformBuildConfiguration] = [], locationConverter: SourceLocationConverter? = nil) {
         self.configurations = configurations
+        self.locationConverter = locationConverter
         super.init(viewMode: .sourceAccurate)
     }
 
@@ -36,6 +47,17 @@ public final class PlatformConditionalNameCollector: SyntaxVisitor {
         let collector = PlatformConditionalNameCollector(configurations: configurations)
         collector.walk(syntax)
         return collector.names
+    }
+
+    /// The names with the line and condition of each place they are written, for `--explain`.
+    public static func collectSites(
+        from syntax: SourceFileSyntax,
+        configurations: [PlatformBuildConfiguration] = [],
+        locationConverter: SourceLocationConverter
+    ) -> [String: [Site]] {
+        let collector = PlatformConditionalNameCollector(configurations: configurations, locationConverter: locationConverter)
+        collector.walk(syntax)
+        return collector.sites
     }
 
     override public func visit(_ node: IfConfigDeclSyntax) -> SyntaxVisitorContinueKind {
@@ -61,7 +83,14 @@ public final class PlatformConditionalNameCollector: SyntaxVisitor {
 
         for token in elements.tokens(viewMode: .sourceAccurate) {
             if case .identifier = token.tokenKind, isReference(token) {
-                names.insert(token.identifier?.name ?? token.text)
+                let name = token.identifier?.name ?? token.text
+                names.insert(name)
+
+                if let locationConverter {
+                    let condition = clause.condition.map { "\(clause.poundKeyword.text) \($0.trimmedDescription)" } ?? clause.poundKeyword.text
+                    let line = token.startLocation(converter: locationConverter).line
+                    sites[name, default: []].append(Site(line: line, condition: condition))
+                }
             }
         }
     }

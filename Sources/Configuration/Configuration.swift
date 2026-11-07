@@ -243,6 +243,9 @@ public final class Configuration {
     public var guidedSetup: Bool = false
     public var projectRoot: FilePath = .init()
 
+    /// The declarations to explain (`--explain`, command line only): names, USRs or `file:line` locations.
+    public var explain: [String] = []
+
     public var hasNonDefaultValues: Bool {
         settings.contains(where: \.hasNonDefaultValue)
     }

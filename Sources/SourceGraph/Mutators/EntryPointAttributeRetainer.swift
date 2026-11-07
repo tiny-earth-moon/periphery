@@ -42,29 +42,36 @@ final class EntryPointAttributeRetainer: SourceGraphMutator {
                 where extensionDeclaration.attributes.contains(where: { $0.name == "main" })
             {
                 retainEntryPoint(extendedDeclaration)
-                graph.markRetained(extensionDeclaration)
+                graph.markRetained(extensionDeclaration, reason: RetentionReason(Self.self, "@main entry point"))
                 retainMainFunction(in: extensionDeclaration)
 
                 for ancestralDeclaration in extensionDeclaration.ancestralDeclarations {
-                    graph.markRetained(ancestralDeclaration)
+                    graph.markRetained(ancestralDeclaration, reason: RetentionReason(Self.self, "encloses a @main entry point"))
                 }
             }
         }
     }
 
     private func retainEntryPoint(_ declaration: Declaration) {
-        graph.markRetained(declaration)
+        graph.markRetained(declaration, reason: RetentionReason(Self.self, Self.entryPointDetail(of: declaration)))
         graph.markMainAttributed(declaration)
 
         for ancestralDeclaration in declaration.ancestralDeclarations {
-            graph.markRetained(ancestralDeclaration)
+            graph.markRetained(ancestralDeclaration, reason: RetentionReason(Self.self, "encloses an entry point"))
         }
+    }
+
+    private static func entryPointDetail(of declaration: Declaration) -> String {
+        let attribute = ["main", "UIApplicationMain", "NSApplicationMain"].first { name in
+            declaration.attributes.contains { $0.name == name }
+        }
+        return "@\(attribute ?? "main") entry point"
     }
 
     /// @main requires a static main() function.
     private func retainMainFunction(in declaration: Declaration) {
         declaration.declarations
             .filter { $0.kind == .functionMethodStatic && $0.name == "main()" }
-            .forEach { graph.markRetained($0) }
+            .forEach { graph.markRetained($0, reason: RetentionReason(Self.self, "static main() of a @main entry point")) }
     }
 }

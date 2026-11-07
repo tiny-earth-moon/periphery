@@ -24,7 +24,7 @@ final class CodingKeyEnumReferenceBuilder: SourceGraphMutator {
             for elem in enumDeclaration.declarations {
                 guard elem.kind == .enumelement else { continue }
 
-                graph.markRetained(elem)
+                graph.markRetained(elem, reason: RetentionReason(Self.self, "case of a CodingKeys enum"))
             }
 
             if graph.isCodable(parent) {

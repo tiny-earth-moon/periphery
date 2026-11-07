@@ -2,6 +2,7 @@ import Configuration
 import Foundation
 import Logger
 import Shared
+import SystemPackage
 
 public final class SourceGraph {
     public private(set) var allDeclarations: Set<Declaration> = []
@@ -58,6 +59,16 @@ public final class SourceGraph {
     /// Swift literals naming a Metal function that no `.metal` file declares.
     public private(set) var missingMetalFunctions: Set<Declaration> = []
 
+    /// Whether the graph records why declarations are retained or used, and why references are discarded, for
+    /// `--explain`. Nothing is recorded otherwise, so a normal scan pays nothing.
+    public let recordsExplanations: Bool
+    public private(set) var retentionReasons: [Declaration: [RetentionReason]] = [:]
+    public private(set) var discardedReferencesByUsr: [String: [DiscardedReference]] = [:]
+    public private(set) var usePredecessors: [Declaration: UsePredecessor] = [:]
+    public private(set) var platformConditionalNameSites: [String: [PlatformConditionalNameSite]] = [:]
+    /// Source files without index data, by module (target), recorded only for `--explain`.
+    public private(set) var unindexedSourceFilesByModule: [String: [FilePath]] = [:]
+
     private var indexedModules: Set<String> = []
     private var indexedSystemModules: Set<String> = []
     private var systemModulesByUsr: [String: Set<String>] = [:]
@@ -73,6 +84,7 @@ public final class SourceGraph {
     public init(configuration: Configuration, logger: Logger) {
         self.configuration = configuration
         self.logger = logger
+        recordsExplanations = !configuration.explain.isEmpty
     }
 
     public func indexingComplete() {
@@ -173,7 +185,31 @@ public final class SourceGraph {
         }
     }
 
+    /// Retains the declaration, and records the reason when explanations are recorded. The reason is only built in
+    /// that case.
+    public func markRetained(_ declaration: Declaration, reason: @autoclosure () -> RetentionReason) {
+        if recordsExplanations {
+            recordRetentionReason(reason(), for: declaration)
+        }
+
+        markRetained(declaration)
+    }
+
+    public func markRetained(_ declarations: Set<Declaration>, reason: @autoclosure () -> RetentionReason) {
+        guard recordsExplanations else {
+            markRetained(declarations)
+            return
+        }
+
+        let reason = reason()
+        declarations.forEach { markRetained($0, reason: reason) }
+    }
+
     func unmarkRetained(_ declaration: Declaration) {
+        if recordsExplanations {
+            retentionReasons.removeValue(forKey: declaration)
+        }
+
         retainedDeclarations.remove(declaration)
 
         let retainedReferences = declaration.usrs.flatMapSet { usr in
@@ -275,6 +311,16 @@ public final class SourceGraph {
         add(reference)
     }
 
+    /// Removes the reference, and records why when explanations are recorded.
+    func remove(_ reference: Reference, discardedBy mutator: Any.Type, detail: @autoclosure () -> String) {
+        if recordsExplanations {
+            let discarded = DiscardedReference(reference: reference, mutator: String(describing: mutator), detail: detail())
+            discardedReferencesByUsr[reference.usr, default: []].append(discarded)
+        }
+
+        remove(reference)
+    }
+
     func remove(_ reference: Reference) {
         _ = allReferences.remove(reference)
         allReferences.subtract(reference.descendentReferences)
@@ -347,6 +393,31 @@ public final class SourceGraph {
 
     func markUsed(_ declaration: Declaration) {
         _ = usedDeclarations.insert(declaration)
+    }
+
+    /// Records how the used-declaration traversal first reached the declaration, keeping the first predecessor.
+    func recordUsePredecessor(_ predecessor: UsePredecessor, for declaration: Declaration) {
+        guard recordsExplanations, usePredecessors[declaration] == nil else { return }
+
+        usePredecessors[declaration] = predecessor
+    }
+
+    public func addPlatformConditionalNameSites(_ sites: [String: [PlatformConditionalNameSite]]) {
+        guard recordsExplanations else { return }
+
+        platformConditionalNameSites.merge(sites) { $0 + $1 }
+    }
+
+    public func addUnindexedSourceFiles(_ files: [FilePath], module: String) {
+        guard recordsExplanations else { return }
+
+        unindexedSourceFilesByModule[module, default: []].append(contentsOf: files)
+    }
+
+    private func recordRetentionReason(_ reason: RetentionReason, for declaration: Declaration) {
+        if !retentionReasons[declaration, default: []].contains(reason) {
+            retentionReasons[declaration, default: []].append(reason)
+        }
     }
 
     func isUsed(_ declaration: Declaration) -> Bool {

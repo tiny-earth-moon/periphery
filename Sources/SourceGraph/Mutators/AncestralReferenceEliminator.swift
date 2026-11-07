@@ -29,7 +29,7 @@ final class AncestralReferenceEliminator: SourceGraphMutator {
     private func eliminateAncestralReferences(in references: Set<Reference>, stack: Set<String>) {
         for reference in references {
             if stack.contains(reference.usr) {
-                graph.remove(reference)
+                graph.remove(reference, discardedBy: Self.self, detail: "self-reference, written inside the declaration it refers to")
             }
 
             eliminateAncestralReferences(in: reference.references, stack: stack)

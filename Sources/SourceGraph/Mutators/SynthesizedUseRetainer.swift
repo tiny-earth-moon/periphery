@@ -80,7 +80,7 @@ final class SynthesizedUseRetainer: SourceGraphMutator {
         else { return }
 
         for property in type.declarations where property.kind == .varInstance && isStored(property) {
-            graph.markRetained(property)
+            graph.markRetained(property, reason: RetentionReason(Self.self, "retain_synthesized_uses, described through reflection"))
 
             // Reflection describes stored values recursively.
             if let declaredType = property.declaredType {
