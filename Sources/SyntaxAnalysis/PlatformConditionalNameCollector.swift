@@ -13,6 +13,10 @@ import SwiftSyntax
 /// their references are already in the index store. A block is only narrowed this way when every condition is made
 /// of `os()`, `arch()` and `targetEnvironment()` checks joined by `!`, `&&` and `||`, when it is not nested in another
 /// `#if` block, and when every configuration evaluates it without a diagnostic. Otherwise the whole block is collected.
+///
+/// With `narrowsNestedBlocks`, a block nested in other `#if` blocks is narrowed too, when every enclosing block can be
+/// narrowed: a configuration compiles one of its clauses when it also compiles every enclosing clause. The clauses no
+/// configuration compiles are collected exactly as without it.
 public final class PlatformConditionalNameCollector: PeripherySyntaxNodeVisitor {
     private static let platformConditions: Set<String> = ["os", "targetEnvironment", "arch", "canImport"]
 
@@ -29,23 +33,32 @@ public final class PlatformConditionalNameCollector: PeripherySyntaxNodeVisitor 
     public private(set) var sites: [String: [Site]] = [:]
 
     private let configurations: [PlatformBuildConfiguration]
+    private let narrowsNestedBlocks: Bool
     private let locationConverter: SourceLocationConverter?
     /// The block whose clauses were all collected: the blocks it contains are not visited.
     private var collectedBlock: SyntaxIdentifier?
 
     /// - Parameter configurations: the configurations the file was compiled for. When empty, every clause of every
     ///   platform conditional block is collected.
+    /// - Parameter narrowsNestedBlocks: whether the blocks nested in another `#if` block are narrowed too, instead of
+    ///   being collected whole.
     /// - Parameter locationConverter: when given, the line and condition of each name are collected too.
-    public init(configurations: [PlatformBuildConfiguration] = [], locationConverter: SourceLocationConverter? = nil) {
+    public init(
+        configurations: [PlatformBuildConfiguration] = [],
+        narrowsNestedBlocks: Bool = false,
+        locationConverter: SourceLocationConverter? = nil
+    ) {
         self.configurations = configurations
+        self.narrowsNestedBlocks = narrowsNestedBlocks
         self.locationConverter = locationConverter
     }
 
     public static func collect(
         from syntax: SourceFileSyntax,
-        configurations: [PlatformBuildConfiguration] = []
+        configurations: [PlatformBuildConfiguration] = [],
+        narrowsNestedBlocks: Bool = false
     ) -> Set<String> {
-        let collector = PlatformConditionalNameCollector(configurations: configurations)
+        let collector = PlatformConditionalNameCollector(configurations: configurations, narrowsNestedBlocks: narrowsNestedBlocks)
         collector.walk(syntax)
         return collector.names
     }
@@ -55,7 +68,8 @@ public final class PlatformConditionalNameCollector: PeripherySyntaxNodeVisitor 
 
         if let uncompiledClauses = uncompiledClauses(of: node) {
             uncompiledClauses.forEach(collectNames(in:))
-            // Blocks nested in a compiled clause are visited, and collected whole as they are nested.
+            // Blocks nested in a compiled clause are visited: collected whole as they are nested, or narrowed with
+            // `narrowsNestedBlocks`.
             return
         }
 
@@ -92,18 +106,29 @@ public final class PlatformConditionalNameCollector: PeripherySyntaxNodeVisitor 
     /// Returns the clauses that none of the configurations compiled, or `nil` when they cannot be known with
     /// certainty.
     private func uncompiledClauses(of node: IfConfigDeclSyntax) -> [IfConfigClauseSyntax]? {
+        let enclosingClauses = enclosingClauses(of: node)
+
         guard !configurations.isEmpty,
-              !isNestedInIfConfig(node),
-              node.clauses.allSatisfy({ $0.condition.map(isEvaluable) ?? true })
+              enclosingClauses.isEmpty || narrowsNestedBlocks,
+              isEvaluable(node),
+              enclosingClauses.allSatisfy({ isEvaluable($0.block) })
         else { return nil }
 
         var compiledClauses: Set<SyntaxIdentifier> = []
 
         for configuration in configurations {
-            let (clause, diagnostics) = node.activeClause(in: configuration)
-            guard diagnostics.isEmpty else { return nil }
+            guard let clause = activeClause(of: node, in: configuration) else { return nil }
 
-            if let clause {
+            var compilesEnclosingClauses = true
+            for (block, enclosingClause) in enclosingClauses {
+                guard let activeClause = activeClause(of: block, in: configuration) else { return nil }
+
+                if activeClause?.id != enclosingClause.id {
+                    compilesEnclosingClauses = false
+                }
+            }
+
+            if compilesEnclosingClauses, let clause {
                 compiledClauses.insert(clause.id)
             }
         }
@@ -111,17 +136,31 @@ public final class PlatformConditionalNameCollector: PeripherySyntaxNodeVisitor 
         return node.clauses.filter { !compiledClauses.contains($0.id) }
     }
 
-    private func isNestedInIfConfig(_ node: IfConfigDeclSyntax) -> Bool {
+    /// The clause the configuration compiles, `.some(nil)` when it compiles none, or `nil` when it cannot be known.
+    private func activeClause(of node: IfConfigDeclSyntax, in configuration: PlatformBuildConfiguration) -> IfConfigClauseSyntax?? {
+        let (clause, diagnostics) = node.activeClause(in: configuration)
+        guard diagnostics.isEmpty else { return nil }
+
+        return .some(clause)
+    }
+
+    private func isEvaluable(_ node: IfConfigDeclSyntax) -> Bool {
+        node.clauses.allSatisfy { $0.condition.map(isEvaluable) ?? true }
+    }
+
+    /// The `#if` blocks the node is nested in, from the innermost, with the clause of each that contains it.
+    private func enclosingClauses(of node: IfConfigDeclSyntax) -> [(block: IfConfigDeclSyntax, clause: IfConfigClauseSyntax)] {
+        var result: [(block: IfConfigDeclSyntax, clause: IfConfigClauseSyntax)] = []
         var parent = node.parent
 
         while let current = parent {
-            if current.is(IfConfigClauseSyntax.self) {
-                return true
+            if let clause = current.as(IfConfigClauseSyntax.self), let block = clause.parent?.parent?.as(IfConfigDeclSyntax.self) {
+                result.append((block, clause))
             }
             parent = current.parent
         }
 
-        return false
+        return result
     }
 
     /// Returns `true` when the condition only combines `os()`, `arch()` and `targetEnvironment()` checks with `!`,

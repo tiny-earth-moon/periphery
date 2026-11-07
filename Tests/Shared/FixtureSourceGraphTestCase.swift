@@ -38,12 +38,14 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         externalTestCaseClasses: [String] = [],
         retainFiles: [String] = [],
         disablePlatformConditionalRetention: Bool = false,
+        platformConditionalRetention: PlatformConditionalRetention = .default,
         retainSynthesizedUses: Bool = false,
         retainAttributes: [String] = [],
         detectUnusedAssetCatalogColors: Bool = false,
         detectUnusedAssetCatalogImages: Bool = false,
         detectUnusedMetalFunctions: Bool = false,
         projectRoot: FilePath? = nil,
+        fixtureTests: [String]? = nil,
         testBlock: () throws -> Void
     ) rethrows -> [ScanResult] {
         let configuration = Configuration()
@@ -69,6 +71,7 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
         configuration.externalTestCaseClasses = externalTestCaseClasses
         configuration.retainFiles = retainFiles
         configuration.disablePlatformConditionalRetention = disablePlatformConditionalRetention
+        configuration.platformConditionalRetention = platformConditionalRetention
         configuration.retainSynthesizedUses = retainSynthesizedUses
         configuration.retainAttributes = retainAttributes
         configuration.detectUnusedAssetCatalogColors = detectUnusedAssetCatalogColors
@@ -81,11 +84,16 @@ class FixtureSourceGraphTestCase: SPMSourceGraphTestCase {
 
         configuration.buildFilenameMatchers()
 
-        if !testFixturePath.exists {
-            fatalError("\(testFixturePath.string) does not exist")
+        // The fixtures of other tests of the suite, instead of the fixture named after the test.
+        let fixturePaths = fixtureTests.map { tests in
+            tests.map { testFixturePath.removingLastComponent().appending("\($0).swift") }
+        } ?? [testFixturePath]
+
+        for fixturePath in fixturePaths where !fixturePath.exists {
+            fatalError("\(fixturePath.string) does not exist")
         }
 
-        Self.index(sourceFiles: [testFixturePath] + additionalFilesToIndex, indexExcludedSourceFiles: indexExcludedFiles, xibPaths: xibPaths, plistPaths: plistPaths, configuration: configuration)
+        Self.index(sourceFiles: fixturePaths + additionalFilesToIndex, indexExcludedSourceFiles: indexExcludedFiles, xibPaths: xibPaths, plistPaths: plistPaths, configuration: configuration)
         try testBlock()
         return Self.results
     }

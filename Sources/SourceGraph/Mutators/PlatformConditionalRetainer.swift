@@ -7,6 +7,9 @@ import Shared
 ///  - declarations marked `@available(<platform>, unavailable)`, as they exist for other platforms, and
 ///  - declarations whose name is written inside a platform conditional `#if` block, as the reference may live
 ///    in a branch that was not compiled.
+///
+/// With `platform_conditional_retention: auto`, a declaration marked unavailable is not retained when its file was
+/// indexed for one of these platforms and for a platform where it is available (see `IndexVariant.cover`).
 final class PlatformConditionalRetainer: SourceGraphMutator {
     static let nonReferenceableKinds: Set<Declaration.Kind> = [
         .module, .extension, .extensionClass, .extensionEnum, .extensionProtocol, .extensionStruct,
@@ -25,12 +28,17 @@ final class PlatformConditionalRetainer: SourceGraphMutator {
     }
 
     func mutate() {
-        guard !configuration.disablePlatformConditionalRetention else { return }
+        let retention = configuration.resolvedPlatformConditionalRetention
+        guard retention != .off else { return }
 
         let names = graph.platformConditionalNames
 
         for decl in graph.allDeclarations {
-            if isUnavailableOnPlatform(decl) {
+            let unavailablePlatforms = Self.unavailablePlatforms(of: decl)
+            let isCovered = retention == .auto
+                && IndexVariant.cover(unavailablePlatforms: unavailablePlatforms, in: decl.location.file.variants)
+
+            if !unavailablePlatforms.isEmpty, !isCovered {
                 graph.markRetained(decl, reason: RetentionReason(Self.self, "declared unavailable on a platform with @available"))
                 graph.markRetained(decl.descendentDeclarations, reason: RetentionReason(Self.self, "inside \(decl.name), declared unavailable on a platform with @available"))
             } else if !names.isEmpty,
@@ -84,9 +92,10 @@ final class PlatformConditionalRetainer: SourceGraphMutator {
         return result
     }
 
-    private func isUnavailableOnPlatform(_ decl: Declaration) -> Bool {
-        decl.attributes.contains { attribute in
-            guard attribute.name == "available", let arguments = attribute.arguments else { return false }
+    /// The platforms of the `@available(<platform>, unavailable)` attributes of the declaration.
+    static func unavailablePlatforms(of decl: Declaration) -> Set<String> {
+        decl.attributes.compactMapSet { attribute -> String? in
+            guard attribute.name == "available", let arguments = attribute.arguments else { return nil }
 
             let parts = Self.removingStringLiterals(from: arguments)
                 .split(separator: ",")
@@ -96,9 +105,9 @@ final class PlatformConditionalRetainer: SourceGraphMutator {
                   platform != "*",
                   platform != "swift",
                   !platform.hasSuffix("ApplicationExtension")
-            else { return false }
+            else { return nil }
 
-            return parts.dropFirst().contains("unavailable")
+            return parts.dropFirst().contains("unavailable") ? platform : nil
         }
     }
 }

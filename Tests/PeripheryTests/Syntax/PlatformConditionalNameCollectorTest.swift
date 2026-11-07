@@ -7,8 +7,12 @@ final class PlatformConditionalNameCollectorTest: XCTestCase {
     private let macOS = PlatformBuildConfiguration(triple: "arm64-apple-macosx14.0")!
     private let iOSSimulator = PlatformBuildConfiguration(triple: "arm64-apple-ios18.0-simulator")!
 
-    private func collect(_ source: String, _ configurations: [PlatformBuildConfiguration]) -> Set<String> {
-        PlatformConditionalNameCollector.collect(from: Parser.parse(source: source), configurations: configurations)
+    private func collect(_ source: String, _ configurations: [PlatformBuildConfiguration], narrowsNestedBlocks: Bool = false) -> Set<String> {
+        PlatformConditionalNameCollector.collect(
+            from: Parser.parse(source: source),
+            configurations: configurations,
+            narrowsNestedBlocks: narrowsNestedBlocks
+        )
     }
 
     func testParsesKnownTriples() throws {
@@ -151,5 +155,77 @@ final class PlatformConditionalNameCollectorTest: XCTestCase {
         """
 
         XCTAssertEqual(collect(source, [macOS]), ["iOSModifier"])
+    }
+
+    // MARK: - Nested blocks (`platform_conditional_retention: auto`)
+
+    private let nestedSource = """
+    #if DEBUG
+    #if os(macOS)
+    debugMacOSOnly()
+    #endif
+    #endif
+
+    #if os(macOS)
+    macOSOnly()
+    #if arch(arm64)
+    armOnly()
+    #else
+    intelOnly()
+    #endif
+    #elseif os(iOS)
+    iOSOnly()
+    #if targetEnvironment(simulator)
+    simulatorOnly()
+    #else
+    deviceOnly()
+    #endif
+    #else
+    otherOnly()
+    #if os(watchOS)
+    watchOnly()
+    #endif
+    #endif
+    """
+
+    /// The condition of a nested block (`os`, `watchOS`) is collected with the clause containing it, as it always was.
+    func testNarrowsNestedBlocksWithTheBuildsOfEveryEnclosingClause() {
+        XCTAssertEqual(
+            collect(nestedSource, [macOS, iOSSimulator]),
+            ["debugMacOSOnly", "armOnly", "intelOnly", "simulatorOnly", "deviceOnly", "otherOnly", "os", "watchOS", "watchOnly"]
+        )
+        XCTAssertEqual(
+            collect(nestedSource, [macOS, iOSSimulator], narrowsNestedBlocks: true),
+            ["debugMacOSOnly", "intelOnly", "deviceOnly", "otherOnly", "os", "watchOS", "watchOnly"]
+        )
+    }
+
+    /// With a single build, narrowing nested blocks only skips the clauses that build compiled: every clause it did not
+    /// compile, about another platform, is collected as without narrowing.
+    func testNarrowingNestedBlocksKeepsEveryClauseASingleBuildDidNotCompile() {
+        for configuration in [macOS, iOSSimulator] {
+            let allClauses = collect(nestedSource, [configuration])
+            let narrowed = collect(nestedSource, [configuration], narrowsNestedBlocks: true)
+
+            XCTAssertTrue(narrowed.isSubset(of: allClauses))
+            XCTAssertEqual(
+                allClauses.subtracting(narrowed),
+                configuration == macOS ? ["armOnly"] : ["simulatorOnly"]
+            )
+        }
+    }
+
+    func testCollectsNestedBlocksWholeWhenAnEnclosingBlockCannotBeEvaluated() {
+        let source = """
+        #if canImport(UIKit)
+        #if os(iOS)
+        iOSOnly()
+        #else
+        otherOnly()
+        #endif
+        #endif
+        """
+
+        XCTAssertEqual(collect(source, [iOSSimulator], narrowsNestedBlocks: true), ["os", "iOS", "iOSOnly", "otherOnly"])
     }
 }

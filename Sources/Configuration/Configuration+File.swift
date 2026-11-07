@@ -129,3 +129,9 @@ extension ColorOption: Yams.ScalarRepresentable {
         rawValue.represented()
     }
 }
+
+extension PlatformConditionalRetention: Yams.ScalarRepresentable {
+    public func represented() -> Node.Scalar {
+        rawValue.represented()
+    }
+}
