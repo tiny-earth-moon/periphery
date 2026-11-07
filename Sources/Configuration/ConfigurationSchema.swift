@@ -36,12 +36,7 @@ public extension Configuration {
     // MARK: - Private
 
     private static func schema(of setting: any AbstractSetting) -> JSONValue {
-        var members: [(String, JSONValue)] = []
-
-        if let description = settingDescriptions[setting.key] {
-            members.append(("description", .string(description)))
-        }
-
+        var members: [(String, JSONValue)] = [("description", .string(setting.description))]
         members += typeMembers(of: setting.kind)
 
         if let defaultValue = setting.defaultJSONValue {
