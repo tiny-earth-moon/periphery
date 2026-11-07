@@ -35,8 +35,13 @@ Recent releases, newest first:
 
 ## Next
 
+3.22.0, still to do:
+
 - Detect system modules on Linux ([#280](https://github.com/tiny-earth-moon/outskirts/issues/280)).
 - A support policy for Xcode, Swift and Linux, enforced by CI ([#235](https://github.com/tiny-earth-moon/outskirts/issues/235)).
+
+3.23.0:
+
 - An `outskirts fix` command with syntax-only fixes and a dry-run diff ([#237](https://github.com/tiny-earth-moon/outskirts/issues/237)).
 - Scan the union of all platform and configuration variants ([#233](https://github.com/tiny-earth-moon/outskirts/issues/233)).
 
@@ -44,12 +49,10 @@ Recent releases, newest first:
 
 The 4.0 theme ([#241](https://github.com/tiny-earth-moon/outskirts/issues/241)): what ships on any platform or configuration is used; everything else is reported with a stable id and can be removed safely. These changes are breaking and ship together:
 
-- Scan the union of all platform and configuration variants instead of name-based retention ([#233](https://github.com/tiny-earth-moon/outskirts/issues/233)).
 - Configuration v2: schema, strict validation and per-module overrides ([#238](https://github.com/tiny-earth-moon/outskirts/issues/238)).
 - Output v2: stable rule-aware ids, relative paths and baseline v2 ([#239](https://github.com/tiny-earth-moon/outskirts/issues/239)).
 - Distinct, documented exit codes for findings and failures ([#232](https://github.com/tiny-earth-moon/outskirts/issues/232)).
 - Cleanup: drop the hidden `--no-color` flag and the Bazel shims, and a quieter `--index-store-path` mode ([#240](https://github.com/tiny-earth-moon/outskirts/issues/240)).
-- A support policy for Xcode, Swift and Linux, enforced by CI ([#235](https://github.com/tiny-earth-moon/outskirts/issues/235)).
-- A `fix` command: syntax-only fixes with a dry-run diff by default ([#237](https://github.com/tiny-earth-moon/outskirts/issues/237)), then removal of unused declarations once every variant is scanned ([#236](https://github.com/tiny-earth-moon/outskirts/issues/236)).
+- Removal of unused declarations by `outskirts fix` once every variant is scanned ([#236](https://github.com/tiny-earth-moon/outskirts/issues/236)).
 
 Ideas and requests are welcome as [issues](https://github.com/tiny-earth-moon/outskirts/issues).
