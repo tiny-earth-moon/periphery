@@ -167,6 +167,65 @@ final class FixCommandTest: XCTestCase {
         """)
     }
 
+    func testRemovingTwoConsecutiveImportsLeavesNoLeadingBlankLine() throws {
+        let source = "import CoreGraphics\nimport Foundation\n\nlet x = 1\n"
+        let fixed = try fix(source, [
+            target(.unusedImport, "CoreGraphics", .module, at: "import CoreGraphics", in: source),
+            target(.unusedImport, "Foundation", .module, at: "import Foundation", in: source),
+        ])
+
+        XCTAssertEqual(fixed, "let x = 1\n")
+    }
+
+    func testRemovingThreeConsecutiveImportsLeavesNoLeadingBlankLine() throws {
+        let source = "import A\nimport B\nimport C\n\nlet x = 1\n"
+        let fixed = try fix(source, [
+            target(.unusedImport, "A", .module, at: "import A", in: source),
+            target(.unusedImport, "B", .module, at: "import B", in: source),
+            target(.unusedImport, "C", .module, at: "import C", in: source),
+        ])
+
+        XCTAssertEqual(fixed, "let x = 1\n")
+    }
+
+    func testRemovingTwoConsecutiveImportsAfterAHeaderLeavesOneBlankLine() throws {
+        let source = "// Header.\n\nimport A\nimport B\n\nlet x = 1\n"
+        let fixed = try fix(source, [
+            target(.unusedImport, "A", .module, at: "import A", in: source),
+            target(.unusedImport, "B", .module, at: "import B", in: source),
+        ])
+
+        XCTAssertEqual(fixed, "// Header.\n\nlet x = 1\n")
+    }
+
+    func testRemovingThreeConsecutiveImportsAfterAHeaderLeavesOneBlankLine() throws {
+        let source = "// Header.\n\nimport A\nimport B\nimport C\n\nlet x = 1\n"
+        let fixed = try fix(source, [
+            target(.unusedImport, "A", .module, at: "import A", in: source),
+            target(.unusedImport, "B", .module, at: "import B", in: source),
+            target(.unusedImport, "C", .module, at: "import C", in: source),
+        ])
+
+        XCTAssertEqual(fixed, "// Header.\n\nlet x = 1\n")
+    }
+
+    func testRemovingTheSingleImportMatchesRemovingAWholeBlock() throws {
+        let source = "// Header.\n\nimport A\n\nlet x = 1\n"
+        let fixed = try fix(source, [target(.unusedImport, "A", .module, at: "import A", in: source)])
+
+        XCTAssertEqual(fixed, "// Header.\n\nlet x = 1\n")
+    }
+
+    func testRemovingPartOfAnImportBlockKeepsTheBlankLine() throws {
+        let source = "import A\nimport B\nimport C\n\nlet x = 1\n"
+        let fixed = try fix(source, [
+            target(.unusedImport, "B", .module, at: "import B", in: source),
+            target(.unusedImport, "C", .module, at: "import C", in: source),
+        ])
+
+        XCTAssertEqual(fixed, "import A\n\nlet x = 1\n")
+    }
+
     func testUnusedImportSharingALineWithAnotherStatement() throws {
         let source = "import A; import B\nlet x = 1\n"
         let fixed = try fix(source, [target(.unusedImport, "B", .module, at: "import B", in: source)])
