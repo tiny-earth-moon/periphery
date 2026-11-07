@@ -121,7 +121,12 @@ public final class SourceGraph {
     }
 
     public func references(to decl: Declaration) -> Set<Reference> {
-        decl.usrs.flatMapSet { references(to: $0) }
+        // Most declarations have a single USR: share its set rather than copy it.
+        if decl.usrs.count == 1, let usr = decl.usrs.first {
+            return references(to: usr)
+        }
+
+        return decl.usrs.flatMapSet { references(to: $0) }
     }
 
     public func references(to usr: String) -> Set<Reference> {
@@ -257,7 +262,9 @@ public final class SourceGraph {
     }
 
     public func isRetained(_ declaration: Declaration) -> Bool {
-        retainedDeclarations.contains(declaration) || references(to: declaration).contains { $0.kind == .retained }
+        retainedDeclarations.contains(declaration) || declaration.usrs.contains { usr in
+            allReferencesByUsr[usr]?.contains { $0.kind == .retained } ?? false
+        }
     }
 
     public func add(_ declaration: Declaration) {

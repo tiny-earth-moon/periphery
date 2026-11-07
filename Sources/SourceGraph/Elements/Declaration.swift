@@ -333,7 +333,7 @@ extension Declaration: Hashable {
 
 extension Declaration: Equatable {
     public static func == (lhs: Declaration, rhs: Declaration) -> Bool {
-        lhs.usrs == rhs.usrs
+        lhs === rhs || lhs.usrs == rhs.usrs
     }
 }
 
