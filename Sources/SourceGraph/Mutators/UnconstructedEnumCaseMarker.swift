@@ -8,8 +8,8 @@ import SystemPackage
 /// Marks enum cases that are only matched in patterns and never constructed: no value of such a case can exist, so
 /// the case and the branches that match it are dead.
 ///
-/// The index store does not tell a pattern from a construction, so the source files that reference a candidate case
-/// are parsed, and every reference must sit at a name that `EnumCasePatternCollector` found at a pattern position.
+/// The index store does not tell a pattern from a construction, so the indexer walks every source file with
+/// `EnumCasePatternCollector`, and every reference must sit at a name it found at a pattern position.
 /// Any other reference, in whatever expression, counts as a construction. A false positive would make users delete
 /// live code, so every enum whose cases may be produced without a visible construction is skipped:
 /// - raw representable, `CaseIterable`, `Codable`/`Decodable` and `CodingKey` enums, and `@objc` enums;
@@ -65,10 +65,8 @@ final class UnconstructedEnumCaseMarker: SourceGraphMutator {
         let referencesByCase = candidates.reduce(into: [Declaration: Set<Reference>]()) {
             $0[$1] = graph.references(to: $1)
         }
-        // A file that cannot be read may construct a case in an `#if` clause or outside the index.
+        // A file left out by `index_exclude` that cannot be read may construct a case outside the index.
         guard let index = PatternIndex(
-            referenceFiles: referencesByCase.values.flatMapSet { $0.mapSet(\.location.file) },
-            allFiles: allSourceFiles(),
             indexExcludedFiles: graph.indexExcludedSourceFiles.filter { $0.extension == "swift" },
             enumsReceivedByPatternOperators: enumsReceivedByPatternOperators,
             enumElementReferences: Dictionary(grouping: graph.allReferences.filter { $0.declarationKind == .enumelement }, by: \.location),
@@ -195,12 +193,6 @@ final class UnconstructedEnumCaseMarker: SourceGraphMutator {
         return enums
     }
 
-    private func allSourceFiles() -> Set<SourceFile> {
-        graph.allDeclarations.mapSet(\.location.file)
-            .union(graph.allReferences.mapSet(\.location.file))
-            .filter { $0.path.extension == "swift" }
-    }
-
     private static func baseName(of name: String) -> String {
         String(name.prefix { $0 != "(" })
     }
@@ -210,22 +202,19 @@ final class UnconstructedEnumCaseMarker: SourceGraphMutator {
     }
 }
 
-/// The pattern sites of the parsed source files, and the names written outside the index.
+/// The pattern sites collected while indexing, and the names written outside the index.
 private struct PatternIndex {
     /// The names written in an `#if` clause or in a file left out by `index_exclude`.
-    private(set) var namesOutsideTheIndex: Set<String> = []
-    private var sites: [Location: EnumCasePatternCollector.Site] = [:]
+    private(set) var namesOutsideTheIndex: Set<String>
+    private let sites: [Location: EnumCasePatternSite]
     private let enumElementReferences: [Location: [Reference]]
     private let enumsReceivedByPatternOperators: Set<Declaration>
     private let graph: SourceGraph
 
-    /// - Parameter referenceFiles: the files referencing a candidate case, parsed for their pattern sites.
-    /// - Parameter allFiles: every Swift file of the graph, parsed for their `#if` names when they hold an `#if`.
-    /// - Parameter indexExcludedFiles: the files left out by `index_exclude`, whose every name is collected.
-    /// - Returns: `nil` when a file cannot be read.
+    /// The indexed files are walked while indexing. The files left out by `index_exclude` are not indexed, so they
+    /// are parsed here and their every name is collected.
+    /// - Returns: `nil` when a file left out by `index_exclude` cannot be read.
     init?(
-        referenceFiles: Set<SourceFile>,
-        allFiles: Set<SourceFile>,
         indexExcludedFiles: Set<FilePath>,
         enumsReceivedByPatternOperators: Set<Declaration>,
         enumElementReferences: [Location: [Reference]],
@@ -234,20 +223,8 @@ private struct PatternIndex {
         self.enumElementReferences = enumElementReferences
         self.enumsReceivedByPatternOperators = enumsReceivedByPatternOperators
         self.graph = graph
-
-        for file in referenceFiles.union(allFiles) {
-            guard let source = Self.read(file.path) else { return nil }
-            guard referenceFiles.contains(file) || source.contains("#if") else { continue }
-
-            let syntax = Parser.parse(source: source)
-            let collector = EnumCasePatternCollector(
-                file: file,
-                locationConverter: SourceLocationConverter(fileName: file.path.string, tree: syntax)
-            )
-            collector.walk(syntax)
-            namesOutsideTheIndex.formUnion(collector.conditionalNames)
-            sites.merge(collector.sites) { current, _ in current }
-        }
+        sites = graph.enumCasePatternSites
+        namesOutsideTheIndex = graph.enumCaseConditionalNames
 
         for path in indexExcludedFiles {
             guard let source = Self.read(path) else { return nil }
@@ -283,7 +260,7 @@ private struct PatternIndex {
     /// The arguments of a call are sub-patterns only when the callee is itself a case pattern: a reference to a case
     /// with associated values, or to an external case (`Optional.some`, `Result.success`). When a `~=` operator
     /// receives the enum of the callee, the call is an expression pattern that builds its arguments.
-    private func isInsideCasePattern(_ site: EnumCasePatternCollector.Site) -> Bool {
+    private func isInsideCasePattern(_ site: EnumCasePatternSite) -> Bool {
         guard let callLocation = site.enclosingCall else { return true }
         guard let calledCases = enumElementReferences[callLocation],
               let callSite = sites[callLocation],
