@@ -55,6 +55,10 @@ public final class SourceGraph {
     public private(set) var metalFunctionNameReferences: Set<MetalFunctionNameReference> = []
     /// Swift calls that create a Metal library at run time (from source, a file, data or a binary archive).
     public private(set) var metalRuntimeLibrarySites: Set<MetalRuntimeLibrarySite> = []
+    /// The names at pattern positions that may refer to enum cases, collected while indexing.
+    public private(set) var enumCasePatternSites: [Location: EnumCasePatternSite] = [:]
+    /// The identifiers written in any clause of an `#if` block, collected while indexing.
+    public private(set) var enumCaseConditionalNames: Set<String> = []
     /// Every Metal function name of the `.metal` files, including those of conditionally compiled blocks, which
     /// are never reported.
     public private(set) var declaredMetalFunctionNames: Set<String> = []
@@ -378,6 +382,11 @@ public final class SourceGraph {
 
     public func addMetalRuntimeLibrarySites(_ sites: Set<MetalRuntimeLibrarySite>) {
         metalRuntimeLibrarySites.formUnion(sites)
+    }
+
+    public func addEnumCasePatternSites(_ sites: [Location: EnumCasePatternSite], conditionalNames: Set<String>) {
+        enumCasePatternSites.merge(sites) { current, _ in current }
+        enumCaseConditionalNames.formUnion(conditionalNames)
     }
 
     public func logMetalRuntimeLibrary(_ site: MetalRuntimeLibrarySite) {

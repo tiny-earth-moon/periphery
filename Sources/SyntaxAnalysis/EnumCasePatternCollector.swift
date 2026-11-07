@@ -1,3 +1,4 @@
+import SourceGraph
 import SwiftSyntax
 
 /// Collects the names written at pattern positions that may refer to enum cases, and the identifiers written inside
@@ -12,58 +13,39 @@ import SwiftSyntax
 ///
 /// The index store only holds the active clause of an `#if` block, so a construction written in another clause is not
 /// indexed. Every identifier written in any clause is collected, active clause included.
-final class EnumCasePatternCollector: SyntaxVisitor {
-    /// The shape of a collected name.
-    enum Shape {
-        /// `.name` or `Type.name`.
-        case name
-        /// The callee of `.name(...)` or `Type.name(...)`.
-        case call
-    }
-
-    struct Site {
-        let shape: Shape
-        /// The location of the callee whose argument holds this name, `nil` at the top of the pattern.
-        let enclosingCall: Location?
-    }
-
-    private(set) var sites: [Location: Site] = [:]
-    private(set) var conditionalNames: Set<String> = []
+public final class EnumCasePatternCollector: PeripherySyntaxNodeVisitor {
+    public private(set) var sites: [Location: EnumCasePatternSite] = [:]
+    public private(set) var conditionalNames: Set<String> = []
 
     private let file: SourceFile
     private let locationConverter: SourceLocationConverter
 
-    init(file: SourceFile, locationConverter: SourceLocationConverter) {
+    public init(file: SourceFile, locationConverter: SourceLocationConverter) {
         self.file = file
         self.locationConverter = locationConverter
-        super.init(viewMode: .sourceAccurate)
     }
 
-    override func visit(_ node: SwitchCaseItemSyntax) -> SyntaxVisitorContinueKind {
+    public func visit(_ node: SwitchCaseItemSyntax) {
         collect(pattern: node.pattern, enclosingCall: nil)
-        return .visitChildren
     }
 
-    override func visit(_ node: MatchingPatternConditionSyntax) -> SyntaxVisitorContinueKind {
+    public func visit(_ node: MatchingPatternConditionSyntax) {
         collect(pattern: node.pattern, enclosingCall: nil)
-        return .visitChildren
     }
 
-    override func visit(_ node: ForStmtSyntax) -> SyntaxVisitorContinueKind {
+    public func visit(_ node: ForStmtSyntax) {
         if node.caseKeyword != nil {
             collect(pattern: node.pattern, enclosingCall: nil)
         }
-        return .visitChildren
     }
 
-    override func visit(_ node: CatchItemSyntax) -> SyntaxVisitorContinueKind {
+    public func visit(_ node: CatchItemSyntax) {
         if let pattern = node.pattern {
             collect(pattern: pattern, enclosingCall: nil)
         }
-        return .visitChildren
     }
 
-    override func visit(_ node: IfConfigClauseSyntax) -> SyntaxVisitorContinueKind {
+    public func visit(_ node: IfConfigClauseSyntax) {
         if let elements = node.elements {
             for token in elements.tokens(viewMode: .sourceAccurate) {
                 if case .identifier = token.tokenKind {
@@ -71,7 +53,6 @@ final class EnumCasePatternCollector: SyntaxVisitor {
                 }
             }
         }
-        return .visitChildren
     }
 
     // MARK: - Private
@@ -121,10 +102,10 @@ final class EnumCasePatternCollector: SyntaxVisitor {
     }
 
     @discardableResult
-    private func record(_ member: MemberAccessExprSyntax, shape: Shape, enclosingCall: Location?) -> Location {
+    private func record(_ member: MemberAccessExprSyntax, shape: EnumCasePatternSite.Shape, enclosingCall: Location?) -> Location {
         let position = locationConverter.location(for: member.declName.baseName.positionAfterSkippingLeadingTrivia)
         let location = Location(file: file, line: position.line, column: position.column)
-        sites[location] = Site(shape: shape, enclosingCall: enclosingCall)
+        sites[location] = EnumCasePatternSite(shape: shape, enclosingCall: enclosingCall)
         return location
     }
 }
