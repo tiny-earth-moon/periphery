@@ -70,7 +70,7 @@
             ]
           },
           "ruleId" : "redundantPublicAccessibility",
-          "ruleIndex" : 4
+          "ruleIndex" : 5
         },
         {
           "level" : "warning",
@@ -136,7 +136,7 @@
             }
           ],
           "ruleId" : "redundantProtocol",
-          "ruleIndex" : 3
+          "ruleIndex" : 4
         },
         {
           "level" : "warning",
@@ -232,7 +232,7 @@
             ]
           },
           "ruleId" : "unusedAssetCatalogColor",
-          "ruleIndex" : 10
+          "ruleIndex" : 11
         }
       ],
       "tool" : {
@@ -259,6 +259,13 @@
               "id" : "unassignedOptionalProperty",
               "shortDescription" : {
                 "text" : "The optional property is never assigned and is always nil"
+              }
+            },
+            {
+              "helpUri" : "https://outskirts.dev/docs/analysis/#unconstructed-enum-cases",
+              "id" : "enumCaseNeverConstructed",
+              "shortDescription" : {
+                "text" : "The enum case is only matched in patterns and never constructed"
               }
             },
             {

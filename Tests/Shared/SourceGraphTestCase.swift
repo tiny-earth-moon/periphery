@@ -301,6 +301,22 @@ open class SourceGraphTestCase: XCTestCase {
         }
     }
 
+    func assertEnumCaseNeverConstructed(_ description: DeclarationDescription, file: StaticString = #file, line: UInt = #line) {
+        guard let declaration = materialize(description, file: file, line: line) else { return }
+
+        if !Self.results.enumCaseNeverConstructedDeclarations.contains(declaration) {
+            XCTFail("Expected enum case to be never constructed: \(declaration)", file: file, line: line)
+        }
+    }
+
+    func assertNotEnumCaseNeverConstructed(_ description: DeclarationDescription, file: StaticString = #file, line: UInt = #line) {
+        guard let declaration = materialize(description, file: file, line: line) else { return }
+
+        if Self.results.enumCaseNeverConstructedDeclarations.contains(declaration) {
+            XCTFail("Expected enum case to not be reported as never constructed: \(declaration)", file: file, line: line)
+        }
+    }
+
     func assertNotUnassignedOptionalProperty(_ description: DeclarationDescription, file: StaticString = #file, line: UInt = #line) {
         guard let declaration = materialize(description, file: file, line: line) else { return }
 
@@ -438,6 +454,16 @@ private extension [ScanResult] {
     var assignOnlyPropertyDeclarations: Set<Declaration> {
         compactMapSet {
             if case .assignOnlyProperty = $0.annotation {
+                return $0.declaration
+            }
+
+            return nil
+        }
+    }
+
+    var enumCaseNeverConstructedDeclarations: Set<Declaration> {
+        compactMapSet {
+            if case .enumCaseNeverConstructed = $0.annotation {
                 return $0.declaration
             }
 

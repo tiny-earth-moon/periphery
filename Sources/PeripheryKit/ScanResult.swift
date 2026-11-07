@@ -7,6 +7,7 @@ public struct ScanResult {
         case unused
         case assignOnlyProperty
         case unassignedOptionalProperty
+        case enumCaseNeverConstructed
         case redundantProtocol(references: Set<Reference>, inherited: Set<String>)
         case redundantPublicAccessibility(modules: Set<String>)
         case redundantOpenAccessibility(modules: Set<String>)
@@ -54,6 +55,7 @@ extension ScanResult.Annotation {
         case .unused: "unused"
         case .assignOnlyProperty: "assignOnlyProperty"
         case .unassignedOptionalProperty: "unassignedOptionalProperty"
+        case .enumCaseNeverConstructed: "enumCaseNeverConstructed"
         case .redundantProtocol: "redundantProtocol"
         case .redundantPublicAccessibility: "redundantPublicAccessibility"
         case .redundantOpenAccessibility: "redundantOpenAccessibility"
@@ -69,8 +71,8 @@ extension ScanResult.Annotation {
     /// Every value `name` can take. Some payloads cannot be built in this module, so the names are listed; a test
     /// checks this set against `name` for every case.
     static let allNames: Set<String> = Set([
-        "unused", "assignOnlyProperty", "unassignedOptionalProperty", "redundantProtocol", "redundantPublicAccessibility",
-        "redundantOpenAccessibility", "missingFinal", "redundantAccessLevel", "emptyExtension", "superfluousIgnoreCommand",
-        "missingMetalFunction",
+        "unused", "assignOnlyProperty", "unassignedOptionalProperty", "enumCaseNeverConstructed", "redundantProtocol",
+        "redundantPublicAccessibility", "redundantOpenAccessibility", "missingFinal", "redundantAccessLevel", "emptyExtension",
+        "superfluousIgnoreCommand", "missingMetalFunction",
     ]).union(AssetCatalogSymbolKind.allCases.map(\.annotationName))
 }

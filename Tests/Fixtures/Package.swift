@@ -31,6 +31,13 @@ let linkageFixturesNeedingSwift62 = [
 ]
 #endif
 
+// `@objc` enums need the Objective-C runtime; their test is macOS-only.
+#if os(Linux)
+let unconstructedEnumCaseFixturesExcludedOnLinux = ["testObjcEnumsAreNotReported.swift"]
+#else
+let unconstructedEnumCaseFixturesExcludedOnLinux: [String] = []
+#endif
+
 var targets: [PackageDescription.Target] = [
     .target(
         name: "ExternalModuleFixtures"
@@ -160,6 +167,16 @@ var targets: [PackageDescription.Target] = [
     ),
     .target(
         name: "EnumCaseRetentionFixtures"
+    ),
+    .target(
+        name: "UnconstructedEnumCaseSupportFixtures"
+    ),
+    .target(
+        name: "UnconstructedEnumCaseFixtures",
+        dependencies: [
+            .target(name: "UnconstructedEnumCaseSupportFixtures")
+        ],
+        exclude: unconstructedEnumCaseFixturesExcludedOnLinux
     ),
 ]
 

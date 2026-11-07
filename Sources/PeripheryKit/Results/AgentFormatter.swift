@@ -176,6 +176,8 @@ public final class AgentFormatter: OutputFormatter {
             "remove property and its assignments"
         case .unassignedOptionalProperty:
             "remove property (never assigned, always nil)"
+        case .enumCaseNeverConstructed:
+            "delete case and the branches that match it (never constructed)"
         case let .redundantProtocol(references, inherited):
             redundantProtocolAction(references: references, inherited: inherited)
         case let .redundantPublicAccessibility(modules):

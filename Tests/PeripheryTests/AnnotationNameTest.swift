@@ -10,6 +10,7 @@ final class AnnotationNameTest: XCTestCase {
         (.unused, "unused"),
         (.assignOnlyProperty, "assignOnlyProperty"),
         (.unassignedOptionalProperty, "unassignedOptionalProperty"),
+        (.enumCaseNeverConstructed, "enumCaseNeverConstructed"),
         (.redundantProtocol(references: [], inherited: []), "redundantProtocol"),
         (.redundantPublicAccessibility(modules: []), "redundantPublicAccessibility"),
         (.redundantOpenAccessibility(modules: []), "redundantOpenAccessibility"),

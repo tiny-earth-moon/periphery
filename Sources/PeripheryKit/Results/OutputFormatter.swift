@@ -75,6 +75,8 @@ extension OutputFormatter {
             description += "Assign-only \(kindDisplayName) '\(name)' is assigned, but never used"
         case .unassignedOptionalProperty:
             description += "Optional property '\(name)' is never assigned (always nil)"
+        case .enumCaseNeverConstructed:
+            description += "Enum case '\(name)' is only matched, never constructed"
         case let .redundantProtocol(references, inherited):
             description += "Redundant protocol '\(name)' (never used as an existential type)"
             secondaryResults = sortedReferences(references).map {
