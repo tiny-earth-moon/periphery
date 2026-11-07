@@ -10,6 +10,7 @@ public final class EmptyExtensionSyntaxVisitor: PeripherySyntaxVisitor {
         public let extendedTypeName: String
         public let location: Location
         public let commentCommands: [CommentCommand]
+        public let range: DeclarationRange
     }
 
     public private(set) var results: [Result] = []
@@ -29,7 +30,8 @@ public final class EmptyExtensionSyntaxVisitor: PeripherySyntaxVisitor {
         let result = Result(
             extendedTypeName: node.extendedType.trimmedDescription,
             location: sourceLocationBuilder.location(at: node.extendedType.positionAfterSkippingLeadingTrivia),
-            commentCommands: CommentCommand.parseCommands(in: node.leadingTrivia)
+            commentCommands: CommentCommand.parseCommands(in: node.leadingTrivia),
+            range: sourceLocationBuilder.declarationRange(of: node, attributes: node.attributes)
         )
         results.append(result)
     }

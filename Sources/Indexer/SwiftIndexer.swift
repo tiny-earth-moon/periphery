@@ -666,7 +666,7 @@ final class SwiftIndexer: Indexer {
 
             graph.withLock { graph in
                 for emptyExtension in emptyExtensions {
-                    graph.markEmptyExtension(extendedTypeName: emptyExtension.extendedTypeName, location: emptyExtension.location)
+                    graph.markEmptyExtension(extendedTypeName: emptyExtension.extendedTypeName, location: emptyExtension.location, range: emptyExtension.range)
                 }
             }
         }
@@ -713,6 +713,7 @@ final class SwiftIndexer: Indexer {
                 decl.isActor = result.isActor
                 decl.isConstant = result.isConstant
                 decl.hasBody = result.hasBody
+                decl.range = result.range
 
                 for ref in decl.references.union(decl.related) {
                     if result.inheritedTypeLocations.contains(ref.location) {

@@ -61,6 +61,7 @@ public struct Parameter: Item, Hashable {
     let isIsolated: Bool
     let hasAttributes: Bool
     let location: Location
+    let range: DeclarationRange
 
     public let items: [Item] = []
 
@@ -74,6 +75,7 @@ public struct Parameter: Item, Hashable {
             location: location
         )
         decl.hasDefaultValue = hasDefaultValue
+        decl.range = range
         decl.parent = parent
         return decl
     }
@@ -257,7 +259,14 @@ struct UnusedParameterParser {
                          hasDefaultValue: syntax.defaultValue != nil,
                          isIsolated: isIsolated(parameter: syntax),
                          hasAttributes: !syntax.attributes.isEmpty,
-                         location: location)
+                         location: location,
+                         range: range(of: syntax))
+    }
+
+    /// The range of the parameter, its trailing comma excluded.
+    private func range(of syntax: FunctionParameterSyntax) -> DeclarationRange {
+        let end = syntax.trailingComma?.previousToken(viewMode: .sourceAccurate)?.endPositionBeforeTrailingTrivia
+        return locationConverter.declarationRange(of: syntax, attributes: syntax.attributes, end: end)
     }
 
     private func isIsolated(parameter syntax: FunctionParameterSyntax) -> Bool {
