@@ -10,6 +10,7 @@ public extension ScanResult {
         case unusedImport
         case superfluousIgnore
         case unusedParameter
+        case missingFinal
     }
 
     /// The fix this result calls for, or nil when it cannot be fixed by a syntax-only edit.
@@ -29,6 +30,8 @@ public extension ScanResult {
             .unusedImport
         case .unused where declaration.kind == .varParameter:
             .unusedParameter
+        case .missingFinal where declaration.kind == .class:
+            .missingFinal
         default:
             nil
         }

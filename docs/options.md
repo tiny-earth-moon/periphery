@@ -102,7 +102,7 @@ Skip the project build step.
 
 Key `skip_build` · flag, `--no-skip-build` to switch off · default `false`.
 
-See [Getting started: How a scan works](getting-started.md#how-a-scan-works), [Getting started: Xcode projects](getting-started.md#xcode-projects), [Fixing results: Safety](fixing-results.md#safety), [Continuous integration: Reusing the build](ci.md#reusing-the-build).
+See [Getting started: How a scan works](getting-started.md#how-a-scan-works), [Getting started: Xcode projects](getting-started.md#xcode-projects), [Fixing results: Options](fixing-results.md#options), [Fixing results: Safety](fixing-results.md#safety).
 
 ### `--skip-schemes-validation`
 
@@ -116,7 +116,7 @@ Index store paths, relative to the project root; implies skip_build.
 
 Key `index_store_path` · list of strings · default empty.
 
-See [Getting started: Swift packages](getting-started.md#swift-packages), [Getting started: Xcode projects](getting-started.md#xcode-projects), [Configuration: Paths](configuration.md#paths), [Fixing results: Safety](fixing-results.md#safety).
+See [Getting started: Swift packages](getting-started.md#swift-packages), [Getting started: Xcode projects](getting-started.md#xcode-projects), [Configuration: Paths](configuration.md#paths), [Fixing results: Options](fixing-results.md#options).
 
 ### `--strict-index`
 
@@ -142,7 +142,7 @@ Project configuration file for other build systems.
 
 Key `generic_project_config` · string · default none.
 
-See [Configuration: Paths](configuration.md#paths).
+See [Configuration: Paths](configuration.md#paths), [Fixing results: Options](fixing-results.md#options).
 
 ### `--cache-max-age-days`
 
@@ -250,7 +250,7 @@ Find redundant open accessibility and classes or members that could be final.
 
 Key `enable_open_final_analysis` · flag, `--no-enable-open-final-analysis` to switch off · default `false`.
 
-See [Analysis: Result kinds](analysis.md#result-kinds), [Analysis: Open and final](analysis.md#open-and-final), [Fixing results: Rules](fixing-results.md#rules).
+See [Analysis: Result kinds](analysis.md#result-kinds), [Analysis: Open and final](analysis.md#open-and-final), [Fixing results: Rules](fixing-results.md#rules), [Fixing results: Tier 2: --aggressive](fixing-results.md#tier-2---aggressive).
 
 ### `--enable-empty-extension-analysis`
 

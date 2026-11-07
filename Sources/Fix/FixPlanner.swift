@@ -230,7 +230,7 @@ public struct FixPlan {
     }
 }
 
-extension FilePath {
+public extension FilePath {
     func relativePath(from root: FilePath) -> String {
         let rootString = root.string.hasSuffix("/") ? root.string : root.string + "/"
         return string.hasPrefix(rootString) ? String(string.dropFirst(rootString.count)) : string

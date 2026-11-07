@@ -25,6 +25,8 @@ final class Scan {
         let results: [ScanResult]
         /// When the newest index store unit of each source file was written.
         let unitDates: [FilePath: Date]
+        /// The driver that built the project, so that `fix --verify` rebuilds it the same way.
+        let driver: ProjectDriver
     }
 
     func perform(project: Project) throws -> Output {
@@ -49,7 +51,7 @@ final class Scan {
         let (indexStoreSwiftVersion, unitDates) = try index(driver)
         try analyze(swiftVersion: indexStoreSwiftVersion)
         explain()
-        return Output(results: buildResults(), unitDates: unitDates)
+        return Output(results: buildResults(), unitDates: unitDates, driver: driver)
     }
 
     // MARK: - Private

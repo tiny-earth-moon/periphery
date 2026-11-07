@@ -1,6 +1,7 @@
 import Configuration
 
-/// A kind of result that `outskirts fix` applies with a syntax-only edit.
+/// A kind of result that `outskirts fix` applies with a syntax-only edit. Tier-1 rules apply by default, tier-2 rules
+/// only with `--aggressive`.
 public enum FixRule: String, CaseIterable, Sendable {
     case redundantPublic = "redundant-public"
     case redundantOpen = "redundant-open"
@@ -9,6 +10,12 @@ public enum FixRule: String, CaseIterable, Sendable {
     case unusedImport = "unused-import"
     case superfluousIgnore = "superfluous-ignore"
     case unusedParameter = "unused-parameter"
+    case missingFinal = "missing-final"
+
+    /// Whether the rule is a tier-2 rule, which changes behavior and only applies with `--aggressive`.
+    public var isAggressive: Bool {
+        self == .missingFinal
+    }
 
     /// Whether the analysis that produces the results of this rule is enabled. Opt-in analyses are only fixed when
     /// they are enabled on the command line or in the configuration file.
@@ -28,6 +35,8 @@ public enum FixRule: String, CaseIterable, Sendable {
             configuration.superfluousIgnoreComments
         case .unusedParameter:
             true
+        case .missingFinal:
+            configuration.enableOpenFinalAnalysis
         }
     }
 }
