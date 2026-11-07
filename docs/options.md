@@ -594,7 +594,7 @@ Do not print the results to stdout; requires write_results.
 
 Key `skip_stdout_results` · flag · default `false`.
 
-See [Getting started: Results and messages](getting-started.md#results-and-messages), [Getting started: Exit status](getting-started.md#exit-status), [Output formats: Writing to a file](output-formats.md#writing-to-a-file).
+See [Getting started: Results and messages](getting-started.md#results-and-messages), [Getting started: Exit status](getting-started.md#exit-status), [Output formats: Writing to a file](output-formats.md#writing-to-a-file), [Configuration: Checking a configuration file](configuration.md#checking-a-configuration-file).
 
 ### `--quiet`
 

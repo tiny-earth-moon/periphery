@@ -81,7 +81,7 @@ outskirts config check --config <file> \
   --project-root <dir>
 ```
 
-It reports on stderr, in the same words as a scan, unknown keys with the closest option, values of the wrong type, invalid `report_exclude` and `retain_attributes` entries, and baseline and output paths a scan would refuse. It prints `<file>: ok` and exits with status 0 when there is nothing to report, and exits with status 1 when it finds a problem or no configuration file.
+It reports on stderr, in the same words as a scan, unknown keys with the closest option, values of the wrong type, invalid `report_exclude` and `retain_attributes` entries, options missing the option they require (such as `skip_stdout_results` without `write_results`), and baseline and output paths a scan would refuse. It prints `<file>: ok` and exits with status 0 when there is nothing to report, and exits with status 1 when it finds a problem or no configuration file.
 
 ## Paths
 

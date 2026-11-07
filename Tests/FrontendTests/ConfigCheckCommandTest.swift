@@ -65,6 +65,33 @@ final class ConfigCheckCommandTest: XCTestCase {
         XCTAssertTrue(none.stderr.contains("No configuration file"), none.stderr)
     }
 
+    func testSkipStdoutResultsWithoutWriteResultsExitsOneWithTheScanError() throws {
+        try write(".outskirts.yml", "skip_stdout_results: true\n")
+
+        let output = try check([])
+
+        XCTAssertEqual(output.status, 1)
+        XCTAssertTrue(output.stderr.contains("error: The '--skip-stdout-results' option requires '--write-results', otherwise the results would not be output anywhere."), output.stderr)
+    }
+
+    func testChangedLinesWithoutChangedSinceExitsOneWithTheScanError() throws {
+        try write(".outskirts.yml", "changed_lines: true\n")
+
+        let output = try check([])
+
+        XCTAssertEqual(output.status, 1)
+        XCTAssertTrue(output.stderr.contains("error: The '--changed-lines' option requires '--changed-since', otherwise there is nothing to compare the lines with."), output.stderr)
+    }
+
+    func testEveryUsageErrorIsReported() throws {
+        try write(".outskirts.yml", "skip_stdout_results: true\nchanged_lines: true\nstrict_baseline: true\n")
+
+        let output = try check([])
+
+        XCTAssertEqual(output.status, 1)
+        XCTAssertTrue(output.stderr.contains(".outskirts.yml: 3 problems found"), output.stderr)
+    }
+
     // MARK: - Private
 
     private struct Output {

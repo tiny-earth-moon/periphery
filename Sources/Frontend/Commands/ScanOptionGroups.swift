@@ -13,11 +13,8 @@ struct ProjectOptions: ParsableArguments {
     @Flag(help: "Enable guided setup")
     var setup: Bool = defaultConfiguration.guidedSetup
 
-    @Option(help: "Path to the root directory of your project (default: the current directory)", completion: .directory)
-    var projectRoot: FilePath?
-
-    @Option(help: "Path to configuration file, relative paths being resolved from '--project-root'. By default outskirts looks for .outskirts.yml (or .periphery.yml) in the project root", completion: .file(extensions: ["yml", "yaml"]))
-    var config: FilePath?
+    @OptionGroup
+    var locationOptions: ProjectLocationOptions
 
     @Option(help: "Path to your project's .xcodeproj or .xcworkspace", completion: .file())
     var project: FilePath?

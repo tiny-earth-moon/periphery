@@ -4,7 +4,6 @@ import Foundation
 import Logger
 import PeripheryKit
 import Shared
-import SourceGraph
 import SystemPackage
 
 struct ScanCommand: ParsableCommand {
@@ -130,15 +129,12 @@ struct ScanCommand: ParsableCommand {
     }
 
     func run() throws {
-        let projectRoot = projectOptions.projectRoot ?? FilePath(FileManager.default.currentDirectoryPath)
-        if !FileManager.default.changeCurrentDirectoryPath(projectRoot.string) {
-            throw PeripheryError.changeCurrentDirectoryFailed(projectRoot)
-        }
+        let projectRoot = try projectOptions.locationOptions.changeToProjectRoot()
 
         let configuration = Configuration()
 
         if !projectOptions.setup {
-            try configuration.load(from: projectOptions.config)
+            try configuration.load(from: projectOptions.locationOptions.config)
         }
 
         configuration.guidedSetup = projectOptions.setup
@@ -147,18 +143,8 @@ struct ScanCommand: ParsableCommand {
         configuration.projectRoot = projectRoot
         apply(to: configuration)
 
-        if configuration.skipStdoutResults, configuration.writeResults == nil {
-            throw PeripheryError.usageError("The '--skip-stdout-results' option requires '--write-results', otherwise the results would not be output anywhere.")
-        }
-
-        if configuration.changedLines, configuration.changedSince == nil {
-            throw PeripheryError.usageError("The '--changed-lines' option requires '--changed-since', otherwise there is nothing to compare the lines with.")
-        }
-
         configuration.buildFilenameMatchers()
-        _ = try ReportExcludeRule.resolve(configuration)
-        _ = try AttributeRetentionRule.resolve(configuration)
-        let baseline = try ScanPreflight.validatePaths(of: configuration)
+        let baseline = try ScanPreflight.validate(configuration)
 
         let logger = Logger(configuration: configuration)
         ScanPreflight.applyOutputFormatRequirements(to: configuration, logger: logger)
@@ -196,12 +182,12 @@ struct ScanCommand: ParsableCommand {
         let filteredResults = try outputFilter.filter(results, with: baseline)
 
         if configuration.pruneBaseline, let baselinePath = configuration.baseline {
-            try Self.writeBaseline(.pruned(keeping: outputFilter.baselineMatchedResults, projectRoot: configuration.projectRoot), to: baselinePath)
+            try Baseline.pruned(keeping: outputFilter.baselineMatchedResults, projectRoot: configuration.projectRoot).write(to: baselinePath)
             logger.info("Pruned \(outputFilter.staleBaselineEntries.count) stale entries from \(baselinePath.string)")
         }
 
         if let baselinePath = configuration.writeBaseline {
-            try Self.writeBaseline(.written(from: filteredResults, union: baseline, projectRoot: configuration.projectRoot), to: baselinePath)
+            try Baseline.written(from: filteredResults, union: baseline, projectRoot: configuration.projectRoot).write(to: baselinePath)
         }
 
         let reportedResults = try ChangedSinceFilter(configuration: configuration, shell: shell, logger: logger).filter(filteredResults)
@@ -256,8 +242,6 @@ struct ScanCommand: ParsableCommand {
         }
     }
 
-    /// The error that ends the scan with a non-zero status when `--strict-baseline` finds stale entries, which
-    /// `--prune-baseline` has just removed.
     /// With `--quiet`, stdout stays empty when there is nothing to report, and the report goes to
     /// the `--write-results` file only.
     static func shouldPrintToStdout(configuration: Configuration, resultCount: Int) -> Bool {
@@ -293,14 +277,12 @@ struct ScanCommand: ParsableCommand {
         }
     }
 
+    /// The error that ends the scan with a non-zero status when `--strict-baseline` finds stale entries, unless
+    /// `--prune-baseline` has just removed them.
     static func staleBaselineFailure(configuration: Configuration, staleEntryCount: Int) -> PeripheryError? {
         guard configuration.strictBaseline, !configuration.pruneBaseline, staleEntryCount > 0 else { return nil }
 
         return .staleBaselineEntries(count: staleEntryCount)
-    }
-
-    static func writeBaseline(_ baseline: Baseline, to path: FilePath) throws {
-        try baseline.write(to: path)
     }
 
     // MARK: - Private
