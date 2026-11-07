@@ -22,7 +22,7 @@ final class RemovedBazelConfigurationTest: XCTestCase {
         for key in ["bazel", "bazel_filter", "bazel_query", "bazel_index_store", "bazel_check_visibility"] {
             let file = try write("\(key): true\n")
 
-            XCTAssertThrowsError(try Configuration().load(from: file), key) { error in
+            XCTAssertThrowsError(try Configuration().load(from: file) { _ in }, key) { error in
                 XCTAssertEqual(
                     error.localizedDescription,
                     "'\(key)' in \(file.string) is no longer supported: Bazel support was removed in 3.13.0. The agoodkind/periphery fork maintains a Bazel mode."
@@ -34,7 +34,7 @@ final class RemovedBazelConfigurationTest: XCTestCase {
     func testBazelKeyIsRejectedWhateverItsValue() throws {
         let file = try write("bazel: false\n")
 
-        XCTAssertThrowsError(try Configuration().load(from: file)) { error in
+        XCTAssertThrowsError(try Configuration().load(from: file) { _ in }) { error in
             guard case PeripheryError.removedBazelOption = error else {
                 return XCTFail("Unexpected error \(error)")
             }
@@ -48,7 +48,7 @@ final class RemovedBazelConfigurationTest: XCTestCase {
         retain_public: true
         """)
 
-        XCTAssertThrowsError(try Configuration().load(from: file)) { error in
+        XCTAssertThrowsError(try Configuration().load(from: file) { _ in }) { error in
             guard case PeripheryError.removedBazelOption = error else {
                 return XCTFail("Unexpected error \(error)")
             }
@@ -57,9 +57,12 @@ final class RemovedBazelConfigurationTest: XCTestCase {
 
     func testOtherKeysStillLoad() throws {
         let configuration = Configuration()
-        try configuration.load(from: write("strict: true\nunknown_option: 1\n"))
+        var warnings: [String] = []
+        try configuration.load(from: write("strict: true\nunknown_option: 1\n")) { warnings.append($0) }
 
         XCTAssertTrue(configuration.strict)
+        XCTAssertEqual(warnings.count, 1)
+        XCTAssertTrue(warnings.first?.contains("unknown_option") == true, "\(warnings)")
     }
 
     // MARK: - Private

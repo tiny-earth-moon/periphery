@@ -265,7 +265,7 @@ final class ConfigurationLoadTest: XCTestCase {
         for yaml in ["- a\n- b\n", "just a string\n", "42\n"] {
             let file = try write(yaml)
 
-            XCTAssertThrowsError(try Configuration().load(from: file), yaml) { error in
+            XCTAssertThrowsError(try Configuration().load(from: file) { _ in }, yaml) { error in
                 XCTAssertTrue(
                     error.localizedDescription.hasPrefix("\(file.string): the configuration must be a mapping of keys to values, got"),
                     error.localizedDescription

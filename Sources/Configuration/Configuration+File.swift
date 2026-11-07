@@ -1,5 +1,4 @@
 import Foundation
-import Logger
 import Shared
 import SystemPackage
 import Yams
@@ -22,12 +21,10 @@ public extension Configuration {
 
     /// Loads the configuration file. A value that is not valid for its setting, and a key that is not a setting, are
     /// reported to `warn` and ignored, an unreadable file or a document that is not a mapping is an error.
-    func load(from path: FilePath?, warn: ((String) -> Void)? = nil) throws {
+    func load(from path: FilePath?, warn: (String) -> Void) throws {
         guard let path = try configurationPath(withUserProvided: path) else { return }
 
         let encodedYAML = try String(contentsOf: path.url, encoding: .utf8)
-        let logger = Logger(quiet: false, verbose: false, colorMode: .never)
-        let warn = warn ?? { logger.warn($0) }
 
         // An empty document is an empty configuration.
         guard let document = try Yams.load(yaml: encodedYAML) else { return }

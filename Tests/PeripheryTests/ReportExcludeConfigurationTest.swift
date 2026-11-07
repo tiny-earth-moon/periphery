@@ -13,7 +13,7 @@ final class ReportExcludeConfigurationTest: XCTestCase {
         let file = dir.appendingPathComponent(".periphery.yml")
         try yaml.write(to: file, atomically: true, encoding: .utf8)
         let configuration = Configuration()
-        try configuration.load(from: FilePath(file.path))
+        try configuration.load(from: FilePath(file.path)) { XCTFail("Unexpected warning \($0)") }
         return configuration
     }
 

@@ -133,9 +133,10 @@ struct ScanCommand: ParsableCommand {
         let projectRoot = try projectOptions.locationOptions.changeToProjectRoot()
 
         let configuration = Configuration()
+        var configurationWarnings: [String] = []
 
         if !projectOptions.setup {
-            try configuration.load(from: projectOptions.locationOptions.config)
+            try configuration.load(from: projectOptions.locationOptions.config) { configurationWarnings.append($0) }
         }
 
         configuration.guidedSetup = projectOptions.setup
@@ -148,6 +149,7 @@ struct ScanCommand: ParsableCommand {
         let baseline = try ScanPreflight.validate(configuration)
 
         let logger = Logger(configuration: configuration)
+        configurationWarnings.forEach { logger.warn($0) }
         ScanPreflight.applyOutputFormatRequirements(to: configuration, logger: logger)
         ScanPreflight.warnAboutIgnoredSummary(of: configuration, logger: logger)
         logger.contextualized(with: "version").debug(PeripheryVersion)
