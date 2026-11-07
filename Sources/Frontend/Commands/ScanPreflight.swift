@@ -16,6 +16,13 @@ enum ScanPreflight {
         logger.contextualized(with: "configuration").debug("'\(configuration.outputFormat.rawValue)' output requires relative paths, enabling '--relative-results'")
     }
 
+    /// Warns that `--summary` has no effect with a format that never holds a summary, which keeps its output unchanged.
+    static func warnAboutIgnoredSummary(of configuration: Configuration, logger: Logger) {
+        guard configuration.summary == true, ![.xcode, .json].contains(configuration.outputFormat) else { return }
+
+        logger.warn("The '--summary' option has no effect with the '\(configuration.outputFormat.rawValue)' format, only with 'xcode' and 'json'.")
+    }
+
     /// Checks the baseline and the output destinations, and returns the decoded baseline for filtering.
     static func validatePaths(of configuration: Configuration) throws -> Baseline? {
         try validateBaselineOptions(of: configuration)
