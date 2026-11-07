@@ -315,6 +315,19 @@ public final class SourceGraph {
         references.forEach { allReferencesByUsr[$0.usr, default: []].insert($0) }
     }
 
+    /// Adds references the caller has already grouped by USR.
+    public func add(_ references: Set<Reference>, groupedByUsr referencesByUsr: [String: Set<Reference>]) {
+        allReferences.formUnion(references)
+
+        for (usr, usrReferences) in referencesByUsr {
+            if allReferencesByUsr[usr] == nil {
+                allReferencesByUsr[usr] = usrReferences
+            } else {
+                allReferencesByUsr[usr]?.formUnion(usrReferences)
+            }
+        }
+    }
+
     public func add(_ reference: Reference, from declaration: Declaration) {
         if reference.kind == .related {
             _ = declaration.related.insert(reference)
