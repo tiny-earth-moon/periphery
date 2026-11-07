@@ -1,4 +1,5 @@
 import Foundation
+import Shared
 import SourceGraph
 import SwiftSyntax
 
@@ -8,7 +9,7 @@ import SwiftSyntax
 /// The index store cannot record these uses because the stored properties are read by the runtime, so each value is
 /// recorded either by the token where the index store references its type, constructor or property, or by the type
 /// name of the local variable or parameter that holds it.
-public final class SynthesizedUseCollector: SyntaxVisitor {
+public final class SynthesizedUseCollector: PeripherySyntaxVisitor {
     private static let printFunctionNames: Set = ["print", "debugPrint"]
     private static let describingLabels: Set = ["describing", "reflecting"]
     private static let maxLocalResolutionDepth = 4
@@ -19,7 +20,10 @@ public final class SynthesizedUseCollector: SyntaxVisitor {
 
     init(sourceLocationBuilder: SourceLocationBuilder) {
         self.sourceLocationBuilder = sourceLocationBuilder
-        super.init(viewMode: .sourceAccurate)
+    }
+
+    public convenience init(sourceLocationBuilder: SourceLocationBuilder, swiftVersion _: SwiftVersion) {
+        self.init(sourceLocationBuilder: sourceLocationBuilder)
     }
 
     public static func collect(
@@ -33,10 +37,8 @@ public final class SynthesizedUseCollector: SyntaxVisitor {
         return collector.uses
     }
 
-    override public func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard let callee = node.calledExpression.as(DeclReferenceExprSyntax.self)?.baseName.text else {
-            return .visitChildren
-        }
+    public func visit(_ node: FunctionCallExprSyntax) {
+        guard let callee = node.calledExpression.as(DeclReferenceExprSyntax.self)?.baseName.text else { return }
 
         if Self.printFunctionNames.contains(callee) {
             for argument in node.arguments where argument.label == nil {
@@ -49,17 +51,13 @@ public final class SynthesizedUseCollector: SyntaxVisitor {
         {
             collect(argument.expression, kind: .description, depth: 0)
         }
-
-        return .visitChildren
     }
 
-    override public func visit(_ node: ExpressionSegmentSyntax) -> SyntaxVisitorContinueKind {
+    public func visit(_ node: ExpressionSegmentSyntax) {
         // Labeled segments such as `\(value, format: ...)` call a custom `appendInterpolation`.
         if node.expressions.count == 1, let element = node.expressions.first, element.label == nil {
             collect(element.expression, kind: .description, depth: 0)
         }
-
-        return .visitChildren
     }
 
     // MARK: - Private
